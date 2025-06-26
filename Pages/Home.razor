@@ -27,28 +27,15 @@
                 <div class="card">
                     <div class="card-header">
                         <h5 class="card-title mb-0">
-                            <i class="bi bi-info-circle"></i> Game Information
-                        </h5>
-                    </div>
-                    <div class="card-body">
-                        <p><strong>Total Plays Found:</strong> @magicPlays.Count</p>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="col-md-6">
-                <div class="card">
-                    <div class="card-header">
-                        <h5 class="card-title mb-0">
                             <i class="bi bi-graph-up"></i> Quick Stats
                         </h5>
                     </div>
                     <div class="card-body">
-                        @if (magicPlays.Any())
+                        <p><strong>Total Plays:</strong> @plays.Count</p>
+                        @if (plays.Any())
                         {
-                            <p><strong>Date Range:</strong> @magicPlays.Min(p => DateTime.Parse(p.Date)).ToShortDateString() - @magicPlays.Max(p => DateTime.Parse(p.Date)).ToShortDateString()</p>
-                            <p><strong>Average Duration:</strong> @magicPlays.Average(p => p.DurationInMinutes).ToString("F1") minutes</p>
-                            <p><strong>Total Play Time:</strong> @magicPlays.Sum(p => p.DurationInMinutes) minutes</p>
+                            <p><strong>Average Duration:</strong> @plays.Average(p => p.DurationInMinutes).ToString("F1") minutes</p>
+                            <p><strong>Total Play Time:</strong> @Utilities.FormatTotalPlayTime(plays.Sum(p => p.DurationInMinutes))</p>
                         }
                         else
                         {
@@ -59,7 +46,7 @@
             </div>
         </div>
 
-        @if (magicPlays.Any())
+        @if (plays.Any())
         {
             <div class="card mt-4">
                 <div class="card-header">
@@ -74,19 +61,17 @@
                                 <tr>
                                     <th>Date</th>
                                     <th>Duration</th>
-                                    <th>Board</th>
                                     <th>Players</th>
                                     <th>Winner</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                @foreach (var play in magicPlays.OrderByDescending(p => DateTime.Parse(p.Date)).Take(10))
+                                @foreach (var play in plays.OrderByDescending(p => DateTime.Parse(p.Date)).Take(10))
                                 {
                                     <tr>
-                                        <td>@DateTime.Parse(play.Date).ToShortDateString()</td>
+                                        <td>@DateTime.Parse(play.Date).ToString("yyyy-MM-dd")</td>
                                         <td>@play.DurationInMinutes min</td>
-                                        <td>@play.Variant</td>
-                                        <td>@string.Join(", ", play.PlayerScores.Select(p => p.PlayerName))</td>
+                                        <td>@string.Join(" vs ", play.PlayerScores.Select(p => p.PlayerName))</td>
                                         <td>
                                             @{
                                                 var winner = play.PlayerScores.FirstOrDefault(p => p.IsWinner);
@@ -128,7 +113,7 @@
                             </thead>
                             <tbody>
                                 @{
-                                    var playerStats = magicPlays
+                                    var playerStats = plays
                                         .SelectMany(p => p.PlayerScores)
                                         .GroupBy(ps => ps.PlayerName)
                                         .Select(g => new
@@ -183,7 +168,7 @@
 @code {
     private bool isLoading = true;
     private string? errorMessage;
-    private List<Play> magicPlays = new();
+    private List<Play> plays = new();
 
     protected override async Task OnInitializedAsync()
     {
@@ -192,7 +177,7 @@
             isLoading = true;
             
             // Get all Magic plays
-            magicPlays = await BGStatsService.GetMagicPlaysAsync();
+            plays = await BGStatsService.GetMagicPlaysAsync();
         }
         catch (Exception ex)
         {
