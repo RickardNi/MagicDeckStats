@@ -196,6 +196,25 @@
                 </div>
             </div>
         </div>
+
+        <div class="card mt-4">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="bi bi-bar-chart me-2"></i> Win Rate Chart
+                </h5>
+            </div>
+            <div class="card-body">
+                <ApexChart TItem="DeckStats"
+                           Title="Deck Win Rates">
+                    <ApexPointSeries TItem="DeckStats"
+                                     Items="GetSortedDeckStats()"
+                                     Name="Win Rate"
+                                     SeriesType="SeriesType.Bar"
+                                     XValue="e => e.DeckName"
+                                     YValue="e => (decimal)(e.TotalGames > 0 ? (double)e.Wins / e.TotalGames * 100 : 0)" />
+                </ApexChart>
+            </div>
+        </div>
     }
 </div>
 
