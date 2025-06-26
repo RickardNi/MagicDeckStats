@@ -61,22 +61,37 @@
                                 <tr>
                                     <th>Date</th>
                                     <th>Duration</th>
+                                    <th></th>
                                     <th>Winner</th>
+                                    <th>Player</th>
+                                    <th></th>
                                     <th>Loser</th>
+                                    <th>Player</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 @foreach (var play in plays.OrderByDescending(p => DateTime.Parse(p.Date)).Take(10))
                                 {
+                                    var winner = play.PlayerScores.FirstOrDefault(p => p.IsWinner);
+                                    var loser = play.PlayerScores.FirstOrDefault(p => !p.IsWinner);
+                                    
                                     <tr>
                                         <td>@DateTime.Parse(play.Date).ToString("yyyy-MM-dd")</td>
                                         <td>@play.DurationInMinutes min</td>
                                         <td>
+                                            @if (winner.IsStartPlayer)
+                                            {
+                                                <i class="bi bi-flag-fill text-warning" title="Starting Player"></i>
+                                            }
+                                        </td>
+                                        <td>
+                                            <span class="text-success fw-bold">@winner.Deck</span>
+                                        </td>
+                                        <td>
                                             @{
-                                                var winner = play.PlayerScores.FirstOrDefault(p => p.IsWinner);
                                                 if (winner != null)
                                                 {
-                                                    <span class="text-success fw-bold">@winner.PlayerName (@winner.Deck)</span>
+                                                    <span class="text-success">@winner.PlayerName</span>
                                                 }
                                                 else
                                                 {
@@ -85,11 +100,19 @@
                                             }
                                         </td>
                                         <td>
+                                            @if (loser.IsStartPlayer)
+                                            {
+                                                <i class="bi bi-flag-fill text-warning" title="Starting Player"></i>
+                                            }
+                                        </td>
+                                        <td>
+                                            <span class="text-danger">@loser.Deck</span>
+                                        </td>
+                                        <td>
                                             @{
-                                                var loser = play.PlayerScores.FirstOrDefault(p => !p.IsWinner);
                                                 if (loser != null)
                                                 {
-                                                    <span class="text-danger">@loser.PlayerName (@loser.Deck)</span>
+                                                    <span class="text-danger">@loser.PlayerName</span>
                                                 }
                                                 else
                                                 {
@@ -136,7 +159,7 @@
                                             WinRate = g.Count(ps => ps.IsWinner) * 100.0 / g.Count()
                                         })
                                         .OrderByDescending(p => p.GamesPlayed)
-                                        .Take(5)
+                                        .Take(15)
                                         .ToList();
 
                                     for (int i = 0; i < playerStats.Count; i++)
@@ -154,7 +177,7 @@
                                                 }
                                                 else if (i == 2)
                                                 {
-                                                    <span class="badge bg-warning text-dark">🥉</span>
+                                                    <span class="badge" style="background-color: #cd7f32; color: white;">🥉</span>
                                                 }
                                                 else
                                                 {
