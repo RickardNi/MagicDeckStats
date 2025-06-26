@@ -203,3 +203,6 @@ Thumbs.db
 
 # Cursor files
 .cursor/
+
+# Sample data file
+wwwroot/sample-data/BGStatsExport.json
