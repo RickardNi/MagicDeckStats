@@ -61,8 +61,8 @@
                                 <tr>
                                     <th>Date</th>
                                     <th>Duration</th>
-                                    <th>Players</th>
                                     <th>Winner</th>
+                                    <th>Loser</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -71,17 +71,29 @@
                                     <tr>
                                         <td>@DateTime.Parse(play.Date).ToString("yyyy-MM-dd")</td>
                                         <td>@play.DurationInMinutes min</td>
-                                        <td>@string.Join(" vs ", play.PlayerScores.Select(p => p.PlayerName))</td>
                                         <td>
                                             @{
                                                 var winner = play.PlayerScores.FirstOrDefault(p => p.IsWinner);
                                                 if (winner != null)
                                                 {
-                                                    <span class="badge bg-success">@winner.PlayerName (@winner.Deck)</span>
+                                                    <span class="text-success fw-bold">@winner.PlayerName (@winner.Deck)</span>
                                                 }
                                                 else
                                                 {
                                                     <span class="text-muted">No winner</span>
+                                                }
+                                            }
+                                        </td>
+                                        <td>
+                                            @{
+                                                var loser = play.PlayerScores.FirstOrDefault(p => !p.IsWinner);
+                                                if (loser != null)
+                                                {
+                                                    <span class="text-danger">@loser.PlayerName (@loser.Deck)</span>
+                                                }
+                                                else
+                                                {
+                                                    <span class="text-muted">No loser</span>
                                                 }
                                             }
                                         </td>
