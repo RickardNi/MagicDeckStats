@@ -1,38 +1,142 @@
 ﻿@page "/"
+@using MagicDeckStats.Services
+@using MagicDeckStats.Models
+@inject IBGStatsImportService BGStatsService
 
-<PageTitle>Home</PageTitle>
+<PageTitle>Magic Deck Stats - Home</PageTitle>
 
-<ApexChart TItem="MyData"
-               Title="Sample Data">
-
-        <ApexPointSeries TItem="MyData"
-                         Items="Data"
-                         Name="Net Profit"
-                         SeriesType="SeriesType.Bar"
-                         XValue="e => e.Category"
-                         YValue="e=> e.NetProfit" />
-
-        <ApexPointSeries TItem="MyData"
-                         Items="Data"
-                         Name="Revenue"
-                         SeriesType="SeriesType.Bar"
-                         XValue="e => e.Category"
-                         YValue="e=> e.Revenue" />
-    </ApexChart>
+<div class="container mt-4">
+    <h1>Magic Deck Stats</h1>
     
-@code {
-    private List<MyData> Data { get; set; } = new();
-    protected override void OnInitialized()
+    @if (isLoading)
     {
-        Data.Add(new MyData { Category = "Jan", NetProfit = 12, Revenue = 33 });
-        Data.Add(new MyData { Category = "Feb", NetProfit = 43, Revenue = 42 });
-        Data.Add(new MyData { Category = "Mar", NetProfit = 112, Revenue = 23 });
+        <div class="alert alert-info">
+            <i class="bi bi-arrow-clockwise spin"></i> Loading Magic: The Gathering data...
+        </div>
     }
-
-    public class MyData
+    else if (errorMessage != null)
     {
-        public string Category { get; set; }
-        public int NetProfit { get; set; }
-        public int Revenue { get; set; }
+        <div class="alert alert-danger">
+            <i class="bi bi-exclamation-triangle"></i> @errorMessage
+        </div>
+    }
+    else
+    {
+        <div class="row">
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="card-title mb-0">
+                            <i class="bi bi-info-circle"></i> Game Information
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <p><strong>Magic: The Gathering Game ID:</strong> @(magicGameId?.ToString() ?? "Not found")</p>
+                        <p><strong>Total Plays Found:</strong> @magicPlays.Count</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="card-title mb-0">
+                            <i class="bi bi-graph-up"></i> Quick Stats
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        @if (magicPlays.Any())
+                        {
+                            <p><strong>Date Range:</strong> @magicPlays.Min(p => p.PlayDate).ToShortDateString() - @magicPlays.Max(p => p.PlayDate).ToShortDateString()</p>
+                            <p><strong>Average Duration:</strong> @magicPlays.Average(p => p.Duration).ToString("F1") minutes</p>
+                            <p><strong>Total Play Time:</strong> @magicPlays.Sum(p => p.Duration) minutes</p>
+                        }
+                        else
+                        {
+                            <p class="text-muted">No plays found</p>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        @if (magicPlays.Any())
+        {
+            <div class="card mt-4">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="bi bi-list-ul"></i> Recent Magic: The Gathering Plays
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-striped table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Duration</th>
+                                    <th>Board</th>
+                                    <th>Players</th>
+                                    <th>Winner</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var play in magicPlays.OrderByDescending(p => p.PlayDate).Take(10))
+                                {
+                                    <tr>
+                                        <td>@play.PlayDate.ToShortDateString()</td>
+                                        <td>@play.Duration min</td>
+                                        <td>@play.Board</td>
+                                        <td>@play.PlayerScores.Count</td>
+                                        <td>
+                                            @{
+                                                var winner = play.PlayerScores.FirstOrDefault(p => p.IsWinner);
+                                                if (winner != null)
+                                                {
+                                                    <span class="badge bg-success">@winner.Deck</span>
+                                                }
+                                                else
+                                                {
+                                                    <span class="text-muted">No winner</span>
+                                                }
+                                            }
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        }
+    }
+</div>
+
+@code {
+    private bool isLoading = true;
+    private string? errorMessage;
+    private int? magicGameId;
+    private List<MagicPlay> magicPlays = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            isLoading = true;
+            
+            // Get the Magic: The Gathering game ID
+            magicGameId = await BGStatsService.GetMagicGameIdAsync();
+            
+            // Get all Magic plays
+            magicPlays = await BGStatsService.GetMagicPlaysAsync();
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Error loading data: {ex.Message}";
+        }
+        finally
+        {
+            isLoading = false;
+        }
     }
 }
