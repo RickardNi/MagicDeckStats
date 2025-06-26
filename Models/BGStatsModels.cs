@@ -5,13 +5,13 @@ namespace MagicDeckStats.Models;
 public class BGStatsExport
 {
     [JsonPropertyName("games")]
-    public List<Game> Games { get; set; } = new();
+    public List<Game> Games { get; set; } = [];
 
     [JsonPropertyName("plays")]
-    public List<Play> Plays { get; set; } = new();
+    public List<Play> Plays { get; set; } = [];
 
     [JsonPropertyName("players")]
-    public List<Player> Players { get; set; } = new();
+    public List<Player> Players { get; set; } = [];
 }
 
 public class Game
@@ -41,7 +41,7 @@ public class Play
     public int GameRefId { get; set; }
 
     [JsonPropertyName("playerScores")]
-    public List<PlayerScore> PlayerScores { get; set; } = new();
+    public List<PlayerScore> PlayerScores { get; set; } = [];
 }
 
 public class Player
@@ -72,24 +72,8 @@ public class PlayerScore
 
     [JsonPropertyName("role")]
     public string Deck { get; set; } = string.Empty;
-}
 
-// Simplified models for the parsed data we want to store
-public class MagicPlay
-{
-    public DateTime PlayDate { get; set; }
-    public int Duration { get; set; }
-    public int Rounds { get; set; }
-    public string Deck { get; set; } = string.Empty;
-    public List<MagicPlayerScore> PlayerScores { get; set; } = new();
-}
-
-public class MagicPlayerScore
-{
-    public object? Score { get; set; }
-    public bool IsWinner { get; set; }
-    public bool IsNewPlayer { get; set; }
-    public bool IsStartPlayer { get; set; }
+    // Add PlayerName for display purposes (not from JSON)
+    [JsonIgnore]
     public string PlayerName { get; set; } = string.Empty;
-    public string Deck { get; set; } = string.Empty;
-} 
+}

@@ -31,7 +31,6 @@
                         </h5>
                     </div>
                     <div class="card-body">
-                        <p><strong>Magic: The Gathering Game ID:</strong> @(magicGameId?.ToString() ?? "Not found")</p>
                         <p><strong>Total Plays Found:</strong> @magicPlays.Count</p>
                     </div>
                 </div>
@@ -47,9 +46,9 @@
                     <div class="card-body">
                         @if (magicPlays.Any())
                         {
-                            <p><strong>Date Range:</strong> @magicPlays.Min(p => p.PlayDate).ToShortDateString() - @magicPlays.Max(p => p.PlayDate).ToShortDateString()</p>
-                            <p><strong>Average Duration:</strong> @magicPlays.Average(p => p.Duration).ToString("F1") minutes</p>
-                            <p><strong>Total Play Time:</strong> @magicPlays.Sum(p => p.Duration) minutes</p>
+                            <p><strong>Date Range:</strong> @magicPlays.Min(p => DateTime.Parse(p.Date)).ToShortDateString() - @magicPlays.Max(p => DateTime.Parse(p.Date)).ToShortDateString()</p>
+                            <p><strong>Average Duration:</strong> @magicPlays.Average(p => p.DurationInMinutes).ToString("F1") minutes</p>
+                            <p><strong>Total Play Time:</strong> @magicPlays.Sum(p => p.DurationInMinutes) minutes</p>
                         }
                         else
                         {
@@ -81,12 +80,12 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                @foreach (var play in magicPlays.OrderByDescending(p => p.PlayDate).Take(10))
+                                @foreach (var play in magicPlays.OrderByDescending(p => DateTime.Parse(p.Date)).Take(10))
                                 {
                                     <tr>
-                                        <td>@play.PlayDate.ToShortDateString()</td>
-                                        <td>@play.Duration min</td>
-                                        <td>@play.Deck</td>
+                                        <td>@DateTime.Parse(play.Date).ToShortDateString()</td>
+                                        <td>@play.DurationInMinutes min</td>
+                                        <td>@play.Variant</td>
                                         <td>@string.Join(", ", play.PlayerScores.Select(p => p.PlayerName))</td>
                                         <td>
                                             @{
@@ -184,8 +183,7 @@
 @code {
     private bool isLoading = true;
     private string? errorMessage;
-    private int? magicGameId;
-    private List<MagicPlay> magicPlays = new();
+    private List<Play> magicPlays = new();
 
     protected override async Task OnInitializedAsync()
     {

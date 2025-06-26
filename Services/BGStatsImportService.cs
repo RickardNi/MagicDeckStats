@@ -1,11 +1,11 @@
-using System.Text.Json;
 using MagicDeckStats.Models;
+using System.Text.Json;
 
 namespace MagicDeckStats.Services;
 
 public interface IBGStatsImportService
 {
-    Task<List<MagicPlay>> GetMagicPlaysAsync();
+    Task<List<Play>> GetMagicPlaysAsync();
     Task<int?> GetMagicGameIdAsync();
 }
 
@@ -22,9 +22,9 @@ public class BGStatsImportService(HttpClient httpClient, ILogger<BGStatsImportSe
             return _magicGameId.Value;
 
         var data = await LoadBGStatsDataAsync();
-        
+
         _logger.LogInformation("Loaded {GameCount} games from BGStats export", data.Games.Count);
-        
+
         var magicGame = data.Games.FirstOrDefault(g => g.Name.Equals("Magic: The Gathering", StringComparison.OrdinalIgnoreCase));
 
         if (magicGame != null)
@@ -40,7 +40,7 @@ public class BGStatsImportService(HttpClient httpClient, ILogger<BGStatsImportSe
         return _magicGameId;
     }
 
-    public async Task<List<MagicPlay>> GetMagicPlaysAsync()
+    public async Task<List<Play>> GetMagicPlaysAsync()
     {
         var magicGameId = await GetMagicGameIdAsync();
 
@@ -52,38 +52,29 @@ public class BGStatsImportService(HttpClient httpClient, ILogger<BGStatsImportSe
 
         var data = await LoadBGStatsDataAsync();
         _logger.LogInformation("Loaded {PlayCount} plays from BGStats export", data.Plays.Count);
-        
-        var magicPlays = data.Plays.Where(p => p.GameRefId == magicGameId.Value).ToList();
-        _logger.LogInformation("Found {MagicPlayCount} plays for Magic: The Gathering (GameRefId: {GameRefId})", 
-            magicPlays.Count, magicGameId.Value);
-        
-        // Create a lookup dictionary for player names
-        var playerLookup = data.Players.ToDictionary(p => p.Id, p => p.Name);
-        
-        var result = new List<MagicPlay>();
 
-        foreach (var play in magicPlays)
+        var plays = data.Plays.Where(p => p.GameRefId == magicGameId.Value).ToList();
+        _logger.LogInformation("Found {MagicPlayCount} plays for Magic: The Gathering (GameRefId: {GameRefId})",
+            plays.Count, magicGameId.Value);
+
+        // Create a lookup dictionary for player names
+        var playerNamesById = data.Players.ToDictionary(p => p.Id, p => p.Name);
+
+        foreach (var play in plays)
         {
             try
             {
-                var magicPlay = new MagicPlay
+                // Set PlayerName for each PlayerScore
+                foreach (var playerScore in play.PlayerScores)
                 {
-                    PlayDate = DateTime.Parse(play.Date),
-                    Duration = play.DurationInMinutes,
-                    Rounds = play.Rounds,
-                    Deck = play.Variant,
-                    PlayerScores = play.PlayerScores.Select(ps => new MagicPlayerScore
+                    if (playerNamesById.TryGetValue(playerScore.PlayerRefId, out var name))
+                        playerScore.PlayerName = name;
+                    else
                     {
-                        Score = ps.Score,
-                        IsWinner = ps.IsWinner,
-                        IsNewPlayer = ps.IsNewPlayer,
-                        IsStartPlayer = ps.IsStartPlayer,
-                        PlayerName = "Unknown Player", // Since we removed PlayerRefId, we can't look up the name
-                        Deck = ps.Deck
-                    }).ToList()
-                };
-
-                result.Add(magicPlay);
+                        _logger.LogError("Player with {PlayerRedId} not found", playerScore.PlayerRefId);
+                        playerScore.PlayerName = "Unknown Player";
+                    }
+                }
             }
             catch (Exception ex)
             {
@@ -91,8 +82,8 @@ public class BGStatsImportService(HttpClient httpClient, ILogger<BGStatsImportSe
             }
         }
 
-        _logger.LogInformation("Successfully parsed {ParsedPlayCount} Magic: The Gathering plays", result.Count);
-        return result;
+        _logger.LogInformation("Successfully parsed {ParsedPlayCount} Magic: The Gathering plays", plays.Count);
+        return plays;
     }
 
     private async Task<BGStatsExport> LoadBGStatsDataAsync()
@@ -105,7 +96,7 @@ public class BGStatsImportService(HttpClient httpClient, ILogger<BGStatsImportSe
             _logger.LogInformation("Loading BGStats export data...");
             var jsonContent = await _httpClient.GetStringAsync("sample-data/BGStatsExport.json");
             _logger.LogInformation("Loaded JSON content, length: {ContentLength} characters", jsonContent.Length);
-            
+
             var jsonOptions = new JsonSerializerOptions
             {
                 PropertyNameCaseInsensitive = true,
@@ -114,14 +105,14 @@ public class BGStatsImportService(HttpClient httpClient, ILogger<BGStatsImportSe
             };
 
             _cachedData = JsonSerializer.Deserialize<BGStatsExport>(jsonContent, jsonOptions);
-            
+
             if (_cachedData == null)
             {
                 _logger.LogError("Failed to deserialize BGStats export data");
                 return new BGStatsExport();
             }
 
-            _logger.LogInformation("Successfully loaded BGStats export with {GameCount} games and {PlayCount} plays", 
+            _logger.LogInformation("Successfully loaded BGStats export with {GameCount} games and {PlayCount} plays",
                 _cachedData.Games.Count, _cachedData.Plays.Count);
 
             return _cachedData;
@@ -132,4 +123,4 @@ public class BGStatsImportService(HttpClient httpClient, ILogger<BGStatsImportSe
             return new BGStatsExport();
         }
     }
-} 
+}
