@@ -67,7 +67,7 @@ public class BGStatsImportService(HttpClient httpClient, ILogger<BGStatsImportSe
         {
             try
             {
-                // Set PlayerName for each PlayerScore
+                // Set PlayerName for each PlayerScore and clean deck names
                 foreach (var playerScore in play.PlayerScores)
                 {
                     if (playerNamesById.TryGetValue(playerScore.PlayerRefId, out var name))
@@ -77,6 +77,8 @@ public class BGStatsImportService(HttpClient httpClient, ILogger<BGStatsImportSe
                         _logger.LogError("Player with {PlayerRedId} not found", playerScore.PlayerRefId);
                         playerScore.PlayerName = "Unknown Player";
                     }
+
+                    playerScore.Deck = CleanDeckPrefix(playerScore.Deck);
                 }
             }
             catch (Exception ex)
@@ -89,6 +91,22 @@ public class BGStatsImportService(HttpClient httpClient, ILogger<BGStatsImportSe
         return plays;
     }
 
+    private static string CleanDeckPrefix(string deckName)
+    {
+        if (string.IsNullOrWhiteSpace(deckName))
+            return deckName;
+
+        const string battleDeckPrefix = "[Battle Deck]";
+
+        if (deckName.StartsWith(battleDeckPrefix, StringComparison.OrdinalIgnoreCase))
+        {
+            var cleanedName = deckName[battleDeckPrefix.Length..].Trim();
+            return string.IsNullOrWhiteSpace(cleanedName) ? deckName : cleanedName;
+        }
+
+        return deckName;
+    }
+
     private async Task<BGStatsExport> LoadBGStatsDataAsync()
     {
         if (_cachedData != null)
@@ -98,7 +116,6 @@ public class BGStatsImportService(HttpClient httpClient, ILogger<BGStatsImportSe
         {
             _logger.LogInformation("Loading BGStats export data...");
             var jsonContent = await _httpClient.GetStringAsync("sample-data/BGStatsExport.json");
-            _logger.LogInformation("Loaded JSON content, length: {ContentLength} characters", jsonContent.Length);
 
             var jsonOptions = new JsonSerializerOptions
             {
