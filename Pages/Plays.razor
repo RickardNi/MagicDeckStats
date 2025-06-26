@@ -1,0 +1,229 @@
+@page "/plays"
+@using MagicDeckStats.Services
+@using MagicDeckStats.Models
+@inject IBGStatsImportService BGStatsService
+
+<PageTitle>Magic Deck Stats - All Plays</PageTitle>
+
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1><i class="bi bi-list-ul"></i> All Plays</h1>
+        <div class="text-muted">
+            Showing @((currentPage - 1) * pageSize + 1)-@Math.Min(currentPage * pageSize, totalPlays) of @totalPlays plays
+        </div>
+    </div>
+
+    @if (isLoading)
+    {
+        <div class="alert alert-info">
+            <i class="bi bi-arrow-clockwise spin"></i> Loading plays...
+        </div>
+    }
+    else if (errorMessage != null)
+    {
+        <div class="alert alert-danger">
+            <i class="bi bi-exclamation-triangle"></i> @errorMessage
+        </div>
+    }
+    else if (!plays.Any())
+    {
+        <div class="alert alert-warning">
+            <i class="bi bi-exclamation-triangle"></i> No plays found.
+        </div>
+    }
+    else
+    {
+        <div class="card">
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-striped table-hover">
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Duration</th>
+                                <th></th>
+                                <th>Winner</th>
+                                <th>Player</th>
+                                <th></th>
+                                <th>Loser</th>
+                                <th>Player</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var play in currentPagePlays)
+                            {
+                                var winner = play.PlayerScores.FirstOrDefault(p => p.IsWinner);
+                                var loser = play.PlayerScores.FirstOrDefault(p => !p.IsWinner);
+                                
+                                <tr>
+                                    <td>@DateTime.Parse(play.Date).ToString("yyyy-MM-dd")</td>
+                                    <td>@(play.DurationInMinutes > 0 ? $"{play.DurationInMinutes} min" : "-")</td>
+                                    <td>
+                                        @if (winner?.IsStartPlayer == true)
+                                        {
+                                            <i class="bi bi-flag-fill text-warning" title="Starting Player"></i>
+                                        }
+                                    </td>
+                                    <td>
+                                        <span class="text-success fw-bold">@winner?.Deck</span>
+                                    </td>
+                                    <td>
+                                        @if (winner != null)
+                                        {
+                                            <span class="text-success">@winner.PlayerName</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted">No winner</span>
+                                        }
+                                    </td>
+                                    <td>
+                                        @if (loser?.IsStartPlayer == true)
+                                        {
+                                            <i class="bi bi-flag-fill text-warning" title="Starting Player"></i>
+                                        }
+                                    </td>
+                                    <td>
+                                        <span class="text-danger">@loser?.Deck</span>
+                                    </td>
+                                    <td>
+                                        @if (loser != null)
+                                        {
+                                            <span class="text-danger">@loser.PlayerName</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted">No loser</span>
+                                        }
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+
+                @if (totalPages > 1)
+                {
+                    <nav aria-label="Plays pagination">
+                        <ul class="pagination justify-content-center">
+                            <li class="page-item @(currentPage == 1 ? "disabled" : "")">
+                                <button class="page-link" @onclick="() => GoToPage(1)" disabled="@(currentPage == 1)">
+                                    <i class="bi bi-chevron-double-left"></i>
+                                </button>
+                            </li>
+                            <li class="page-item @(currentPage == 1 ? "disabled" : "")">
+                                <button class="page-link" @onclick="() => GoToPage(currentPage - 1)" disabled="@(currentPage == 1)">
+                                    <i class="bi bi-chevron-left"></i>
+                                </button>
+                            </li>
+
+                            @{
+                                var startPage = Math.Max(1, currentPage - 2);
+                                var endPage = Math.Min(totalPages, currentPage + 2);
+
+                                if (startPage > 1)
+                                {
+                                    <li class="page-item">
+                                        <button class="page-link" @onclick="() => GoToPage(1)">1</button>
+                                    </li>
+                                    if (startPage > 2)
+                                    {
+                                        <li class="page-item disabled">
+                                            <span class="page-link">...</span>
+                                        </li>
+                                    }
+                                }
+
+                                for (int i = startPage; i <= endPage; i++)
+                                {
+                                    var pageNumber = i;
+                                    <li class="page-item @(pageNumber == currentPage ? "active" : "")">
+                                        <button class="page-link" @onclick="() => GoToPage(pageNumber)">@pageNumber</button>
+                                    </li>
+                                }
+
+                                if (endPage < totalPages)
+                                {
+                                    if (endPage < totalPages - 1)
+                                    {
+                                        <li class="page-item disabled">
+                                            <span class="page-link">...</span>
+                                        </li>
+                                    }
+                                    <li class="page-item">
+                                        <button class="page-link" @onclick="() => GoToPage(totalPages)">@totalPages</button>
+                                    </li>
+                                }
+                            }
+
+                            <li class="page-item @(currentPage == totalPages ? "disabled" : "")">
+                                <button class="page-link" @onclick="() => GoToPage(currentPage + 1)" disabled="@(currentPage == totalPages)">
+                                    <i class="bi bi-chevron-right"></i>
+                                </button>
+                            </li>
+                            <li class="page-item @(currentPage == totalPages ? "disabled" : "")">
+                                <button class="page-link" @onclick="() => GoToPage(totalPages)" disabled="@(currentPage == totalPages)">
+                                    <i class="bi bi-chevron-double-right"></i>
+                                </button>
+                            </li>
+                        </ul>
+                    </nav>
+                }
+            </div>
+        </div>
+    }
+</div>
+
+@code {
+    private bool isLoading = true;
+    private string? errorMessage;
+    private List<Play> plays = new();
+    private List<Play> currentPagePlays = new();
+    
+    private int currentPage = 1;
+    private int pageSize = 100;
+    private int totalPlays = 0;
+    private int totalPages = 0;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            isLoading = true;
+            
+            // Get all Magic plays
+            plays = await BGStatsService.GetMagicPlaysAsync();
+            
+            // Sort plays by date (newest first)
+            plays = plays.OrderByDescending(p => DateTime.Parse(p.Date)).ToList();
+            
+            totalPlays = plays.Count;
+            totalPages = (int)Math.Ceiling((double)totalPlays / pageSize);
+            
+            UpdateCurrentPagePlays();
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Error loading data: {ex.Message}";
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private void UpdateCurrentPagePlays()
+    {
+        var skip = (currentPage - 1) * pageSize;
+        currentPagePlays = plays.Skip(skip).Take(pageSize).ToList();
+    }
+
+    private void GoToPage(int page)
+    {
+        if (page >= 1 && page <= totalPages && page != currentPage)
+        {
+            currentPage = page;
+            UpdateCurrentPagePlays();
+        }
+    }
+} 

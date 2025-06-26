@@ -51,7 +51,7 @@
             <div class="card mt-4">
                 <div class="card-header">
                     <h5 class="card-title mb-0">
-                        <i class="bi bi-list-ul"></i> Recent Magic: The Gathering Plays
+                        <i class="bi bi-list-ul"></i> Recent Plays
                     </h5>
                 </div>
                 <div class="card-body">
@@ -77,7 +77,7 @@
                                     
                                     <tr>
                                         <td>@DateTime.Parse(play.Date).ToString("yyyy-MM-dd")</td>
-                                        <td>@play.DurationInMinutes min</td>
+                                        <td>@(play.DurationInMinutes > 0 ? $"{play.DurationInMinutes} min" : "-")</td>
                                         <td>
                                             @if (winner.IsStartPlayer)
                                             {
