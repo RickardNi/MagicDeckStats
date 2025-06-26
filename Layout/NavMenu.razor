@@ -1,4 +1,7 @@
-﻿<div class="top-row ps-3 navbar navbar-dark">
+﻿@using MagicDeckStats.Services
+@inject IBGStatsImportService BGStatsService
+
+<div class="top-row ps-3 navbar navbar-dark">
     <div class="container-fluid">
         <a class="navbar-brand" href="">Magic Deck Stats</a>
         <button title="Navigation menu" class="navbar-toggler" @onclick="ToggleNavMenu">
@@ -7,7 +10,7 @@
     </div>
 </div>
 
-<div class="@NavMenuCssClass nav-scrollable" @onclick="ToggleNavMenu">
+<div class="@NavMenuCssClass nav-scrollable d-flex flex-column" @onclick="ToggleNavMenu">
     <nav class="nav flex-column">
         <div class="nav-item px-3">
             <NavLink class="nav-link" href="" Match="NavLinkMatch.All">
@@ -16,21 +19,57 @@
         </div>
         <div class="nav-item px-3">
             <NavLink class="nav-link" href="plays">
-                <span class="bi bi-list-ul" aria-hidden="true"></span> All Plays
+                <span class="bi bi-list-ul-nav-menu" aria-hidden="true"></span> All Plays
             </NavLink>
         </div>
         <div class="nav-item px-3">
             <NavLink class="nav-link" href="stats">
-                <span class="bi bi-graph-up" aria-hidden="true"></span> Statistics
+                <span class="bi bi-graph-up-nav-menu" aria-hidden="true"></span> Statistics
             </NavLink>
         </div>
     </nav>
+    
+    @if (availableVariants.Any())
+    {
+        <div class="nav-item px-3 mt-auto">
+            <div class="nav-link text-start">
+                <span class="bi bi-funnel text-light" aria-hidden="true"></span> <span class="text-light">Variants</span>
+            </div>
+            <div class="ms-3">
+                @foreach (var variant in availableVariants)
+                {
+                    var displayVariant = string.IsNullOrWhiteSpace(variant) ? "<no variants>" : variant;
+                    <div class="form-check form-switch">
+                        <input class="form-check-input" type="checkbox" 
+                               id="variant-@displayVariant.Replace(" ", "-").ToLower()" 
+                               checked="true" 
+                               disabled />
+                        <label class="form-check-label small text-light" for="variant-@displayVariant.Replace(" ", "-").ToLower()">
+                            @displayVariant
+                        </label>
+                    </div>
+                }
+            </div>
+        </div>
+    }
 </div>
 
 @code {
     private bool collapseNavMenu = true;
+    private List<string> availableVariants = [];
 
     private string? NavMenuCssClass => collapseNavMenu ? "collapse" : null;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var allPlays = await BGStatsService.GetMagicPlaysAsync();
+
+        availableVariants = allPlays
+            .Select(p => p.Variant)
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .OrderBy(v => v)
+            .ToList();
+    }
 
     private void ToggleNavMenu()
     {

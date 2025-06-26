@@ -57,6 +57,9 @@ public class BGStatsImportService(HttpClient httpClient, ILogger<BGStatsImportSe
         _logger.LogInformation("Found {MagicPlayCount} plays for Magic: The Gathering (GameRefId: {GameRefId})",
             plays.Count, magicGameId.Value);
 
+        // Temporary filter: only include Battle Decks variants
+        plays = [.. plays.Where(p => p.Variant.Contains("Battle Decks") && !p.Variant.Contains("Two-Headed Giant"))];
+
         // Create a lookup dictionary for player names
         var playerNamesById = data.Players.ToDictionary(p => p.Id, p => p.Name);
 
