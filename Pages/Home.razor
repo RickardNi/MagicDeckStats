@@ -86,14 +86,14 @@
                                     <tr>
                                         <td>@play.PlayDate.ToShortDateString()</td>
                                         <td>@play.Duration min</td>
-                                        <td>@play.Board</td>
-                                        <td>@play.PlayerScores.Count</td>
+                                        <td>@play.Deck</td>
+                                        <td>@string.Join(", ", play.PlayerScores.Select(p => p.PlayerName))</td>
                                         <td>
                                             @{
                                                 var winner = play.PlayerScores.FirstOrDefault(p => p.IsWinner);
                                                 if (winner != null)
                                                 {
-                                                    <span class="badge bg-success">@winner.Deck</span>
+                                                    <span class="badge bg-success">@winner.PlayerName (@winner.Deck)</span>
                                                 }
                                                 else
                                                 {
@@ -102,6 +102,75 @@
                                             }
                                         </td>
                                     </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card mt-4">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="bi bi-trophy"></i> Top Players by Games Played
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-striped table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Rank</th>
+                                    <th>Player Name</th>
+                                    <th>Games Played</th>
+                                    <th>Wins</th>
+                                    <th>Win Rate</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @{
+                                    var playerStats = magicPlays
+                                        .SelectMany(p => p.PlayerScores)
+                                        .GroupBy(ps => ps.PlayerName)
+                                        .Select(g => new
+                                        {
+                                            PlayerName = g.Key,
+                                            GamesPlayed = g.Count(),
+                                            Wins = g.Count(ps => ps.IsWinner),
+                                            WinRate = g.Count(ps => ps.IsWinner) * 100.0 / g.Count()
+                                        })
+                                        .OrderByDescending(p => p.GamesPlayed)
+                                        .Take(5)
+                                        .ToList();
+
+                                    for (int i = 0; i < playerStats.Count; i++)
+                                    {
+                                        var player = playerStats[i];
+                                        <tr>
+                                            <td>
+                                                @if (i == 0)
+                                                {
+                                                    <span class="badge bg-warning">🥇</span>
+                                                }
+                                                else if (i == 1)
+                                                {
+                                                    <span class="badge bg-secondary">🥈</span>
+                                                }
+                                                else if (i == 2)
+                                                {
+                                                    <span class="badge bg-warning text-dark">🥉</span>
+                                                }
+                                                else
+                                                {
+                                                    <span class="text-muted">@(i + 1)</span>
+                                                }
+                                            </td>
+                                            <td><strong>@player.PlayerName</strong></td>
+                                            <td>@player.GamesPlayed</td>
+                                            <td>@player.Wins</td>
+                                            <td>@player.WinRate.ToString("F1")%</td>
+                                        </tr>
+                                    }
                                 }
                             </tbody>
                         </table>
@@ -123,9 +192,6 @@
         try
         {
             isLoading = true;
-            
-            // Get the Magic: The Gathering game ID
-            magicGameId = await BGStatsService.GetMagicGameIdAsync();
             
             // Get all Magic plays
             magicPlays = await BGStatsService.GetMagicPlaysAsync();

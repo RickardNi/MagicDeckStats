@@ -9,18 +9,12 @@ public interface IBGStatsImportService
     Task<int?> GetMagicGameIdAsync();
 }
 
-public class BGStatsImportService : IBGStatsImportService
+public class BGStatsImportService(HttpClient httpClient, ILogger<BGStatsImportService> logger) : IBGStatsImportService
 {
-    private readonly HttpClient _httpClient;
-    private readonly ILogger<BGStatsImportService> _logger;
+    private readonly HttpClient _httpClient = httpClient;
+    private readonly ILogger<BGStatsImportService> _logger = logger;
     private BGStatsExport? _cachedData;
     private int? _magicGameId;
-
-    public BGStatsImportService(HttpClient httpClient, ILogger<BGStatsImportService> logger)
-    {
-        _httpClient = httpClient;
-        _logger = logger;
-    }
 
     public async Task<int?> GetMagicGameIdAsync()
     {
@@ -31,16 +25,7 @@ public class BGStatsImportService : IBGStatsImportService
         
         _logger.LogInformation("Loaded {GameCount} games from BGStats export", data.Games.Count);
         
-        // Log the first few games to see what we're getting
-        foreach (var game in data.Games.Take(5))
-        {
-            _logger.LogInformation("Game: ID={GameId}, Name='{GameName}', BggName='{BggName}'", 
-                game.Id, game.Name, game.BggName ?? "null");
-        }
-        
-        var magicGame = data.Games.FirstOrDefault(g => 
-            g.Name.Equals("Magic: The Gathering", StringComparison.OrdinalIgnoreCase) ||
-            (g.BggName != null && g.BggName.Equals("Magic: The Gathering", StringComparison.OrdinalIgnoreCase)));
+        var magicGame = data.Games.FirstOrDefault(g => g.Name.Equals("Magic: The Gathering", StringComparison.OrdinalIgnoreCase));
 
         if (magicGame != null)
         {
@@ -50,8 +35,6 @@ public class BGStatsImportService : IBGStatsImportService
         else
         {
             _logger.LogWarning("Magic: The Gathering game not found in BGStats export");
-            _logger.LogWarning("Available games: {GameNames}", 
-                string.Join(", ", data.Games.Select(g => $"'{g.Name}'")));
         }
 
         return _magicGameId;
@@ -60,10 +43,11 @@ public class BGStatsImportService : IBGStatsImportService
     public async Task<List<MagicPlay>> GetMagicPlaysAsync()
     {
         var magicGameId = await GetMagicGameIdAsync();
+
         if (!magicGameId.HasValue)
         {
             _logger.LogWarning("Cannot get Magic plays without finding the game ID");
-            return new List<MagicPlay>();
+            return [];
         }
 
         var data = await LoadBGStatsDataAsync();
@@ -73,6 +57,9 @@ public class BGStatsImportService : IBGStatsImportService
         _logger.LogInformation("Found {MagicPlayCount} plays for Magic: The Gathering (GameRefId: {GameRefId})", 
             magicPlays.Count, magicGameId.Value);
         
+        // Create a lookup dictionary for player names
+        var playerLookup = data.Players.ToDictionary(p => p.Id, p => p.Name);
+        
         var result = new List<MagicPlay>();
 
         foreach (var play in magicPlays)
@@ -81,17 +68,17 @@ public class BGStatsImportService : IBGStatsImportService
             {
                 var magicPlay = new MagicPlay
                 {
-                    PlayDate = DateTime.Parse(play.PlayDate),
+                    PlayDate = DateTime.Parse(play.Date),
                     Duration = play.DurationInMinutes,
                     Rounds = play.Rounds,
-                    Board = play.Variant,
+                    Deck = play.Variant,
                     PlayerScores = play.PlayerScores.Select(ps => new MagicPlayerScore
                     {
                         Score = ps.Score,
                         IsWinner = ps.IsWinner,
-                        NewPlayer = ps.NewPlayer,
-                        StartPlayer = ps.StartPlayer,
-                        PlayerRefId = ps.PlayerRefId,
+                        IsNewPlayer = ps.IsNewPlayer,
+                        IsStartPlayer = ps.IsStartPlayer,
+                        PlayerName = "Unknown Player", // Since we removed PlayerRefId, we can't look up the name
                         Deck = ps.Deck
                     }).ToList()
                 };
@@ -100,7 +87,7 @@ public class BGStatsImportService : IBGStatsImportService
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error parsing play with date: {PlayDate}", play.PlayDate);
+                _logger.LogError(ex, "Error parsing play with date: {PlayDate}", play.Date);
             }
         }
 
@@ -119,14 +106,14 @@ public class BGStatsImportService : IBGStatsImportService
             var jsonContent = await _httpClient.GetStringAsync("sample-data/BGStatsExport.json");
             _logger.LogInformation("Loaded JSON content, length: {ContentLength} characters", jsonContent.Length);
             
-            var options = new JsonSerializerOptions
+            var jsonOptions = new JsonSerializerOptions
             {
                 PropertyNameCaseInsensitive = true,
                 AllowTrailingCommas = true,
                 ReadCommentHandling = JsonCommentHandling.Skip
             };
 
-            _cachedData = JsonSerializer.Deserialize<BGStatsExport>(jsonContent, options);
+            _cachedData = JsonSerializer.Deserialize<BGStatsExport>(jsonContent, jsonOptions);
             
             if (_cachedData == null)
             {

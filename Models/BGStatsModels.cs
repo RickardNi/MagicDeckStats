@@ -9,6 +9,9 @@ public class BGStatsExport
 
     [JsonPropertyName("plays")]
     public List<Play> Plays { get; set; } = new();
+
+    [JsonPropertyName("players")]
+    public List<Player> Players { get; set; } = new();
 }
 
 public class Game
@@ -18,15 +21,12 @@ public class Game
 
     [JsonPropertyName("name")]
     public string Name { get; set; } = string.Empty;
-
-    [JsonPropertyName("bggName")]
-    public string? BggName { get; set; }
 }
 
 public class Play
 {
     [JsonPropertyName("playDate")]
-    public string PlayDate { get; set; } = string.Empty;
+    public string Date { get; set; } = string.Empty;
 
     [JsonPropertyName("durationMin")]
     public int DurationInMinutes { get; set; }
@@ -44,6 +44,15 @@ public class Play
     public List<PlayerScore> PlayerScores { get; set; } = new();
 }
 
+public class Player
+{
+    [JsonPropertyName("id")]
+    public int Id { get; set; }
+
+    [JsonPropertyName("name")]
+    public string Name { get; set; } = string.Empty;
+}
+
 public class PlayerScore
 {
     [JsonPropertyName("score")]
@@ -53,10 +62,10 @@ public class PlayerScore
     public bool IsWinner { get; set; }
 
     [JsonPropertyName("newPlayer")]
-    public bool NewPlayer { get; set; }
+    public bool IsNewPlayer { get; set; }
 
     [JsonPropertyName("startPlayer")]
-    public bool StartPlayer { get; set; }
+    public bool IsStartPlayer { get; set; }
 
     [JsonPropertyName("playerRefId")]
     public int PlayerRefId { get; set; }
@@ -71,7 +80,7 @@ public class MagicPlay
     public DateTime PlayDate { get; set; }
     public int Duration { get; set; }
     public int Rounds { get; set; }
-    public string Board { get; set; } = string.Empty;
+    public string Deck { get; set; } = string.Empty;
     public List<MagicPlayerScore> PlayerScores { get; set; } = new();
 }
 
@@ -79,8 +88,8 @@ public class MagicPlayerScore
 {
     public object? Score { get; set; }
     public bool IsWinner { get; set; }
-    public bool NewPlayer { get; set; }
-    public bool StartPlayer { get; set; }
-    public int PlayerRefId { get; set; }
+    public bool IsNewPlayer { get; set; }
+    public bool IsStartPlayer { get; set; }
+    public string PlayerName { get; set; } = string.Empty;
     public string Deck { get; set; } = string.Empty;
 } 
