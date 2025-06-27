@@ -173,3 +173,28 @@ code {
     padding-left: 0.25rem !important;
     padding-right: 0rem !important;
 }
+
+/* Add spacing between icons and text in card titles */
+.card-title .bi {
+    margin-right: 0.5rem !important;
+}
+
+.deck-link {
+    color: #212529 !important;
+    text-decoration: none;
+}
+
+.deck-link:hover,
+.deck-link.text-success:hover,
+.deck-link.text-danger:hover {
+    color: #0071c1 !important;
+}
+
+/* Allow color classes to override the default black color */
+.deck-link.text-success {
+    color: #198754 !important;
+}
+
+.deck-link.text-danger {
+    color: #dc3545 !important;
+}

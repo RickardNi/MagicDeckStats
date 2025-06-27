@@ -65,7 +65,7 @@ public class PlayerScore
     public bool IsNewPlayer { get; set; }
 
     [JsonPropertyName("startPlayer")]
-    public bool IsStartPlayer { get; set; }
+    public bool IsFirstPlayer { get; set; }
 
     [JsonPropertyName("playerRefId")]
     public int PlayerRefId { get; set; }

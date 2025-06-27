@@ -128,10 +128,10 @@
                                 
                                 <tr>
                                     <td>
-                                        <NavLink class="text-dark text-decoration-none" href="@($"/deck/{deck.DeckName}")">@deck.DeckName</NavLink>
+                                        <NavLink class="deck-link" href="@($"/deck/{deck.DeckName}")">@deck.DeckName</NavLink>
                                     </td>
                                     <td class="text-center">
-                                        <span class="badge bg-primary">@deck.TotalGames</span>
+                                        @deck.TotalGames
                                     </td>
                                     <td class="text-center">
                                         <span class="text-success fw-bold">@deck.Wins</span>
@@ -167,14 +167,13 @@
                 </h5>
             </div>
             <div class="card-body">
-                <ApexChart TItem="DeckStats"
-                           Title="Deck Win Rates">
+                <ApexChart TItem="DeckStats">
                     <ApexPointSeries TItem="DeckStats"
                                      Items="GetSortedDeckStats()"
                                      Name="Win Rate"
                                      SeriesType="SeriesType.Bar"
                                      XValue="e => e.DeckName"
-                                     YValue="e => (decimal)(e.TotalGames > 0 ? (double)e.Wins / e.TotalGames * 100 : 0)" />
+                                     YValue="e => (decimal)(e.TotalGames > 0 ? (int)((double)e.Wins / e.TotalGames * 100) : 0)" />
                 </ApexChart>
             </div>
         </div>

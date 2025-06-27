@@ -33,6 +33,45 @@
     }
     else
     {
+        <div class="row mb-4">
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="card-title mb-0">
+                            <i class="bi bi-graph-up"></i> Quick Stats
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <p><strong>Average Duration:</strong> @(deckStats.Any() ? deckStats.Average(d => d.AverageDuration).ToString("F1") : "0") minutes</p>
+                        <hr />
+                        @{
+                            var fastestDeck = deckStats.OrderBy(d => d.AverageDuration).FirstOrDefault();
+                            var slowestDeck = deckStats.OrderByDescending(d => d.AverageDuration).FirstOrDefault();
+                            var fastestWinDeck = deckStats.Where(d => d.Wins > 0).OrderBy(d => d.WinDuration).FirstOrDefault();
+                            var slowestWinDeck = deckStats.Where(d => d.Wins > 0).OrderByDescending(d => d.WinDuration).FirstOrDefault();
+                        }
+                        @if (fastestDeck != null)
+                        {
+                            <p><strong>Fastest Deck:</strong> <NavLink class="deck-link" href="@($"/deck/{fastestDeck.DeckName}")">@fastestDeck.DeckName</NavLink> (@(fastestDeck.AverageDuration.ToString("F1")) min)</p>
+                        }
+                        @if (slowestDeck != null)
+                        {
+                            <p><strong>Slowest Deck:</strong> <NavLink class="deck-link" href="@($"/deck/{slowestDeck.DeckName}")">@slowestDeck.DeckName</NavLink> (@(slowestDeck.AverageDuration.ToString("F1")) min)</p>
+                        }
+                        <hr />
+                        @if (fastestWinDeck != null)
+                        {
+                            <p><strong>Fastest Win Deck:</strong> <NavLink class="deck-link" href="@($"/deck/{fastestWinDeck.DeckName}")">@fastestWinDeck.DeckName</NavLink> (@(fastestWinDeck.WinDuration.ToString("F1")) min)</p>
+                        }
+                        @if (slowestWinDeck != null)
+                        {
+                            <p><strong>Slowest Win Deck:</strong> <NavLink class="deck-link" href="@($"/deck/{slowestWinDeck.DeckName}")">@slowestWinDeck.DeckName</NavLink> (@(slowestWinDeck.WinDuration.ToString("F1")) min)</p>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <div class="card">
             <div class="card-body">
                 <div class="table-responsive">
@@ -156,23 +195,21 @@
 
                                 <tr>
                                     <td>
-                                        <span class="fw-bold">@deck.DeckName</span>
+                                        <NavLink class="deck-link" href="@($"/deck/{deck.DeckName}")">@deck.DeckName</NavLink>
                                     </td>
                                     <td class="text-center">
-                                        <span class="fw-bold @durationColor">@(deck.AverageDuration.ToString("F1"))</span>
+                                        <span class="fw-bold">@(deck.AverageDuration.ToString("F1"))</span>
                                     </td>
                                     <td class="text-center">
                                         <span>@deck.TotalGames</span>
                                     </td>
                                     <td class="text-center">
-                                        <span class="text-success fw-bold">@deck.Wins</span>
+                                        <span class="text-success">@deck.Wins</span>
                                     </td>
                                     <td class="text-center">
                                         @if (deck.Wins > 0)
                                         {
-                                            var winDurationColor = deck.WinDuration >= 120 ? "text-danger" : 
-                                                                  deck.WinDuration >= 90 ? "text-warning" : "text-success";
-                                            <span class="fw-bold @winDurationColor">@(deck.WinDuration.ToString("F1"))</span>
+                                            <span class="fw-bold text-success">@(deck.WinDuration.ToString("F1"))</span>
                                         }
                                         else
                                         {
@@ -185,9 +222,7 @@
                                     <td class="text-center">
                                         @if (deck.Losses > 0)
                                         {
-                                            var lossDurationColor = deck.LossDuration >= 120 ? "text-danger" : 
-                                                                  deck.LossDuration >= 90 ? "text-warning" : "text-success";
-                                            <span class="fw-bold @lossDurationColor">@(deck.LossDuration.ToString("F1"))</span>
+                                            <span class="fw-bold text-danger">@(deck.LossDuration.ToString("F1"))</span>
                                         }
                                         else
                                         {
@@ -195,54 +230,12 @@
                                         }
                                     </td>
                                     <td class="text-center">
-                                        <span class="fw-bold @winRateColor">@(winRatePercentage.ToString("F1"))%</span>
+                                        <span class="@winRateColor">@(winRatePercentage.ToString("F1"))%</span>
                                     </td>
                                 </tr>
                             }
                         </tbody>
                     </table>
-                </div>
-
-                <div class="row mt-4">
-                    <div class="col-md-6">
-                        <div class="card bg-light">
-                            <div class="card-body">
-                                <h5 class="card-title">Summary</h5>
-                                <ul class="list-unstyled mb-0">
-                                    <li><strong>Total Decks:</strong> @deckStats.Count</li>
-                                    <li><strong>Total Games:</strong> @deckStats.Sum(d => d.TotalGames)</li>
-                                    <li><strong>Average Duration:</strong> @(deckStats.Any() ? deckStats.Average(d => d.AverageDuration).ToString("F1") : "0") min</li>
-                                </ul>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-md-6">
-                        <div class="card bg-light">
-                            <div class="card-body">
-                                <h5 class="card-title">Duration Insights</h5>
-                                <ul class="list-unstyled mb-0">
-                                    @{
-                                        var fastestDeck = deckStats.OrderBy(d => d.AverageDuration).FirstOrDefault();
-                                        var slowestDeck = deckStats.OrderByDescending(d => d.AverageDuration).FirstOrDefault();
-                                        var bestWinRate = deckStats.OrderByDescending(d => d.WinRate).ThenByDescending(d => d.TotalGames).FirstOrDefault();
-                                    }
-                                    @if (fastestDeck != null)
-                                    {
-                                        <li><strong>Fastest Deck:</strong> @fastestDeck.DeckName (@(fastestDeck.AverageDuration.ToString("F1")) min)</li>
-                                    }
-                                    @if (slowestDeck != null)
-                                    {
-                                        <li><strong>Slowest Deck:</strong> @slowestDeck.DeckName (@(slowestDeck.AverageDuration.ToString("F1")) min)</li>
-                                    }
-                                    @if (bestWinRate != null)
-                                    {
-                                        var topWinRate = (double)bestWinRate.Wins / bestWinRate.TotalGames * 100;
-                                        <li><strong>Best Win Rate:</strong> @bestWinRate.DeckName (@(topWinRate.ToString("F1"))%)</li>
-                                    }
-                                </ul>
-                            </div>
-                        </div>
-                    </div>
                 </div>
             </div>
         </div>

@@ -29,7 +29,7 @@
     else
     {
         <div class="row mb-4">
-            <div class="col-md-6">
+            <div class="col-12">
                 <div class="card mb-3">
                     <div class="card-header">
                         <h5 class="mb-0">Stats</h5>
@@ -37,13 +37,13 @@
                     <div class="card-body">
                         <dl class="row mb-0">
                             <dt class="col-sm-5">Total Games</dt>
-                            <dd class="col-sm-7">@deckStats.TotalGames</dd>
-                            <dt class="col-sm-5">Wins</dt>
-                            <dd class="col-sm-7 text-success">@deckStats.Wins</dd>
-                            <dt class="col-sm-5">Losses</dt>
-                            <dd class="col-sm-7 text-danger">@deckStats.Losses</dd>
+                            <dd class="col-sm-7">@deckStats.TotalGames (<span class="text-success">@deckStats.Wins W</span> / <span class="text-danger">@deckStats.Losses L</span>)</dd>
                             <dt class="col-sm-5">Win Rate</dt>
                             <dd class="col-sm-7 fw-bold">@(deckStats.WinRate.ToString("P1"))</dd>
+                            <dt class="col-sm-5">First Player Win Rate</dt>
+                            <dd class="col-sm-7 fw-bold">@((gamesAsFirstPlayer > 0 ? (double)winsAsFirstPlayer / gamesAsFirstPlayer : 0).ToString("P1"))</dd>
+                            <dt class="col-sm-5">Win Rate When Going Second</dt>
+                            <dd class="col-sm-7 fw-bold">@((gamesAsNonFirstPlayer > 0 ? (double)winsAsNonFirstPlayer / gamesAsNonFirstPlayer : 0).ToString("P1"))</dd>
                             <dt class="col-sm-5">Average Duration</dt>
                             <dd class="col-sm-7">@((averageDuration > 0 ? $"{averageDuration:F1} min" : "-") )</dd>
                         </dl>
@@ -52,9 +52,92 @@
             </div>
         </div>
 
+        <div class="row mb-4">
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="card-title mb-0"><i class="bi bi-1-square"></i> First Player Win Rate</h5>
+                    </div>
+                    <div class="card-body">
+                        @if (deckPlays.Any())
+                        {
+                            <ApexChart TItem="FirstPlayerStats" Options="@firstPlayerChartOptions">
+                                <ApexPointSeries TItem="FirstPlayerStats"
+                                                 Items="@firstPlayerStats"
+                                                 Name="Games"
+                                                 SeriesType="SeriesType.Pie"
+                                                 XValue="@(e => e.Result)"
+                                                 YValue="@(e => e.Count)"
+                                                 PointColor="e => GetPointColor(e)"
+                                                 ShowDataLabels />
+                            </ApexChart>
+                            <div class="row text-center mt-3">
+                                <div class="col-6">
+                                    <div class="text-success">
+                                        <div class="fw-bold">@winsAsFirstPlayer</div>
+                                        <div class="small">Wins</div>
+                                    </div>
+                                </div>
+                                <div class="col-6">
+                                    <div class="text-danger">
+                                        <div class="fw-bold">@lossesAsFirstPlayer</div>
+                                        <div class="small">Losses</div>
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                        else
+                        {
+                            <p class="text-muted">No plays found</p>
+                        }
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="card-title mb-0"><i class="bi bi-2-square"></i> Going Second</h5>
+                    </div>
+                    <div class="card-body">
+                        @if (deckPlays.Any())
+                        {
+                            <ApexChart TItem="FirstPlayerStats" Options="@goingSecondChartOptions">
+                                <ApexPointSeries TItem="FirstPlayerStats"
+                                                 Items="@goingSecondStats"
+                                                 Name="Games"
+                                                 SeriesType="SeriesType.Pie"
+                                                 XValue="@(e => e.Result)"
+                                                 YValue="@(e => e.Count)"
+                                                 PointColor="e => GetPointColor(e)"
+                                                 ShowDataLabels />
+                            </ApexChart>
+                            <div class="row text-center mt-3">
+                                <div class="col-6">
+                                    <div class="text-success">
+                                        <div class="fw-bold">@winsAsNonFirstPlayer</div>
+                                        <div class="small">Wins</div>
+                                    </div>
+                                </div>
+                                <div class="col-6">
+                                    <div class="text-danger">
+                                        <div class="fw-bold">@lossesAsNonFirstPlayer</div>
+                                        <div class="small">Losses</div>
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                        else
+                        {
+                            <p class="text-muted">No plays found</p>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <div class="card mt-4">
             <div class="card-header">
-                <h5 class="mb-0">Matchups</h5>
+                <h5 class="card-title mb-0">Matchups</h5>
             </div>
             <div class="card-body">
                 @if (matchupStats.Any())
@@ -135,7 +218,7 @@
                                 {
                                     <tr>
                                         <td>
-                                            <NavLink class="text-dark text-decoration-none" href="@($"/deck/{vs.OpponentDeck}")">@vs.OpponentDeck</NavLink>
+                                            <NavLink class="deck-link" href="@($"/deck/{vs.OpponentDeck}")">@vs.OpponentDeck</NavLink>
                                         </td>
                                         <td class="text-center">@vs.Games</td>
                                         <td class="text-center text-success">@vs.Wins</td>
@@ -153,6 +236,120 @@
                 }
             </div>
         </div>
+
+        <div class="card mt-4">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Played By</h5>
+            </div>
+            <div class="card-body">
+                @if (playerStats.Any())
+                {
+                    <div class="table-responsive">
+                        <table class="table table-striped table-hover">
+                            <thead>
+                                <tr>
+                                    <th>
+                                        <button class="btn btn-link text-decoration-none p-0 fw-bold" @onclick="() => SortByPlayer(PlayerSortColumn.Player)">
+                                            Player
+                                            @if (currentPlayerSortColumn == PlayerSortColumn.Player)
+                                            {
+                                                <i class="bi @(isPlayerSortAscending ? "bi-sort-up" : "bi-sort-down")"></i>
+                                            }
+                                            else
+                                            {
+                                                <i class="bi bi-sort text-muted"></i>
+                                            }
+                                        </button>
+                                    </th>
+                                    <th class="text-center">
+                                        <button class="btn btn-link text-decoration-none p-0 fw-bold" @onclick="() => SortByPlayer(PlayerSortColumn.Games)">
+                                            Games
+                                            @if (currentPlayerSortColumn == PlayerSortColumn.Games)
+                                            {
+                                                <i class="bi @(isPlayerSortAscending ? "bi-sort-up" : "bi-sort-down")"></i>
+                                            }
+                                            else
+                                            {
+                                                <i class="bi bi-sort text-muted"></i>
+                                            }
+                                        </button>
+                                    </th>
+                                    <th class="text-center">
+                                        <button class="btn btn-link text-decoration-none p-0 fw-bold" @onclick="() => SortByPlayer(PlayerSortColumn.Wins)">
+                                            Wins
+                                            @if (currentPlayerSortColumn == PlayerSortColumn.Wins)
+                                            {
+                                                <i class="bi @(isPlayerSortAscending ? "bi-sort-up" : "bi-sort-down")"></i>
+                                            }
+                                            else
+                                            {
+                                                <i class="bi bi-sort text-muted"></i>
+                                            }
+                                        </button>
+                                    </th>
+                                    <th class="text-center">
+                                        <button class="btn btn-link text-decoration-none p-0 fw-bold" @onclick="() => SortByPlayer(PlayerSortColumn.Losses)">
+                                            Losses
+                                            @if (currentPlayerSortColumn == PlayerSortColumn.Losses)
+                                            {
+                                                <i class="bi @(isPlayerSortAscending ? "bi-sort-up" : "bi-sort-down")"></i>
+                                            }
+                                            else
+                                            {
+                                                <i class="bi bi-sort text-muted"></i>
+                                            }
+                                        </button>
+                                    </th>
+                                    <th class="text-center">
+                                        <button class="btn btn-link text-decoration-none p-0 fw-bold" @onclick="() => SortByPlayer(PlayerSortColumn.WinRate)">
+                                            Win Rate
+                                            @if (currentPlayerSortColumn == PlayerSortColumn.WinRate)
+                                            {
+                                                <i class="bi @(isPlayerSortAscending ? "bi-sort-up" : "bi-sort-down")"></i>
+                                            }
+                                            else
+                                            {
+                                                <i class="bi bi-sort text-muted"></i>
+                                            }
+                                        </button>
+                                    </th>
+                                    <th class="text-center">
+                                        <button class="btn btn-link text-decoration-none p-0 fw-bold" @onclick="() => SortByPlayer(PlayerSortColumn.Duration)">
+                                            Avg Duration
+                                            @if (currentPlayerSortColumn == PlayerSortColumn.Duration)
+                                            {
+                                                <i class="bi @(isPlayerSortAscending ? "bi-sort-up" : "bi-sort-down")"></i>
+                                            }
+                                            else
+                                            {
+                                                <i class="bi bi-sort text-muted"></i>
+                                            }
+                                        </button>
+                                    </th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var ps in GetSortedPlayerStats())
+                                {
+                                    <tr>
+                                        <td>@ps.PlayerName</td>
+                                        <td class="text-center">@ps.Games</td>
+                                        <td class="text-center text-success">@ps.Wins</td>
+                                        <td class="text-center text-danger">@ps.Losses</td>
+                                        <td class="text-center fw-bold">@(ps.WinRate.ToString("P1"))</td>
+                                        <td class="text-center">@(ps.AverageDuration > 0 ? $"{ps.AverageDuration:F1} min" : "-")</td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                }
+                else
+                {
+                    <div class="alert alert-info">No player data found for this deck.</div>
+                }
+            </div>
+        </div>
     }
 </div>
 
@@ -165,9 +362,24 @@
     private DeckStats? deckStats;
     private double averageDuration = 0;
     private List<MatchupStats> matchupStats = new();
+    private List<Play> deckPlays = new();
+    private List<PlayerStats> playerStats = new();
+    private ApexChartOptions<FirstPlayerStats> firstPlayerChartOptions = new();
+    private List<FirstPlayerStats> firstPlayerStats = new();
+    private int lossesAsFirstPlayer = 0;
+    private int lossesAsNonFirstPlayer = 0;
+    private ApexChartOptions<FirstPlayerStats> goingSecondChartOptions = new();
+    private List<FirstPlayerStats> goingSecondStats = new();
+    private int winsAsFirstPlayer = 0;
+    private int winsAsNonFirstPlayer = 0;
+    private int gamesAsFirstPlayer = 0;
+    private int gamesAsNonFirstPlayer = 0;
 
     private MatchupSortColumn currentSortColumn = MatchupSortColumn.Games;
     private bool isAscending = false;
+
+    private PlayerSortColumn currentPlayerSortColumn = PlayerSortColumn.Games;
+    private bool isPlayerSortAscending = false;
 
     private enum MatchupSortColumn
     {
@@ -176,6 +388,16 @@
         Wins,
         Losses,
         WinRate
+    }
+
+    private enum PlayerSortColumn
+    {
+        Player,
+        Games,
+        Wins,
+        Losses,
+        WinRate,
+        Duration
     }
 
     private void SortBy(MatchupSortColumn column)
@@ -188,6 +410,19 @@
         {
             currentSortColumn = column;
             isAscending = false;
+        }
+    }
+
+    private void SortByPlayer(PlayerSortColumn column)
+    {
+        if (column == currentPlayerSortColumn)
+        {
+            isPlayerSortAscending = !isPlayerSortAscending;
+        }
+        else
+        {
+            currentPlayerSortColumn = column;
+            isPlayerSortAscending = false;
         }
     }
 
@@ -215,6 +450,33 @@
         return query;
     }
 
+    private IEnumerable<PlayerStats> GetSortedPlayerStats()
+    {
+        IEnumerable<PlayerStats> query = playerStats;
+        switch (currentPlayerSortColumn)
+        {
+            case PlayerSortColumn.Player:
+                query = isPlayerSortAscending ? query.OrderBy(p => p.PlayerName) : query.OrderByDescending(p => p.PlayerName);
+                break;
+            case PlayerSortColumn.Games:
+                query = isPlayerSortAscending ? query.OrderBy(p => p.Games) : query.OrderByDescending(p => p.Games);
+                break;
+            case PlayerSortColumn.Wins:
+                query = isPlayerSortAscending ? query.OrderBy(p => p.Wins) : query.OrderByDescending(p => p.Wins);
+                break;
+            case PlayerSortColumn.Losses:
+                query = isPlayerSortAscending ? query.OrderBy(p => p.Losses) : query.OrderByDescending(p => p.Losses);
+                break;
+            case PlayerSortColumn.WinRate:
+                query = isPlayerSortAscending ? query.OrderBy(p => p.WinRate) : query.OrderByDescending(p => p.WinRate);
+                break;
+            case PlayerSortColumn.Duration:
+                query = isPlayerSortAscending ? query.OrderBy(p => p.AverageDuration) : query.OrderByDescending(p => p.AverageDuration);
+                break;
+        }
+        return query;
+    }
+
     protected override async Task OnParametersSetAsync()
     {
         try
@@ -224,20 +486,30 @@
             deckStats = null;
             matchupStats.Clear();
             averageDuration = 0;
+            deckPlays.Clear();
+            playerStats.Clear();
+            firstPlayerStats.Clear();
+            goingSecondStats.Clear();
+            winsAsFirstPlayer = 0;
+            winsAsNonFirstPlayer = 0;
+            lossesAsFirstPlayer = 0;
+            lossesAsNonFirstPlayer = 0;
+            gamesAsFirstPlayer = 0;
+            gamesAsNonFirstPlayer = 0;
 
             var plays = await BGStatsService.GetMagicPlaysAsync();
-            var relevantPlays = plays.Where(p => p.PlayerScores.Any(ps => ps.Deck == deckName)).ToList();
-            if (!relevantPlays.Any())
+            deckPlays = plays.Where(p => p.PlayerScores.Any(ps => ps.Deck == deckName)).ToList();
+            if (!deckPlays.Any())
             {
                 return;
             }
 
-            var allScores = relevantPlays.SelectMany(p => p.PlayerScores).Where(ps => ps.Deck == deckName).ToList();
+            var allScores = deckPlays.SelectMany(p => p.PlayerScores).Where(ps => ps.Deck == deckName).ToList();
             var totalGames = allScores.Count;
             var wins = allScores.Count(ps => ps.IsWinner);
             var losses = allScores.Count(ps => !ps.IsWinner);
             var winRate = totalGames > 0 ? (double)wins / totalGames : 0;
-            averageDuration = relevantPlays.Any() ? relevantPlays.Average(p => p.DurationInMinutes) : 0;
+            averageDuration = deckPlays.Any() ? deckPlays.Average(p => p.DurationInMinutes) : 0;
 
             deckStats = new DeckStats
             {
@@ -248,9 +520,93 @@
                 WinRate = winRate
             };
 
+            // First Player Win Rate Pie Chart
+            winsAsFirstPlayer = deckPlays.Count(p => p.PlayerScores.Any(ps => ps.IsWinner && ps.IsFirstPlayer && ps.Deck == deckName));
+            lossesAsFirstPlayer = deckPlays.Count(p => p.PlayerScores.Any(ps => !ps.IsWinner && ps.IsFirstPlayer && ps.Deck == deckName));
+            winsAsNonFirstPlayer = deckPlays.Count(p => p.PlayerScores.Any(ps => ps.IsWinner && !ps.IsFirstPlayer && ps.Deck == deckName));
+            lossesAsNonFirstPlayer = deckPlays.Count(p => p.PlayerScores.Any(ps => !ps.IsWinner && !ps.IsFirstPlayer && ps.Deck == deckName));
+            gamesAsFirstPlayer = deckPlays.Count(p => p.PlayerScores.Any(ps => ps.IsFirstPlayer && ps.Deck == deckName));
+            gamesAsNonFirstPlayer = deckPlays.Count(p => p.PlayerScores.Any(ps => !ps.IsFirstPlayer && ps.Deck == deckName));
+            
+            firstPlayerStats = new List<FirstPlayerStats>
+            {
+                new FirstPlayerStats { Result = "Losses", Count = lossesAsFirstPlayer },
+                new FirstPlayerStats { Result = "Wins", Count = winsAsFirstPlayer }
+            };
+            
+            goingSecondStats = new List<FirstPlayerStats>
+            {
+                new FirstPlayerStats { Result = "Losses", Count = lossesAsNonFirstPlayer },
+                new FirstPlayerStats { Result = "Wins", Count = winsAsNonFirstPlayer }
+            };
+            
+            firstPlayerChartOptions = new ApexChartOptions<FirstPlayerStats>
+            {
+                Chart = new Chart
+                {
+                    Type = ChartType.Pie,
+                    Height = 300
+                },
+                Legend = new Legend
+                {
+                    Show = false
+                },
+                DataLabels = new DataLabels
+                {
+                    Style = new DataLabelsStyle
+                    {
+                        FontSize = "14px",
+                        FontWeight = "bold"
+                    }
+                },
+                Responsive = new List<Responsive<FirstPlayerStats>>
+                {
+                    new Responsive<FirstPlayerStats>
+                    {
+                        Breakpoint = 480,
+                        Options = new ApexChartOptions<FirstPlayerStats>
+                        {
+                            Chart = new Chart { Width = 200 }
+                        }
+                    }
+                }
+            };
+            
+            goingSecondChartOptions = new ApexChartOptions<FirstPlayerStats>
+            {
+                Chart = new Chart
+                {
+                    Type = ChartType.Pie,
+                    Height = 300
+                },
+                Legend = new Legend
+                {
+                    Show = false
+                },
+                DataLabels = new DataLabels
+                {
+                    Style = new DataLabelsStyle
+                    {
+                        FontSize = "14px",
+                        FontWeight = "bold"
+                    }
+                },
+                Responsive = new List<Responsive<FirstPlayerStats>>
+                {
+                    new Responsive<FirstPlayerStats>
+                    {
+                        Breakpoint = 480,
+                        Options = new ApexChartOptions<FirstPlayerStats>
+                        {
+                            Chart = new Chart { Width = 200 }
+                        }
+                    }
+                }
+            };
+
             // Calculate win rate vs other decks
             var matchupGroups = new Dictionary<string, (int Games, int Wins, int Losses)>();
-            foreach (var play in relevantPlays)
+            foreach (var play in deckPlays)
             {
                 var thisDeckScore = play.PlayerScores.FirstOrDefault(ps => ps.Deck == deckName);
                 var opponentScores = play.PlayerScores.Where(ps => ps.Deck != deckName).ToList();
@@ -272,6 +628,40 @@
                 Losses = kvp.Value.Losses,
                 WinRate = kvp.Value.Games > 0 ? (double)kvp.Value.Wins / kvp.Value.Games : 0
             }).ToList();
+
+            // Calculate player stats for this deck
+            var playerGroups = new Dictionary<string, (int Games, int Wins, int Losses, List<double> Durations)>();
+            foreach (var play in deckPlays)
+            {
+                var thisDeckScores = play.PlayerScores.Where(ps => ps.Deck == deckName).ToList();
+                foreach (var score in thisDeckScores)
+                {
+                    var playerName = score.PlayerName;
+                    if (string.IsNullOrEmpty(playerName))
+                        continue;
+
+                    if (!playerGroups.ContainsKey(playerName))
+                        playerGroups[playerName] = (0, 0, 0, new List<double>());
+
+                    var games = playerGroups[playerName].Games + 1;
+                    var playerWins = playerGroups[playerName].Wins + (score.IsWinner ? 1 : 0);
+                    var playerLosses = playerGroups[playerName].Losses + (score.IsWinner ? 0 : 1);
+                    var durations = playerGroups[playerName].Durations;
+                    durations.Add(play.DurationInMinutes);
+                    
+                    playerGroups[playerName] = (games, playerWins, playerLosses, durations);
+                }
+            }
+
+            playerStats = playerGroups.Select(kvp => new PlayerStats
+            {
+                PlayerName = kvp.Key,
+                Games = kvp.Value.Games,
+                Wins = kvp.Value.Wins,
+                Losses = kvp.Value.Losses,
+                WinRate = kvp.Value.Games > 0 ? (double)kvp.Value.Wins / kvp.Value.Games : 0,
+                AverageDuration = kvp.Value.Durations.Any() ? kvp.Value.Durations.Average() : 0
+            }).ToList();
         }
         catch (Exception ex)
         {
@@ -281,6 +671,11 @@
         {
             isLoading = false;
         }
+    }
+
+    private string GetPointColor(FirstPlayerStats stats)
+    {
+        return stats.Result == "Wins" ? "#28a745" : "#dc3545";
     }
 
     private class DeckStats
@@ -299,5 +694,21 @@
         public int Wins { get; set; }
         public int Losses { get; set; }
         public double WinRate { get; set; }
+    }
+
+    public class FirstPlayerStats
+    {
+        public string Result { get; set; } = string.Empty;
+        public int Count { get; set; }
+    }
+
+    private class PlayerStats
+    {
+        public string PlayerName { get; set; } = string.Empty;
+        public int Games { get; set; }
+        public int Wins { get; set; }
+        public int Losses { get; set; }
+        public double WinRate { get; set; }
+        public double AverageDuration { get; set; }
     }
 } 

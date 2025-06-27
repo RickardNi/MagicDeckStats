@@ -16,10 +16,10 @@ else
                     <th>Duration</th>
                     <th class="flag-icon-column"></th>
                     <th>Winner</th>
-                    <th>Player</th>
+                    <th>First Player</th>
                     <th class="flag-icon-column"></th>
                     <th>Loser</th>
-                    <th>Player</th>
+                    <th>Second Player</th>
                 </tr>
             </thead>
             <tbody>
@@ -32,15 +32,15 @@ else
                         <td>@DateTime.Parse(play.Date).ToString("yyyy-MM-dd")</td>
                         <td>@(play.DurationInMinutes > 0 ? $"{play.DurationInMinutes} min" : "-")</td>
                         <td class="flag-icon-column">
-                            @if (winner?.IsStartPlayer == true)
+                            @if (winner?.IsFirstPlayer == true)
                             {
-                                <i class="bi bi-flag-fill text-warning" title="Starting Player"></i>
+                                <i class="bi bi-flag-fill text-warning" title="First Player"></i>
                             }
                         </td>
                         <td>
                             @if (!string.IsNullOrWhiteSpace(winner?.Deck))
                             {
-                                <NavLink class="text-success fw-bold text-decoration-none" href="@($"/deck/{winner.Deck}")">@winner.Deck</NavLink>
+                                <NavLink class="deck-link text-success fw-bold" href="@($"/deck/{winner.Deck}")">@winner.Deck</NavLink>
                             }
                         </td>
                         <td>
@@ -54,15 +54,15 @@ else
                             }
                         </td>
                         <td class="flag-icon-column">
-                            @if (loser?.IsStartPlayer == true)
+                            @if (loser?.IsFirstPlayer == true)
                             {
-                                <i class="bi bi-flag-fill text-warning" title="Starting Player"></i>
+                                <i class="bi bi-flag-fill text-warning" title="First Player"></i>
                             }
                         </td>
                         <td>
                             @if (!string.IsNullOrWhiteSpace(loser?.Deck))
                             {
-                                <NavLink class="text-danger fw-bold text-decoration-none" href="@($"/deck/{loser.Deck}")">@loser.Deck</NavLink>
+                                <NavLink class="deck-link text-danger fw-bold" href="@($"/deck/{loser.Deck}")">@loser.Deck</NavLink>
                             }
                         </td>
                         <td>

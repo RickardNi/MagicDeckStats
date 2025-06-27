@@ -28,22 +28,22 @@
                 <div class="card">
                     <div class="card-header">
                         <h5 class="card-title mb-0">
-                            <i class="bi bi-graph-up"></i> Start Player Win Rate
+                            <i class="bi bi-1-square"></i> First Player Win Rate
                         </h5>
                     </div>
                     <div class="card-body">
                         @if (plays.Any())
                         {
-                            var startPlayerWins = plays.Count(p => p.PlayerScores.Any(ps => ps.IsWinner && ps.IsStartPlayer));
-                            var startPlayerLosses = plays.Count(p => p.PlayerScores.Any(ps => !ps.IsWinner && ps.IsStartPlayer));
+                            var firstPlayerWins = plays.Count(p => p.PlayerScores.Any(ps => ps.IsWinner && ps.IsFirstPlayer));
+                            var firstPlayerLosses = plays.Count(p => p.PlayerScores.Any(ps => !ps.IsWinner && ps.IsFirstPlayer));
                             var totalGames = plays.Count;
-                            var startPlayerWinRate = totalGames > 0 ? (startPlayerWins * 100.0 / totalGames) : 0;
-                            var startPlayerLossRate = totalGames > 0 ? (startPlayerLosses * 100.0 / totalGames) : 0;
+                            var firstPlayerWinRate = totalGames > 0 ? (firstPlayerWins * 100.0 / totalGames) : 0;
+                            var firstPlayerLossRate = totalGames > 0 ? (firstPlayerLosses * 100.0 / totalGames) : 0;
                             
-                            <ApexChart TItem="StartPlayerStats"
-                                       Options="@startPlayerChartOptions">
-                                <ApexPointSeries TItem="StartPlayerStats"
-                                                Items="@startPlayerStats"
+                            <ApexChart TItem="FirstPlayerStats"
+                                       Options="@firstPlayerChartOptions">
+                                <ApexPointSeries TItem="FirstPlayerStats"
+                                                Items="@firstPlayerStats"
                                                 Name="Games"
                                                 SeriesType="SeriesType.Pie"
                                                 XValue="@(e => e.Result)"
@@ -55,13 +55,13 @@
                             <div class="row text-center mt-3">
                                 <div class="col-6">
                                     <div class="text-success">
-                                        <div class="fw-bold">@startPlayerWins</div>
+                                        <div class="fw-bold">@firstPlayerWins</div>
                                         <div class="small">Wins</div>
                                     </div>
                                 </div>
                                 <div class="col-6">
                                     <div class="text-danger">
-                                        <div class="fw-bold">@startPlayerLosses</div>
+                                        <div class="fw-bold">@firstPlayerLosses</div>
                                         <div class="small">Losses</div>
                                     </div>
                                 </div>
@@ -83,10 +83,22 @@
                     </div>
                     <div class="card-body">
                         <p><strong>Total Plays:</strong> @plays.Count</p>
+                        <p><strong>Total Decks Used:</strong> @(plays.Any() ? plays.SelectMany(p => p.PlayerScores).Select(ps => ps.Deck).Distinct().Count() : 0)</p>
+                        <p><strong>Total Players:</strong> @(plays.Any() ? plays.SelectMany(p => p.PlayerScores).Select(ps => ps.PlayerName).Distinct().Count() : 0)</p>
+                        <hr />
                         @if (plays.Any())
                         {
+                            var longestGame = plays.OrderByDescending(p => p.DurationInMinutes).First();
+                            var mostPlayedDeck = plays.SelectMany(p => p.PlayerScores)
+                                                     .GroupBy(ps => ps.Deck)
+                                                     .OrderByDescending(g => g.Count())
+                                                     .First();
+                            
                             <p><strong>Average Duration:</strong> @plays.Average(p => p.DurationInMinutes).ToString("F1") minutes</p>
+                            <p><strong>Longest Game:</strong> @longestGame.DurationInMinutes minutes</p>
                             <p><strong>Total Play Time:</strong> @Utilities.FormatTotalPlayTime(plays.Sum(p => p.DurationInMinutes))</p>
+                            <hr />
+                            <p><strong>Most Played Deck:</strong> <NavLink class="deck-link" href="@($"/deck/{mostPlayedDeck.Key}")">@mostPlayedDeck.Key</NavLink> (@mostPlayedDeck.Count() games)</p>
                         }
                         else
                         {
@@ -167,8 +179,8 @@
                                         <i class="bi bi-chevron-right"></i>
                                     </button>
                                 </li>
-                                <li class="page-item @(currentPage == totalPages ? "disabled" : "")">
-                                    <button class="page-link" @onclick="() => GoToPage(totalPages)" disabled="@(currentPage == totalPages)">
+                                <li class="page-item @(currentPage == 1 ? "disabled" : "")">
+                                    <button class="page-link" @onclick="() => GoToPage(currentPage - 1)" disabled="@(currentPage == 1)">
                                         <i class="bi bi-chevron-double-right"></i>
                                     </button>
                                 </li>
@@ -192,8 +204,10 @@
                                     <th>Rank</th>
                                     <th>Player Name</th>
                                     <th>Games Played</th>
+                                    <th>Decks played</th>
                                     <th>Wins</th>
                                     <th>Win Rate</th>
+                                    <th>Favourite Deck</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -206,7 +220,11 @@
                                             PlayerName = g.Key,
                                             GamesPlayed = g.Count(),
                                             Wins = g.Count(ps => ps.IsWinner),
-                                            WinRate = g.Count(ps => ps.IsWinner) * 100.0 / g.Count()
+                                            WinRate = g.Count(ps => ps.IsWinner) * 100.0 / g.Count(),
+                                            UniqueDecks = g.Select(ps => ps.Deck).Distinct().Count(),
+                                            FavouriteDeck = g.GroupBy(ps => ps.Deck)
+                                                             .OrderByDescending(dg => dg.Count())
+                                                             .First().Key
                                         })
                                         .OrderByDescending(p => p.GamesPlayed)
                                         .Take(15)
@@ -236,8 +254,12 @@
                                             </td>
                                             <td><strong>@player.PlayerName</strong></td>
                                             <td>@player.GamesPlayed</td>
+                                            <td>@player.UniqueDecks</td>
                                             <td>@player.Wins</td>
                                             <td>@player.WinRate.ToString("F1")%</td>
+                                            <td>
+                                                <NavLink class="deck-link" href="@($"/deck/{player.FavouriteDeck}")">@player.FavouriteDeck</NavLink>
+                                            </td>
                                         </tr>
                                     }
                                 }
@@ -254,13 +276,13 @@
     private bool isLoading = true;
     private string? errorMessage;
     private List<Play> plays = new();
-    private ApexChartOptions<StartPlayerStats> startPlayerChartOptions = new();
-    private List<StartPlayerStats> startPlayerStats = new();
+    private ApexChartOptions<FirstPlayerStats> firstPlayerChartOptions = new();
+    private List<FirstPlayerStats> firstPlayerStats = new();
     private int currentPage = 1;
     private int totalPages = 1;
     private List<Play> currentPagePlays = new();
 
-    public class StartPlayerStats
+    public class FirstPlayerStats
     {
         public string Result { get; set; } = string.Empty;
         public int Count { get; set; }
@@ -283,7 +305,7 @@
             UpdateCurrentPagePlays();
             
             // Configure chart options
-            ConfigureStartPlayerChart();
+            ConfigureFirstPlayerChart();
         }
         catch (Exception ex)
         {
@@ -295,14 +317,14 @@
         }
     }
     
-    private void ConfigureStartPlayerChart()
+    private void ConfigureFirstPlayerChart()
     {
         if (!plays.Any()) return;
         
-        var startPlayerWins = plays.Count(p => p.PlayerScores.Any(ps => ps.IsWinner && ps.IsStartPlayer));
-        var startPlayerLosses = plays.Count(p => p.PlayerScores.Any(ps => !ps.IsWinner && ps.IsStartPlayer));
+        var firstPlayerWins = plays.Count(p => p.PlayerScores.Any(ps => ps.IsWinner && ps.IsFirstPlayer));
+        var firstPlayerLosses = plays.Count(p => p.PlayerScores.Any(ps => !ps.IsWinner && ps.IsFirstPlayer));
         
-        startPlayerChartOptions = new ApexChartOptions<StartPlayerStats>
+        firstPlayerChartOptions = new ApexChartOptions<FirstPlayerStats>
         {
             Chart = new Chart
             {
@@ -321,12 +343,12 @@
                     FontWeight = "bold"
                 }
             },
-            Responsive = new List<Responsive<StartPlayerStats>>
+            Responsive = new List<Responsive<FirstPlayerStats>>
             {
-                new Responsive<StartPlayerStats>
+                new Responsive<FirstPlayerStats>
                 {
                     Breakpoint = 480,
-                    Options = new ApexChartOptions<StartPlayerStats>
+                    Options = new ApexChartOptions<FirstPlayerStats>
                     {
                         Chart = new Chart { Width = 200 }
                     }
@@ -334,14 +356,14 @@
             }
         };
 
-        startPlayerStats = new List<StartPlayerStats>
+        firstPlayerStats = new List<FirstPlayerStats>
         {
-            new StartPlayerStats { Result = "Losses", Count = startPlayerLosses },
-            new StartPlayerStats { Result = "Wins", Count = startPlayerWins }
+            new FirstPlayerStats { Result = "Losses", Count = firstPlayerLosses },
+            new FirstPlayerStats { Result = "Wins", Count = firstPlayerWins }
         };
     }
 
-    private string GetPointColor(StartPlayerStats stats)
+    private string GetPointColor(FirstPlayerStats stats)
     {
         return stats.Result == "Wins" ? "#28a745" : "#dc3545";
     }
