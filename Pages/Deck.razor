@@ -1,12 +1,13 @@
-@page "/deck/{deckName}"
+@page "/deck/{urlDeckName}"
 @using MagicDeckStats.Models
 @using MagicDeckStats.Services
+@using System.Web
 @inject IBGStatsImportService BGStatsService
 
 <PageTitle>Deck Details</PageTitle>
 
 <div class="container mt-4">
-    <h1><i class="bi bi-file-bar-graph-fill me-3"></i> Deck: <span class="fw-bold">@deckName</span></h1>
+    <h1><i class="bi bi-file-bar-graph-fill me-3"></i> Deck: <span class="fw-bold">@(deckStats?.DeckName ?? HttpUtility.UrlDecode(urlDeckName))</span></h1>
 
     @if (isLoading)
     {
@@ -355,7 +356,7 @@
 
 @code {
     [Parameter]
-    public string deckName { get; set; } = string.Empty;
+    public string urlDeckName { get; set; } = string.Empty;
 
     private bool isLoading = true;
     private string? errorMessage;
@@ -496,6 +497,9 @@
             lossesAsNonFirstPlayer = 0;
             playsAsFirstPlayer = 0;
             playsAsNonFirstPlayer = 0;
+
+            // URL decode the deck name to handle special characters
+            var deckName = HttpUtility.UrlDecode(urlDeckName);
 
             var plays = await BGStatsService.GetMagicPlaysAsync();
             deckPlays = plays.Where(p => p.PlayerScores.Any(ps => ps.Deck == deckName)).ToList();
