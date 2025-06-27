@@ -20,8 +20,9 @@ namespace MagicDeckStats.Services
             // URL encode the deck name to handle special characters like spaces, asterisks, etc.
             var encodedDeckName = HttpUtility.UrlEncode(deckName);
             
-            // Return the relative path - the base href will handle the repository prefix
-            return $"/deck/{encodedDeckName}";
+            // Return a relative path without leading slash to work with base href
+            // This ensures it works correctly on GitHub Pages with /MagicDeckStats/ base href
+            return $"deck/{encodedDeckName}";
         }
     }
 } 
