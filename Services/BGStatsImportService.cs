@@ -6,7 +6,6 @@ namespace MagicDeckStats.Services;
 public interface IBGStatsImportService
 {
     Task<List<Play>> GetMagicPlaysAsync();
-    Task<int?> GetMagicGameIdAsync();
 }
 
 public class BGStatsImportService(HttpClient httpClient, ILogger<BGStatsImportService> logger) : IBGStatsImportService
@@ -14,48 +13,26 @@ public class BGStatsImportService(HttpClient httpClient, ILogger<BGStatsImportSe
     private readonly HttpClient _httpClient = httpClient;
     private readonly ILogger<BGStatsImportService> _logger = logger;
     private BGStatsExport? _cachedData;
-    private int? _magicGameId;
-
-    public async Task<int?> GetMagicGameIdAsync()
-    {
-        if (_magicGameId.HasValue)
-            return _magicGameId.Value;
-
-        var data = await LoadBGStatsDataAsync();
-
-        _logger.LogInformation("Loaded {GameCount} games from BGStats export", data.Games.Count);
-
-        var magicGame = data.Games.FirstOrDefault(g => g.Name.Equals("Magic: The Gathering", StringComparison.OrdinalIgnoreCase));
-
-        if (magicGame != null)
-        {
-            _magicGameId = magicGame.Id;
-            _logger.LogInformation("Found Magic: The Gathering game with ID: {GameId}", _magicGameId.Value);
-        }
-        else
-        {
-            _logger.LogWarning("Magic: The Gathering game not found in BGStats export");
-        }
-
-        return _magicGameId;
-    }
 
     public async Task<List<Play>> GetMagicPlaysAsync()
     {
-        var magicGameId = await GetMagicGameIdAsync();
-
-        if (!magicGameId.HasValue)
-        {
-            _logger.LogWarning("Cannot get Magic plays without finding the game ID");
-            return [];
-        }
-
         var data = await LoadBGStatsDataAsync();
         _logger.LogInformation("Loaded {PlayCount} plays from BGStats export", data.Plays.Count);
 
-        var plays = data.Plays.Where(p => p.GameRefId == magicGameId.Value).ToList();
+        var magicGame = data.Games.FirstOrDefault(g => g.Name.Equals("Magic: The Gathering", StringComparison.OrdinalIgnoreCase));
+
+        if (magicGame == null)
+        {
+            _logger.LogWarning("Magic: The Gathering game not found in BGStats export");
+            return [];
+        }
+
+        var magicGameId = magicGame.Id;
+        _logger.LogInformation("Found Magic: The Gathering game with ID: {GameId}", magicGameId);
+
+        var plays = data.Plays.Where(p => p.GameRefId == magicGameId).ToList();
         _logger.LogInformation("Found {MagicPlayCount} plays for Magic: The Gathering (GameRefId: {GameRefId})",
-            plays.Count, magicGameId.Value);
+            plays.Count, magicGameId);
 
         // Temporary filter: only include Battle Decks variants
         plays = [.. plays.Where(p => p.Variant.Contains("Battle Decks") && !p.Variant.Contains("Two-Headed Giant"))];
