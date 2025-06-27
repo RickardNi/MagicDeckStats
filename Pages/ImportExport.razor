@@ -11,7 +11,7 @@
 
 <div class="container-fluid">
     <h1 class="mb-4">Import / Export Data</h1>
-    
+
     <div class="row">
         <!-- Import Section -->
         <div class="col-md-6">
@@ -24,7 +24,7 @@
                 <div class="card-body">
                     <div class="mb-3">
                         <label for="fileInput" class="form-label">Upload BGStats JSON Export</label>
-                        <div class="drop-zone @(isDragOver ? "drag-over" : "")" 
+                        <div class="drop-zone @(isDragOver ? "drag-over" : "")"
                              @ondragover="HandleDragOver"
                              @ondragleave="HandleDragLeave"
                              @ondrop="HandleDrop">
@@ -38,7 +38,7 @@
                             <InputFile OnChange="HandleFileSelect" accept=".json" class="form-control" />
                         </div>
                     </div>
-                    
+
                     @if (!string.IsNullOrEmpty(importStatus))
                     {
                         <div class="alert @(importSuccess ? "alert-success" : "alert-danger") alert-dismissible fade show" role="alert">
@@ -46,7 +46,7 @@
                             <button type="button" class="btn-close" @onclick="() => importStatus = string.Empty"></button>
                         </div>
                     }
-                    
+
                     @if (importedData != null)
                     {
                         <div class="alert alert-info">
@@ -61,7 +61,7 @@
                 </div>
             </div>
         </div>
-        
+
         <!-- Export Section -->
         <div class="col-md-6">
             <div class="card">
@@ -72,20 +72,34 @@
                 </div>
                 <div class="card-body">
                     <div class="mb-3">
+                        <label class="form-label">Player Name Options</label>
                         <div class="form-check">
-                            <input class="form-check-input" type="checkbox" id="simplifyNames" @bind="simplifyPlayerNames" @bind:after="OnSimplifyNamesChanged">
-                            <label class="form-check-label" for="simplifyNames">
-                                Simplify Player Names (keep only first name)
+                            <input class="form-check-input" type="radio" id="noModification" name="nameModification" @onchange="SetNoModification" checked="@(nameModificationOption == "none")">
+                            <label class="form-check-label" for="noModification">
+                                Keep original names
                             </label>
                         </div>
-                        <small class="text-muted">Example: "Agne Simonsson" becomes "Agne"</small>
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" id="simplifyNames" name="nameModification" @onchange="SetSimplifyNames" checked="@(nameModificationOption == "simplify")">
+                            <label class="form-check-label" for="simplifyNames">
+                                Simplify names
+                            </label>
+                            <small class="text-muted d-block ms-4">Example: "Agne Simonsson" becomes "Agne"</small>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" id="anonymizeNames" name="nameModification" @onchange="SetAnonymizeNames" checked="@(nameModificationOption == "anonymize")">
+                            <label class="form-check-label" for="anonymizeNames">
+                                Anonymize all names
+                            </label>
+                            <small class="text-muted d-block ms-4">All names will be replaced with random names</small>
+                        </div>
                     </div>
-                    
+
                     <div class="mb-3">
                         <label for="exportTextarea" class="form-label">Current Data (JSON)</label>
                         <textarea id="exportTextarea" class="form-control export-textarea" readonly>@exportedJson</textarea>
                     </div>
-                    
+
                     <div class="d-flex gap-2">
                         <button class="btn btn-primary" @onclick="CopyToClipboard" disabled="@string.IsNullOrEmpty(exportedJson)">
                             <span class="bi bi-clipboard me-1"></span>Copy to Clipboard
@@ -94,7 +108,7 @@
                             <span class="bi bi-arrow-clockwise me-1"></span>Refresh
                         </button>
                     </div>
-                    
+
                     @if (!string.IsNullOrEmpty(copyStatus))
                     {
                         <div class="alert @(copySuccess ? "alert-success" : "alert-danger") alert-dismissible fade show mt-2" role="alert">
@@ -117,18 +131,18 @@
         transition: all 0.2s ease-in-out;
         background-color: #f8f9fa;
     }
-    
-    .drop-zone:hover {
-        border-color: #0d6efd;
-        background-color: #f0f8ff;
-    }
-    
-    .drop-zone.drag-over {
-        border-color: #0d6efd;
-        background-color: #e7f3ff;
-        transform: scale(1.02);
-    }
-    
+
+        .drop-zone:hover {
+            border-color: #0d6efd;
+            background-color: #f0f8ff;
+        }
+
+        .drop-zone.drag-over {
+            border-color: #0d6efd;
+            background-color: #e7f3ff;
+            transform: scale(1.02);
+        }
+
     .drop-zone-content {
         pointer-events: none;
     }
@@ -139,6 +153,7 @@
         resize: vertical;
         font-family: 'Roboto Mono', 'Courier New', monospace;
         font-size: 0.75rem;
+        font-weight: 400;
     }
 </style>
 
@@ -150,7 +165,7 @@
     private string exportedJson = string.Empty;
     private string copyStatus = string.Empty;
     private bool copySuccess = false;
-    private bool simplifyPlayerNames = true;
+    private string nameModificationOption = "none";
 
     protected override async Task OnInitializedAsync()
     {
@@ -224,7 +239,7 @@
 
             importStatus = $"Successfully imported data with {importedData.Games.Count} games, {importedData.Plays.Count} plays, and {importedData.Players.Count} players.";
             importSuccess = true;
-            
+
             // Refresh export data to include the newly imported data
             await RefreshExportData();
         }
@@ -241,7 +256,7 @@
         try
         {
             var currentData = await BGStatsService.GetCurrentDataAsync();
-            
+
             if (currentData == null)
             {
                 exportedJson = "No data available";
@@ -270,7 +285,7 @@
                         PlayerName = ps.PlayerName
                     }).ToList()
                 }).ToList(),
-                Players = ProcessPlayerNames(currentData.Players, simplifyPlayerNames)
+                Players = ProcessPlayerNames(currentData.Players, nameModificationOption)
             };
 
             var jsonOptions = new JsonSerializerOptions
@@ -304,18 +319,28 @@
         }
     }
 
-    private async Task OnSimplifyNamesChanged()
+    private async Task OnNameModificationChanged()
     {
         await RefreshExportData();
     }
 
-    private List<Player> ProcessPlayerNames(List<Player> players, bool simplifyPlayerNames)
+    private List<Player> ProcessPlayerNames(List<Player> players, string nameModificationOption)
     {
-        if (!simplifyPlayerNames)
+        switch (nameModificationOption)
         {
-            return players.Select(p => new Player { Id = p.Id, Name = p.Name }).ToList();
+            case "none":
+                return players.Select(p => new Player { Id = p.Id, Name = p.Name }).ToList();
+            case "simplify":
+                return SimplifyPlayerNames(players);
+            case "anonymize":
+                return AnonymizePlayerNames(players);
+            default:
+                throw new ArgumentException("Invalid name modification option");
         }
+    }
 
+    private List<Player> SimplifyPlayerNames(List<Player> players)
+    {
         // First pass: count occurrences of each first name
         var nameCounts = new Dictionary<string, int>();
 
@@ -323,7 +348,7 @@
         {
             var nameParts = player.Name.Split(' ', StringSplitOptions.RemoveEmptyEntries);
             var firstName = nameParts.FirstOrDefault() ?? string.Empty;
-            
+
             if (nameCounts.ContainsKey(firstName))
             {
                 nameCounts[firstName]++;
@@ -341,7 +366,7 @@
         {
             var nameParts = player.Name.Split(' ', StringSplitOptions.RemoveEmptyEntries);
             var firstName = nameParts.FirstOrDefault() ?? string.Empty;
-            
+
             // If this first name appears multiple times, add this player's last name initial
             if (nameCounts[firstName] > 1 && nameParts.Length > 1)
             {
@@ -357,4 +382,69 @@
 
         return simplifiedPlayers;
     }
-} 
+
+    private List<Player> AnonymizePlayerNames(List<Player> players)
+    {
+        var anonymizedNames = new[]
+        {
+            "Dick", "Thomas", "David", "Valter", "Johan", "Atli", "Mikael", "Robert",
+            "Markus", "Magnus", "Morgan", "Jeffrey", "Martin", "Daniel", "Christian",
+            "Joakim", "Afonso", "Paulinho", "Patrik"
+        };
+
+        var anonymizedPlayers = new List<Player>();
+        var usedNames = new HashSet<string>();
+        var random = new Random();
+
+        foreach (var player in players)
+        {
+            string anonymizedName;
+
+            // Try to find an unused name
+            var availableNames = anonymizedNames.Where(name => !usedNames.Contains(name)).ToArray();
+
+            if (availableNames.Length > 0)
+            {
+                // Use an available name
+                anonymizedName = availableNames[random.Next(availableNames.Length)];
+                usedNames.Add(anonymizedName);
+            }
+            else
+            {
+                // If all names are used, add a number to make it unique
+                var baseName = anonymizedNames[random.Next(anonymizedNames.Length)];
+                var counter = 1;
+                anonymizedName = $"{baseName}{counter}";
+
+                while (usedNames.Contains(anonymizedName))
+                {
+                    counter++;
+                    anonymizedName = $"{baseName}{counter}";
+                }
+                usedNames.Add(anonymizedName);
+            }
+
+            anonymizedPlayers.Add(new Player { Id = player.Id, Name = anonymizedName });
+        }
+
+        return anonymizedPlayers;
+    }
+
+    private async void SetNoModification()
+    {
+        nameModificationOption = "none";
+        await OnNameModificationChanged();
+    }
+
+    private async void SetSimplifyNames()
+    {
+        nameModificationOption = "simplify";
+        await OnNameModificationChanged();
+    }
+
+    private async void SetAnonymizeNames()
+    {
+        nameModificationOption = "anonymize";
+        await OnNameModificationChanged();
+    }
+}
