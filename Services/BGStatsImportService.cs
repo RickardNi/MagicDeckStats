@@ -135,6 +135,8 @@ public class BGStatsImportService(HttpClient httpClient, ILogger<BGStatsImportSe
             try
             {
                 _logger.LogInformation("Loading BGStats export data... (Thread ID: {ThreadId})", Environment.CurrentManagedThreadId);
+                var loadStartTime = DateTime.UtcNow;
+                
                 var jsonContent = await _httpClient.GetStringAsync("sample-data/BGStatsExport.json");
 
                 var jsonOptions = new JsonSerializerOptions
@@ -152,8 +154,9 @@ public class BGStatsImportService(HttpClient httpClient, ILogger<BGStatsImportSe
                     return new BGStatsExport();
                 }
 
-                _logger.LogInformation("Successfully loaded BGStats export with {GameCount} games and {PlayCount} plays",
-                    _cachedData.Games.Count, _cachedData.Plays.Count);
+                var loadDuration = DateTime.UtcNow - loadStartTime;
+                _logger.LogInformation("Successfully loaded BGStats export with {GameCount} games and {PlayCount} plays in {LoadDuration}ms",
+                    _cachedData.Games.Count, _cachedData.Plays.Count, loadDuration.TotalMilliseconds);
 
                 return _cachedData;
             }
