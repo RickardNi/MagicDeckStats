@@ -1,13 +1,13 @@
-@page "/decks"
+@page "/duration"
 @using MagicDeckStats.Services
 @using MagicDeckStats.Models
 @inject IBGStatsImportService BGStatsService
 
-<PageTitle>Magic Deck Stats - Decks</PageTitle>
+<PageTitle>Magic Deck Stats - Duration</PageTitle>
 
 <div class="container mt-4">
     <div class="d-flex justify-content-between align-items-center mb-4">
-        <h1><i class="bi bi-stack me-3"></i> Decks</h1>
+        <h1><i class="bi bi-clock me-3"></i> Duration</h1>
         <div class="text-muted">
             Showing @deckStats.Count decks
         </div>
@@ -16,7 +16,7 @@
     @if (isLoading)
     {
         <div class="alert alert-info">
-            <i class="bi bi-arrow-clockwise spin"></i> Loading deck statistics...
+            <i class="bi bi-arrow-clockwise spin"></i> Loading deck duration statistics...
         </div>
     }
     else if (errorMessage != null)
@@ -43,6 +43,19 @@
                                     <button class="btn btn-link text-decoration-none p-0 fw-bold" @onclick="() => SortBy(SortColumn.DeckName)">
                                         Deck Name
                                         @if (currentSortColumn == SortColumn.DeckName)
+                                        {
+                                            <i class="bi @(isAscending ? "bi-sort-up" : "bi-sort-down")"></i>
+                                        }
+                                        else
+                                        {
+                                            <i class="bi bi-sort text-muted"></i>
+                                        }
+                                    </button>
+                                </th>
+                                <th class="text-center">
+                                    <button class="btn btn-link text-decoration-none p-0 fw-bold" @onclick="() => SortBy(SortColumn.Duration)">
+                                        Duration (min)
+                                        @if (currentSortColumn == SortColumn.Duration)
                                         {
                                             <i class="bi @(isAscending ? "bi-sort-up" : "bi-sort-down")"></i>
                                         }
@@ -104,34 +117,26 @@
                                         }
                                     </button>
                                 </th>
-                                <th class="text-center">
-                                    <button class="btn btn-link text-decoration-none p-0 fw-bold" @onclick="() => SortBy(SortColumn.LastPlayed)">
-                                        Last Played
-                                        @if (currentSortColumn == SortColumn.LastPlayed)
-                                        {
-                                            <i class="bi @(isAscending ? "bi-sort-up" : "bi-sort-down")"></i>
-                                        }
-                                        else
-                                        {
-                                            <i class="bi bi-sort text-muted"></i>
-                                        }
-                                    </button>
-                                </th>
                             </tr>
                         </thead>
                         <tbody>
                             @foreach (var deck in GetSortedDeckStats())
                             {
                                 var winRatePercentage = deck.TotalGames > 0 ? (double)deck.Wins / deck.TotalGames * 100 : 0;
-                                var winRateColor = winRatePercentage >= 60 ? "text-success" : 
-                                                 winRatePercentage >= 40 ? "text-warning" : "text-danger";
-                                
+                                var winRateColor = winRatePercentage >= 60 ? "text-success" :
+                                winRatePercentage >= 40 ? "text-warning" : "text-danger";
+                                var durationColor = deck.AverageDuration >= 120 ? "text-danger" :
+                                deck.AverageDuration >= 90 ? "text-warning" : "text-success";
+
                                 <tr>
                                     <td>
                                         <span class="fw-bold">@deck.DeckName</span>
                                     </td>
                                     <td class="text-center">
-                                        <span class="badge bg-primary">@deck.TotalGames</span>
+                                        <span class="fw-bold @durationColor">@(deck.AverageDuration.ToString("F1"))</span>
+                                    </td>
+                                    <td class="text-center">
+                                        <span>@deck.TotalGames</span>
                                     </td>
                                     <td class="text-center">
                                         <span class="text-success fw-bold">@deck.Wins</span>
@@ -142,20 +147,52 @@
                                     <td class="text-center">
                                         <span class="fw-bold @winRateColor">@(winRatePercentage.ToString("F1"))%</span>
                                     </td>
-                                    <td class="text-center">
-                                        @if (deck.LastPlayed.HasValue)
-                                        {
-                                            <span class="text-muted">@deck.LastPlayed.Value.ToString("yyyy-MM-dd")</span>
-                                        }
-                                        else
-                                        {
-                                            <span class="text-muted">-</span>
-                                        }
-                                    </td>
                                 </tr>
                             }
                         </tbody>
                     </table>
+                </div>
+
+                <div class="row mt-4">
+                    <div class="col-md-6">
+                        <div class="card bg-light">
+                            <div class="card-body">
+                                <h5 class="card-title">Summary</h5>
+                                <ul class="list-unstyled mb-0">
+                                    <li><strong>Total Decks:</strong> @deckStats.Count</li>
+                                    <li><strong>Total Games:</strong> @deckStats.Sum(d => d.TotalGames)</li>
+                                    <li><strong>Average Duration:</strong> @(deckStats.Any() ? deckStats.Average(d => d.AverageDuration).ToString("F1") : "0") min</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="card bg-light">
+                            <div class="card-body">
+                                <h5 class="card-title">Duration Insights</h5>
+                                <ul class="list-unstyled mb-0">
+                                    @{
+                                        var fastestDeck = deckStats.OrderBy(d => d.AverageDuration).FirstOrDefault();
+                                        var slowestDeck = deckStats.OrderByDescending(d => d.AverageDuration).FirstOrDefault();
+                                        var bestWinRate = deckStats.OrderByDescending(d => d.WinRate).ThenByDescending(d => d.TotalGames).FirstOrDefault();
+                                    }
+                                    @if (fastestDeck != null)
+                                    {
+                                        <li><strong>Fastest Deck:</strong> @fastestDeck.DeckName (@(fastestDeck.AverageDuration.ToString("F1")) min)</li>
+                                    }
+                                    @if (slowestDeck != null)
+                                    {
+                                        <li><strong>Slowest Deck:</strong> @slowestDeck.DeckName (@(slowestDeck.AverageDuration.ToString("F1")) min)</li>
+                                    }
+                                    @if (bestWinRate != null)
+                                    {
+                                        var topWinRate = (double)bestWinRate.Wins / bestWinRate.TotalGames * 100;
+                                        <li><strong>Best Win Rate:</strong> @bestWinRate.DeckName (@(topWinRate.ToString("F1"))%)</li>
+                                    }
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -163,18 +200,17 @@
         <div class="card mt-4">
             <div class="card-header">
                 <h5 class="card-title mb-0">
-                    <i class="bi bi-bar-chart me-2"></i> Win Rate Chart
+                    <i class="bi bi-bar-chart me-2"></i> Average Duration
                 </h5>
             </div>
             <div class="card-body">
-                <ApexChart TItem="DeckStats"
-                           Title="Deck Win Rates">
+                <ApexChart TItem="DeckStats">
                     <ApexPointSeries TItem="DeckStats"
                                      Items="GetSortedDeckStats()"
-                                     Name="Win Rate"
+                                     Name="Duration (min)"
                                      SeriesType="SeriesType.Bar"
                                      XValue="e => e.DeckName"
-                                     YValue="e => (decimal)(e.TotalGames > 0 ? (double)e.Wins / e.TotalGames * 100 : 0)" />
+                                     YValue="e => (decimal)(int)e.AverageDuration" />
                 </ApexChart>
             </div>
         </div>
@@ -185,31 +221,31 @@
     private bool isLoading = true;
     private string? errorMessage;
     private List<DeckStats> deckStats = new();
-    private SortColumn currentSortColumn = SortColumn.WinRate;
-    private bool isAscending = false;
+    private SortColumn currentSortColumn = SortColumn.Duration;
+    private bool isAscending = true;
 
     protected override async Task OnInitializedAsync()
     {
         try
         {
             isLoading = true;
-            
+
             // Get all Magic plays
             var plays = await BGStatsService.GetMagicPlaysAsync();
-            
-            // Calculate deck statistics
+
+            // Calculate deck statistics with duration
             var deckGroups = plays
-                .SelectMany(p => p.PlayerScores)
-                .GroupBy(ps => ps.Deck)
+                .SelectMany(p => p.PlayerScores.Select(ps => new { Play = p, PlayerScore = ps }))
+                .GroupBy(x => x.PlayerScore.Deck)
                 .Where(g => !string.IsNullOrWhiteSpace(g.Key));
 
             deckStats = deckGroups.Select(g => new DeckStats
             {
                 DeckName = g.Key,
                 TotalGames = g.Count(),
-                Wins = g.Count(ps => ps.IsWinner),
-                Losses = g.Count(ps => !ps.IsWinner),
-                LastPlayed = g.Max(ps => DateTime.Parse(plays.First(p => p.PlayerScores.Contains(ps)).Date))
+                Wins = g.Count(x => x.PlayerScore.IsWinner),
+                Losses = g.Count(x => !x.PlayerScore.IsWinner),
+                AverageDuration = g.Average(x => x.Play.DurationInMinutes)
             }).ToList();
         }
         catch (Exception ex)
@@ -231,32 +267,23 @@
         else
         {
             currentSortColumn = column;
-            isAscending = false;
+            isAscending = true;
         }
     }
 
     private List<DeckStats> GetSortedDeckStats()
     {
-        var query = currentSortColumn switch
-        {
-            SortColumn.DeckName => deckStats.AsQueryable(),
-            SortColumn.TotalGames => deckStats.AsQueryable(),
-            SortColumn.Wins => deckStats.AsQueryable(),
-            SortColumn.Losses => deckStats.AsQueryable(),
-            SortColumn.WinRate => deckStats.AsQueryable(),
-            SortColumn.LastPlayed => deckStats.AsQueryable(),
-            _ => deckStats.AsQueryable()
-        };
+        var query = deckStats.AsQueryable();
 
         var sortedDeckStats = currentSortColumn switch
         {
             SortColumn.DeckName => isAscending ? query.OrderBy(d => d.DeckName) : query.OrderByDescending(d => d.DeckName),
+            SortColumn.Duration => isAscending ? query.OrderBy(d => d.AverageDuration) : query.OrderByDescending(d => d.AverageDuration),
             SortColumn.TotalGames => isAscending ? query.OrderBy(d => d.TotalGames) : query.OrderByDescending(d => d.TotalGames),
             SortColumn.Wins => isAscending ? query.OrderBy(d => d.Wins) : query.OrderByDescending(d => d.Wins),
             SortColumn.Losses => isAscending ? query.OrderBy(d => d.Losses) : query.OrderByDescending(d => d.Losses),
             SortColumn.WinRate => isAscending ? query.OrderBy(d => d.WinRate) : query.OrderByDescending(d => d.WinRate),
-            SortColumn.LastPlayed => isAscending ? query.OrderBy(d => d.LastPlayed ?? DateTime.MinValue) : query.OrderByDescending(d => d.LastPlayed ?? DateTime.MinValue),
-            _ => query.OrderByDescending(d => d.WinRate).ThenByDescending(d => d.TotalGames)
+            _ => query.OrderBy(d => d.AverageDuration)
         };
 
         return sortedDeckStats.ToList();
@@ -265,11 +292,11 @@
     private enum SortColumn
     {
         DeckName,
+        Duration,
         TotalGames,
         Wins,
         Losses,
-        WinRate,
-        LastPlayed
+        WinRate
     }
 
     private class DeckStats
@@ -278,8 +305,8 @@
         public int TotalGames { get; set; }
         public int Wins { get; set; }
         public int Losses { get; set; }
-        public DateTime? LastPlayed { get; set; }
-        
+        public double AverageDuration { get; set; }
+
         public double WinRate => TotalGames > 0 ? (double)Wins / TotalGames : 0;
     }
-} 
+}
