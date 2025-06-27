@@ -38,7 +38,10 @@ else
                             }
                         </td>
                         <td>
-                            <span class="text-success fw-bold">@winner?.Deck</span>
+                            @if (!string.IsNullOrWhiteSpace(winner?.Deck))
+                            {
+                                <NavLink class="text-success fw-bold text-decoration-none" href="@($"/deck/{winner.Deck}")">@winner.Deck</NavLink>
+                            }
                         </td>
                         <td>
                             @if (winner != null)
@@ -57,7 +60,10 @@ else
                             }
                         </td>
                         <td>
-                            <span class="text-danger fw-bold">@loser?.Deck</span>
+                            @if (!string.IsNullOrWhiteSpace(loser?.Deck))
+                            {
+                                <NavLink class="text-danger fw-bold text-decoration-none" href="@($"/deck/{loser.Deck}")">@loser.Deck</NavLink>
+                            }
                         </td>
                         <td>
                             @if (loser != null)

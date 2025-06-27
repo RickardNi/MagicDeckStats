@@ -1,0 +1,303 @@
+@page "/deck/{deckName}"
+@using MagicDeckStats.Models
+@using MagicDeckStats.Services
+@inject IBGStatsImportService BGStatsService
+
+<PageTitle>Deck Details</PageTitle>
+
+<div class="container mt-4">
+    <h1><i class="bi bi-file-bar-graph-fill me-3"></i> Deck: <span class="fw-bold">@deckName</span></h1>
+
+    @if (isLoading)
+    {
+        <div class="alert alert-info">
+            <i class="bi bi-arrow-clockwise spin"></i> Loading deck details...
+        </div>
+    }
+    else if (errorMessage != null)
+    {
+        <div class="alert alert-danger">
+            <i class="bi bi-exclamation-triangle"></i> @errorMessage
+        </div>
+    }
+    else if (deckStats == null)
+    {
+        <div class="alert alert-warning">
+            <i class="bi bi-exclamation-triangle"></i> Deck not found.
+        </div>
+    }
+    else
+    {
+        <div class="row mb-4">
+            <div class="col-md-6">
+                <div class="card mb-3">
+                    <div class="card-header">
+                        <h5 class="mb-0">Stats</h5>
+                    </div>
+                    <div class="card-body">
+                        <dl class="row mb-0">
+                            <dt class="col-sm-5">Total Games</dt>
+                            <dd class="col-sm-7">@deckStats.TotalGames</dd>
+                            <dt class="col-sm-5">Wins</dt>
+                            <dd class="col-sm-7 text-success">@deckStats.Wins</dd>
+                            <dt class="col-sm-5">Losses</dt>
+                            <dd class="col-sm-7 text-danger">@deckStats.Losses</dd>
+                            <dt class="col-sm-5">Win Rate</dt>
+                            <dd class="col-sm-7 fw-bold">@(deckStats.WinRate.ToString("P1"))</dd>
+                            <dt class="col-sm-5">Average Duration</dt>
+                            <dd class="col-sm-7">@((averageDuration > 0 ? $"{averageDuration:F1} min" : "-") )</dd>
+                        </dl>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card mt-4">
+            <div class="card-header">
+                <h5 class="mb-0">Matchups</h5>
+            </div>
+            <div class="card-body">
+                @if (matchupStats.Any())
+                {
+                    <div class="table-responsive">
+                        <table class="table table-striped table-hover">
+                            <thead>
+                                <tr>
+                                    <th>
+                                        <button class="btn btn-link text-decoration-none p-0 fw-bold" @onclick="() => SortBy(MatchupSortColumn.OpponentDeck)">
+                                            Opponent
+                                            @if (currentSortColumn == MatchupSortColumn.OpponentDeck)
+                                            {
+                                                <i class="bi @(isAscending ? "bi-sort-up" : "bi-sort-down")"></i>
+                                            }
+                                            else
+                                            {
+                                                <i class="bi bi-sort text-muted"></i>
+                                            }
+                                        </button>
+                                    </th>
+                                    <th class="text-center">
+                                        <button class="btn btn-link text-decoration-none p-0 fw-bold" @onclick="() => SortBy(MatchupSortColumn.Games)">
+                                            Games
+                                            @if (currentSortColumn == MatchupSortColumn.Games)
+                                            {
+                                                <i class="bi @(isAscending ? "bi-sort-up" : "bi-sort-down")"></i>
+                                            }
+                                            else
+                                            {
+                                                <i class="bi bi-sort text-muted"></i>
+                                            }
+                                        </button>
+                                    </th>
+                                    <th class="text-center">
+                                        <button class="btn btn-link text-decoration-none p-0 fw-bold" @onclick="() => SortBy(MatchupSortColumn.Wins)">
+                                            Wins
+                                            @if (currentSortColumn == MatchupSortColumn.Wins)
+                                            {
+                                                <i class="bi @(isAscending ? "bi-sort-up" : "bi-sort-down")"></i>
+                                            }
+                                            else
+                                            {
+                                                <i class="bi bi-sort text-muted"></i>
+                                            }
+                                        </button>
+                                    </th>
+                                    <th class="text-center">
+                                        <button class="btn btn-link text-decoration-none p-0 fw-bold" @onclick="() => SortBy(MatchupSortColumn.Losses)">
+                                            Losses
+                                            @if (currentSortColumn == MatchupSortColumn.Losses)
+                                            {
+                                                <i class="bi @(isAscending ? "bi-sort-up" : "bi-sort-down")"></i>
+                                            }
+                                            else
+                                            {
+                                                <i class="bi bi-sort text-muted"></i>
+                                            }
+                                        </button>
+                                    </th>
+                                    <th class="text-center">
+                                        <button class="btn btn-link text-decoration-none p-0 fw-bold" @onclick="() => SortBy(MatchupSortColumn.WinRate)">
+                                            Win Rate
+                                            @if (currentSortColumn == MatchupSortColumn.WinRate)
+                                            {
+                                                <i class="bi @(isAscending ? "bi-sort-up" : "bi-sort-down")"></i>
+                                            }
+                                            else
+                                            {
+                                                <i class="bi bi-sort text-muted"></i>
+                                            }
+                                        </button>
+                                    </th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var vs in GetSortedMatchupStats())
+                                {
+                                    <tr>
+                                        <td>
+                                            <NavLink class="text-dark text-decoration-none" href="@($"/deck/{vs.OpponentDeck}")">@vs.OpponentDeck</NavLink>
+                                        </td>
+                                        <td class="text-center">@vs.Games</td>
+                                        <td class="text-center text-success">@vs.Wins</td>
+                                        <td class="text-center text-danger">@vs.Losses</td>
+                                        <td class="text-center fw-bold">@(vs.WinRate.ToString("P1"))</td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                }
+                else
+                {
+                    <div class="alert alert-info">No games against other decks found.</div>
+                }
+            </div>
+        </div>
+    }
+</div>
+
+@code {
+    [Parameter]
+    public string deckName { get; set; } = string.Empty;
+
+    private bool isLoading = true;
+    private string? errorMessage;
+    private DeckStats? deckStats;
+    private double averageDuration = 0;
+    private List<MatchupStats> matchupStats = new();
+
+    private MatchupSortColumn currentSortColumn = MatchupSortColumn.Games;
+    private bool isAscending = false;
+
+    private enum MatchupSortColumn
+    {
+        OpponentDeck,
+        Games,
+        Wins,
+        Losses,
+        WinRate
+    }
+
+    private void SortBy(MatchupSortColumn column)
+    {
+        if (column == currentSortColumn)
+        {
+            isAscending = !isAscending;
+        }
+        else
+        {
+            currentSortColumn = column;
+            isAscending = false;
+        }
+    }
+
+    private IEnumerable<MatchupStats> GetSortedMatchupStats()
+    {
+        IEnumerable<MatchupStats> query = matchupStats;
+        switch (currentSortColumn)
+        {
+            case MatchupSortColumn.OpponentDeck:
+                query = isAscending ? query.OrderBy(m => m.OpponentDeck) : query.OrderByDescending(m => m.OpponentDeck);
+                break;
+            case MatchupSortColumn.Games:
+                query = isAscending ? query.OrderBy(m => m.Games) : query.OrderByDescending(m => m.Games);
+                break;
+            case MatchupSortColumn.Wins:
+                query = isAscending ? query.OrderBy(m => m.Wins) : query.OrderByDescending(m => m.Wins);
+                break;
+            case MatchupSortColumn.Losses:
+                query = isAscending ? query.OrderBy(m => m.Losses) : query.OrderByDescending(m => m.Losses);
+                break;
+            case MatchupSortColumn.WinRate:
+                query = isAscending ? query.OrderBy(m => m.WinRate) : query.OrderByDescending(m => m.WinRate);
+                break;
+        }
+        return query;
+    }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        try
+        {
+            isLoading = true;
+            errorMessage = null;
+            deckStats = null;
+            matchupStats.Clear();
+            averageDuration = 0;
+
+            var plays = await BGStatsService.GetMagicPlaysAsync();
+            var relevantPlays = plays.Where(p => p.PlayerScores.Any(ps => ps.Deck == deckName)).ToList();
+            if (!relevantPlays.Any())
+            {
+                return;
+            }
+
+            var allScores = relevantPlays.SelectMany(p => p.PlayerScores).Where(ps => ps.Deck == deckName).ToList();
+            var totalGames = allScores.Count;
+            var wins = allScores.Count(ps => ps.IsWinner);
+            var losses = allScores.Count(ps => !ps.IsWinner);
+            var winRate = totalGames > 0 ? (double)wins / totalGames : 0;
+            averageDuration = relevantPlays.Any() ? relevantPlays.Average(p => p.DurationInMinutes) : 0;
+
+            deckStats = new DeckStats
+            {
+                DeckName = deckName,
+                TotalGames = totalGames,
+                Wins = wins,
+                Losses = losses,
+                WinRate = winRate
+            };
+
+            // Calculate win rate vs other decks
+            var matchupGroups = new Dictionary<string, (int Games, int Wins, int Losses)>();
+            foreach (var play in relevantPlays)
+            {
+                var thisDeckScore = play.PlayerScores.FirstOrDefault(ps => ps.Deck == deckName);
+                var opponentScores = play.PlayerScores.Where(ps => ps.Deck != deckName).ToList();
+                foreach (var opp in opponentScores)
+                {
+                    if (!matchupGroups.ContainsKey(opp.Deck))
+                        matchupGroups[opp.Deck] = (0, 0, 0);
+                    var games = matchupGroups[opp.Deck].Games + 1;
+                    var winsVs = matchupGroups[opp.Deck].Wins + (thisDeckScore?.IsWinner == true ? 1 : 0);
+                    var lossesVs = matchupGroups[opp.Deck].Losses + (thisDeckScore?.IsWinner == false ? 1 : 0);
+                    matchupGroups[opp.Deck] = (games, winsVs, lossesVs);
+                }
+            }
+            matchupStats = matchupGroups.Select(kvp => new MatchupStats
+            {
+                OpponentDeck = kvp.Key,
+                Games = kvp.Value.Games,
+                Wins = kvp.Value.Wins,
+                Losses = kvp.Value.Losses,
+                WinRate = kvp.Value.Games > 0 ? (double)kvp.Value.Wins / kvp.Value.Games : 0
+            }).ToList();
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Error loading deck details: {ex.Message}";
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private class DeckStats
+    {
+        public string DeckName { get; set; } = string.Empty;
+        public int TotalGames { get; set; }
+        public int Wins { get; set; }
+        public int Losses { get; set; }
+        public double WinRate { get; set; }
+    }
+
+    private class MatchupStats
+    {
+        public string OpponentDeck { get; set; } = string.Empty;
+        public int Games { get; set; }
+        public int Wins { get; set; }
+        public int Losses { get; set; }
+        public double WinRate { get; set; }
+    }
+} 
