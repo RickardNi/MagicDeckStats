@@ -128,7 +128,7 @@
                                 
                                 <tr>
                                     <td>
-                                        <NavLink class="deck-link" href="@($"/deck/{deck.DeckName}")">@deck.DeckName</NavLink>
+                                        <NavLink class="deck-link" href="@Utilities.GetDeckUrl(deck.DeckName)">@deck.DeckName</NavLink>
                                     </td>
                                     <td class="text-center">
                                         @deck.TotalPlays

@@ -218,7 +218,7 @@
                                 {
                                     <tr>
                                         <td>
-                                            <NavLink class="deck-link" href="@($"/deck/{vs.OpponentDeck}")">@vs.OpponentDeck</NavLink>
+                                            <NavLink class="deck-link" href="@Utilities.GetDeckUrl(vs.OpponentDeck)">@vs.OpponentDeck</NavLink>
                                         </td>
                                         <td class="text-center">@vs.Plays</td>
                                         <td class="text-center text-success">@vs.Wins</td>

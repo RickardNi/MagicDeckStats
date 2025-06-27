@@ -98,7 +98,7 @@
                             <p><strong>Longest Game:</strong> @longestGame.DurationInMinutes minutes</p>
                             <p><strong>Total Play Time:</strong> @Utilities.FormatTotalPlayTime(plays.Sum(p => p.DurationInMinutes))</p>
                             <hr />
-                            <p><strong>Most Played Deck:</strong> <NavLink class="deck-link" href="@($"/deck/{mostPlayedDeck.Key}")">@mostPlayedDeck.Key</NavLink> (@mostPlayedDeck.Count() plays)</p>
+                            <p><strong>Most Played Deck:</strong> <NavLink class="deck-link" href="@Utilities.GetDeckUrl(mostPlayedDeck.Key)">@mostPlayedDeck.Key</NavLink> (@mostPlayedDeck.Count() plays)</p>
                         }
                         else
                         {
@@ -258,7 +258,7 @@
                                             <td>@player.Wins</td>
                                             <td>@player.WinRate.ToString("F1")%</td>
                                             <td>
-                                                <NavLink class="deck-link" href="@($"/deck/{player.FavouriteDeck}")">@player.FavouriteDeck</NavLink>
+                                                <NavLink class="deck-link" href="@Utilities.GetDeckUrl(player.FavouriteDeck)">@player.FavouriteDeck</NavLink>
                                             </td>
                                         </tr>
                                     }
