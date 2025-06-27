@@ -72,6 +72,16 @@
                 </div>
                 <div class="card-body">
                     <div class="mb-3">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="simplifyNames" @bind="simplifyPlayerNames" @bind:after="OnSimplifyNamesChanged">
+                            <label class="form-check-label" for="simplifyNames">
+                                Simplify Player Names (keep only first name)
+                            </label>
+                        </div>
+                        <small class="text-muted">Example: "Agne Simonsson" becomes "Agne"</small>
+                    </div>
+                    
+                    <div class="mb-3">
                         <label for="exportTextarea" class="form-label">Current Data (JSON)</label>
                         <textarea id="exportTextarea" class="form-control" rows="10" readonly>@exportedJson</textarea>
                     </div>
@@ -132,6 +142,7 @@
     private string exportedJson = string.Empty;
     private string copyStatus = string.Empty;
     private bool copySuccess = false;
+    private bool simplifyPlayerNames = true;
 
     protected override async Task OnInitializedAsync()
     {
@@ -148,7 +159,7 @@
         isDragOver = false;
     }
 
-    private async Task HandleDrop(DragEventArgs e)
+    private void HandleDrop(DragEventArgs e)
     {
         isDragOver = false;
         // Note: Drag and drop file handling is complex in Blazor WebAssembly
@@ -229,13 +240,38 @@
                 return;
             }
 
+            // Create a deep copy of the data for export to avoid modifying the original
+            var exportData = new BGStatsExport
+            {
+                Games = currentData.Games.Select(g => new Game { Id = g.Id, Name = g.Name }).ToList(),
+                Plays = currentData.Plays.Select(p => new Play
+                {
+                    Date = p.Date,
+                    DurationInMinutes = p.DurationInMinutes,
+                    Rounds = p.Rounds,
+                    Variant = p.Variant,
+                    GameRefId = p.GameRefId,
+                    PlayerScores = p.PlayerScores.Select(ps => new PlayerScore
+                    {
+                        Score = ps.Score,
+                        IsWinner = ps.IsWinner,
+                        IsNewPlayer = ps.IsNewPlayer,
+                        IsFirstPlayer = ps.IsFirstPlayer,
+                        PlayerRefId = ps.PlayerRefId,
+                        Deck = ps.Deck,
+                        PlayerName = ps.PlayerName
+                    }).ToList()
+                }).ToList(),
+                Players = ProcessPlayerNames(currentData.Players, simplifyPlayerNames)
+            };
+
             var jsonOptions = new JsonSerializerOptions
             {
                 WriteIndented = true,
                 PropertyNamingPolicy = JsonNamingPolicy.CamelCase
             };
 
-            exportedJson = JsonSerializer.Serialize(currentData, jsonOptions);
+            exportedJson = JsonSerializer.Serialize(exportData, jsonOptions);
         }
         catch (Exception ex)
         {
@@ -258,5 +294,59 @@
             copyStatus = "Failed to copy to clipboard. Please select and copy manually.";
             copySuccess = false;
         }
+    }
+
+    private async Task OnSimplifyNamesChanged()
+    {
+        await RefreshExportData();
+    }
+
+    private List<Player> ProcessPlayerNames(List<Player> players, bool simplifyPlayerNames)
+    {
+        if (!simplifyPlayerNames)
+        {
+            return players.Select(p => new Player { Id = p.Id, Name = p.Name }).ToList();
+        }
+
+        // First pass: count occurrences of each first name
+        var nameCounts = new Dictionary<string, int>();
+
+        foreach (var player in players)
+        {
+            var nameParts = player.Name.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+            var firstName = nameParts.FirstOrDefault() ?? string.Empty;
+            
+            if (nameCounts.ContainsKey(firstName))
+            {
+                nameCounts[firstName]++;
+            }
+            else
+            {
+                nameCounts[firstName] = 1;
+            }
+        }
+
+        // Second pass: create simplified names
+        var simplifiedPlayers = new List<Player>();
+
+        foreach (var player in players)
+        {
+            var nameParts = player.Name.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+            var firstName = nameParts.FirstOrDefault() ?? string.Empty;
+            
+            // If this first name appears multiple times, add this player's last name initial
+            if (nameCounts[firstName] > 1 && nameParts.Length > 1)
+            {
+                var lastName = nameParts.Last();
+                if (!string.IsNullOrEmpty(lastName))
+                {
+                    firstName += " " + lastName[0];
+                }
+            }
+
+            simplifiedPlayers.Add(new Player { Id = player.Id, Name = firstName });
+        }
+
+        return simplifiedPlayers;
     }
 } 
