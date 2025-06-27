@@ -93,8 +93,34 @@
                                 </th>
                                 <th class="text-center">
                                     <button class="btn btn-link text-decoration-none p-0 fw-bold" @onclick="() => SortBy(SortColumn.WinRate)">
-                                        Win Rate
+                                        Win %
                                         @if (currentSortColumn == SortColumn.WinRate)
+                                        {
+                                            <i class="bi @(isAscending ? "bi-sort-up" : "bi-sort-down")"></i>
+                                        }
+                                        else
+                                        {
+                                            <i class="bi bi-sort text-muted"></i>
+                                        }
+                                    </button>
+                                </th>
+                                <th class="text-center">
+                                    <button class="btn btn-link text-decoration-none p-0 fw-bold" @onclick="() => SortBy(SortColumn.FirstPlayerWinRate)">
+                                        <i class="bi bi-1-square me-1"></i> Player Win %
+                                        @if (currentSortColumn == SortColumn.FirstPlayerWinRate)
+                                        {
+                                            <i class="bi @(isAscending ? "bi-sort-up" : "bi-sort-down")"></i>
+                                        }
+                                        else
+                                        {
+                                            <i class="bi bi-sort text-muted"></i>
+                                        }
+                                    </button>
+                                </th>
+                                <th class="text-center">
+                                    <button class="btn btn-link text-decoration-none p-0 fw-bold" @onclick="() => SortBy(SortColumn.GoingSecondWinRate)">
+                                        <i class="bi bi-2-square me-1"></i> Player Win %
+                                        @if (currentSortColumn == SortColumn.GoingSecondWinRate)
                                         {
                                             <i class="bi @(isAscending ? "bi-sort-up" : "bi-sort-down")"></i>
                                         }
@@ -141,6 +167,32 @@
                                     </td>
                                     <td class="text-center">
                                         <span class="fw-bold @winRateColor">@(winRatePercentage.ToString("F1"))%</span>
+                                    </td>
+                                    <td class="text-center">
+                                        @if (deck.FirstPlayerPlays > 0)
+                                        {
+                                            var firstPlayerWinRate = deck.FirstPlayerWinRate * 100;
+                                            var firstPlayerColor = firstPlayerWinRate >= 60 ? "text-success" : 
+                                                                   firstPlayerWinRate >= 40 ? "text-warning" : "text-danger";
+                                            <span class="fw-bold @firstPlayerColor">@(firstPlayerWinRate.ToString("F1"))%</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted">-</span>
+                                        }
+                                    </td>
+                                    <td class="text-center">
+                                        @if (deck.GoingSecondPlays > 0)
+                                        {
+                                            var goingSecondWinRate = deck.GoingSecondWinRate * 100;
+                                            var goingSecondColor = goingSecondWinRate >= 60 ? "text-success" : 
+                                                                   goingSecondWinRate >= 40 ? "text-warning" : "text-danger";
+                                            <span class="fw-bold @goingSecondColor">@(goingSecondWinRate.ToString("F1"))%</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted">-</span>
+                                        }
                                     </td>
                                     <td class="text-center">
                                         @if (deck.LastPlayed.HasValue)
@@ -208,6 +260,10 @@
                 TotalPlays = g.Count(),
                 Wins = g.Count(ps => ps.IsWinner),
                 Losses = g.Count(ps => !ps.IsWinner),
+                FirstPlayerPlays = g.Count(ps => ps.IsFirstPlayer),
+                FirstPlayerWins = g.Count(ps => ps.IsFirstPlayer && ps.IsWinner),
+                GoingSecondPlays = g.Count(ps => !ps.IsFirstPlayer),
+                GoingSecondWins = g.Count(ps => !ps.IsFirstPlayer && ps.IsWinner),
                 LastPlayed = g.Max(ps => DateTime.Parse(plays.First(p => p.PlayerScores.Contains(ps)).Date))
             }).ToList();
         }
@@ -243,6 +299,8 @@
             SortColumn.Wins => deckStats.AsQueryable(),
             SortColumn.Losses => deckStats.AsQueryable(),
             SortColumn.WinRate => deckStats.AsQueryable(),
+            SortColumn.FirstPlayerWinRate => deckStats.AsQueryable(),
+            SortColumn.GoingSecondWinRate => deckStats.AsQueryable(),
             SortColumn.LastPlayed => deckStats.AsQueryable(),
             _ => deckStats.AsQueryable()
         };
@@ -254,6 +312,8 @@
             SortColumn.Wins => isAscending ? query.OrderBy(d => d.Wins) : query.OrderByDescending(d => d.Wins),
             SortColumn.Losses => isAscending ? query.OrderBy(d => d.Losses) : query.OrderByDescending(d => d.Losses),
             SortColumn.WinRate => isAscending ? query.OrderBy(d => d.WinRate) : query.OrderByDescending(d => d.WinRate),
+            SortColumn.FirstPlayerWinRate => isAscending ? query.OrderBy(d => d.FirstPlayerWinRate) : query.OrderByDescending(d => d.FirstPlayerWinRate),
+            SortColumn.GoingSecondWinRate => isAscending ? query.OrderBy(d => d.GoingSecondWinRate) : query.OrderByDescending(d => d.GoingSecondWinRate),
             SortColumn.LastPlayed => isAscending ? query.OrderBy(d => d.LastPlayed ?? DateTime.MinValue) : query.OrderByDescending(d => d.LastPlayed ?? DateTime.MinValue),
             _ => query.OrderByDescending(d => d.WinRate).ThenByDescending(d => d.TotalPlays)
         };
@@ -268,6 +328,8 @@
         Wins,
         Losses,
         WinRate,
+        FirstPlayerWinRate,
+        GoingSecondWinRate,
         LastPlayed
     }
 
@@ -277,8 +339,14 @@
         public int TotalPlays { get; set; }
         public int Wins { get; set; }
         public int Losses { get; set; }
+        public int FirstPlayerPlays { get; set; }
+        public int FirstPlayerWins { get; set; }
+        public int GoingSecondPlays { get; set; }
+        public int GoingSecondWins { get; set; }
         public DateTime? LastPlayed { get; set; }
         
         public double WinRate => TotalPlays > 0 ? (double)Wins / TotalPlays : 0;
+        public double FirstPlayerWinRate => FirstPlayerPlays > 0 ? (double)FirstPlayerWins / FirstPlayerPlays : 0;
+        public double GoingSecondWinRate => GoingSecondPlays > 0 ? (double)GoingSecondWins / GoingSecondPlays : 0;
     }
 } 
