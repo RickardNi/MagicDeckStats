@@ -1,0 +1,53 @@
+name: Deploy to GitHub Pages
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+      
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: '9.0.x'
+      
+    - name: Publish
+      run: dotnet publish MagicDeckStats.csproj --configuration Release --output ./publish
+
+    - name: Change base-tag in index.html
+      run: |
+        REPO_NAME=${GITHUB_REPOSITORY#*/}
+        sed -i "s/<base href=\"\/\" \/>/<base href=\"\/$REPO_NAME\/\" \/>/g" publish/wwwroot/index.html
+
+    - name: Add .nojekyll file
+      run: touch publish/wwwroot/.nojekyll
+
+    - name: Setup Pages
+      uses: actions/configure-pages@v4
+      
+    - name: Upload artifact
+      uses: actions/upload-pages-artifact@v3
+      with:
+        path: './publish/wwwroot'
+        
+    - name: Deploy to GitHub Pages
+      id: deployment
+      uses: actions/deploy-pages@v4
+      if: github.ref == 'refs/heads/main' 
