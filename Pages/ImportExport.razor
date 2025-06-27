@@ -83,7 +83,7 @@
                     
                     <div class="mb-3">
                         <label for="exportTextarea" class="form-label">Current Data (JSON)</label>
-                        <textarea id="exportTextarea" class="form-control" rows="10" readonly>@exportedJson</textarea>
+                        <textarea id="exportTextarea" class="form-control export-textarea" readonly>@exportedJson</textarea>
                     </div>
                     
                     <div class="d-flex gap-2">
@@ -131,6 +131,14 @@
     
     .drop-zone-content {
         pointer-events: none;
+    }
+
+    .export-textarea {
+        min-height: 150px;
+        height: 60vh;
+        resize: vertical;
+        font-family: 'Roboto Mono', 'Courier New', monospace;
+        font-size: 0.75rem;
     }
 </style>
 
