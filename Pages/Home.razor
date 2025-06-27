@@ -44,6 +44,57 @@
                     </div>
                 </div>
             </div>
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="card-title mb-0">
+                            <i class="bi bi-graph-up"></i> Start Player
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        @if (plays.Any())
+                        {
+                            var startPlayerWins = plays.Count(p => p.PlayerScores.Any(ps => ps.IsWinner && ps.IsStartPlayer));
+                            var startPlayerLosses = plays.Count(p => p.PlayerScores.Any(ps => !ps.IsWinner && ps.IsStartPlayer));
+                            var totalGames = plays.Count;
+                            var startPlayerWinRate = totalGames > 0 ? (startPlayerWins * 100.0 / totalGames) : 0;
+                            var startPlayerLossRate = totalGames > 0 ? (startPlayerLosses * 100.0 / totalGames) : 0;
+                            
+                            <ApexChart TItem="StartPlayerStats"
+                                       Title="Start Player Win%" 
+                                       Options="@startPlayerChartOptions">
+                                <ApexPointSeries TItem="StartPlayerStats"
+                                                Items="@startPlayerStats"
+                                                Name="Games"
+                                                SeriesType="SeriesType.Pie"
+                                                XValue="@(e => e.Result)"
+                                                YValue="@(e => e.Count)"
+                                                PointColor="e => GetPointColor(e)"
+                                                ShowDataLabels />
+                            </ApexChart>
+                            
+                            <div class="row text-center mt-3">
+                                <div class="col-6">
+                                    <div class="text-success">
+                                        <div class="fw-bold">@startPlayerWins</div>
+                                        <div class="small">Wins</div>
+                                    </div>
+                                </div>
+                                <div class="col-6">
+                                    <div class="text-danger">
+                                        <div class="fw-bold">@startPlayerLosses</div>
+                                        <div class="small">Losses</div>
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                        else
+                        {
+                            <p class="text-muted">No plays found</p>
+                        }
+                    </div>
+                </div>
+            </div>
         </div>
 
         @if (plays.Any())
@@ -204,6 +255,14 @@
     private bool isLoading = true;
     private string? errorMessage;
     private List<Play> plays = new();
+    private ApexChartOptions<StartPlayerStats> startPlayerChartOptions = new();
+    private List<StartPlayerStats> startPlayerStats = new();
+
+    public class StartPlayerStats
+    {
+        public string Result { get; set; } = string.Empty;
+        public int Count { get; set; }
+    }
 
     protected override async Task OnInitializedAsync()
     {
@@ -213,6 +272,9 @@
             
             // Get all Magic plays
             plays = await BGStatsService.GetMagicPlaysAsync();
+            
+            // Configure chart options
+            ConfigureStartPlayerChart();
         }
         catch (Exception ex)
         {
@@ -222,5 +284,56 @@
         {
             isLoading = false;
         }
+    }
+    
+    private void ConfigureStartPlayerChart()
+    {
+        if (!plays.Any()) return;
+        
+        var startPlayerWins = plays.Count(p => p.PlayerScores.Any(ps => ps.IsWinner && ps.IsStartPlayer));
+        var startPlayerLosses = plays.Count(p => p.PlayerScores.Any(ps => !ps.IsWinner && ps.IsStartPlayer));
+        
+        startPlayerChartOptions = new ApexChartOptions<StartPlayerStats>
+        {
+            Chart = new Chart
+            {
+                Type = ChartType.Pie,
+                Height = 300
+            },
+            Legend = new Legend
+            {
+                Show = false
+            },
+            DataLabels = new DataLabels 
+            { 
+                Style = new DataLabelsStyle
+                {
+                    FontSize = "14px",
+                    FontWeight = "bold"
+                }
+            },
+            Responsive = new List<Responsive<StartPlayerStats>>
+            {
+                new Responsive<StartPlayerStats>
+                {
+                    Breakpoint = 480,
+                    Options = new ApexChartOptions<StartPlayerStats>
+                    {
+                        Chart = new Chart { Width = 200 }
+                    }
+                }
+            }
+        };
+
+        startPlayerStats = new List<StartPlayerStats>
+        {
+            new StartPlayerStats { Result = "Losses", Count = startPlayerLosses },
+            new StartPlayerStats { Result = "Wins", Count = startPlayerWins }
+        };
+    }
+
+    private string GetPointColor(StartPlayerStats stats)
+    {
+        return stats.Result == "Wins" ? "#28a745" : "#dc3545";
     }
 }
