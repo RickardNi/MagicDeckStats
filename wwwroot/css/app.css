@@ -1,9 +1,13 @@
 html, body {
-    font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+    font-family: 'Roboto Condensed', 'Roboto', 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
 }
 
 h1:focus {
     outline: none;
+}
+
+h1 {
+    margin-bottom: 2rem;
 }
 
 a, .btn-link {
@@ -161,4 +165,11 @@ code {
     background-color: #f8d7da;
     border-color: #f5c6cb;
     color: #721c24;
+}
+
+/* Flag icon column styling for tighter spacing */
+.flag-icon-column {
+    width: 20px;
+    padding-left: 0.25rem !important;
+    padding-right: 0rem !important;
 }

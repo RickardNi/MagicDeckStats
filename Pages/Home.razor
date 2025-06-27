@@ -112,10 +112,10 @@
                                 <tr>
                                     <th>Date</th>
                                     <th>Duration</th>
-                                    <th></th>
+                                    <th class="flag-icon-column"></th>
                                     <th>Winner</th>
                                     <th>Player</th>
-                                    <th></th>
+                                    <th class="flag-icon-column"></th>
                                     <th>Loser</th>
                                     <th>Player</th>
                                 </tr>
@@ -129,7 +129,7 @@
                                     <tr>
                                         <td>@DateTime.Parse(play.Date).ToString("yyyy-MM-dd")</td>
                                         <td>@(play.DurationInMinutes > 0 ? $"{play.DurationInMinutes} min" : "-")</td>
-                                        <td>
+                                        <td class="flag-icon-column">
                                             @if (winner.IsStartPlayer)
                                             {
                                                 <i class="bi bi-flag-fill text-warning" title="Starting Player"></i>
@@ -150,14 +150,14 @@
                                                 }
                                             }
                                         </td>
-                                        <td>
+                                        <td class="flag-icon-column">
                                             @if (loser.IsStartPlayer)
                                             {
                                                 <i class="bi bi-flag-fill text-warning" title="Starting Player"></i>
                                             }
                                         </td>
                                         <td>
-                                            <span class="text-danger">@loser.Deck</span>
+                                            <span class="text-danger fw-bold">@loser.Deck</span>
                                         </td>
                                         <td>
                                             @{
