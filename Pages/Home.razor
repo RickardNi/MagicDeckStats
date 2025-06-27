@@ -28,28 +28,7 @@
                 <div class="card">
                     <div class="card-header">
                         <h5 class="card-title mb-0">
-                            <i class="bi bi-graph-up"></i> Quick Stats
-                        </h5>
-                    </div>
-                    <div class="card-body">
-                        <p><strong>Total Plays:</strong> @plays.Count</p>
-                        @if (plays.Any())
-                        {
-                            <p><strong>Average Duration:</strong> @plays.Average(p => p.DurationInMinutes).ToString("F1") minutes</p>
-                            <p><strong>Total Play Time:</strong> @Utilities.FormatTotalPlayTime(plays.Sum(p => p.DurationInMinutes))</p>
-                        }
-                        else
-                        {
-                            <p class="text-muted">No plays found</p>
-                        }
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-6">
-                <div class="card">
-                    <div class="card-header">
-                        <h5 class="card-title mb-0">
-                            <i class="bi bi-graph-up"></i> Start Player
+                            <i class="bi bi-graph-up"></i> Start Player Win Rate
                         </h5>
                     </div>
                     <div class="card-body">
@@ -87,6 +66,27 @@
                                     </div>
                                 </div>
                             </div>
+                        }
+                        else
+                        {
+                            <p class="text-muted">No plays found</p>
+                        }
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="card-title mb-0">
+                            <i class="bi bi-graph-up"></i> Quick Stats
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <p><strong>Total Plays:</strong> @plays.Count</p>
+                        @if (plays.Any())
+                        {
+                            <p><strong>Average Duration:</strong> @plays.Average(p => p.DurationInMinutes).ToString("F1") minutes</p>
+                            <p><strong>Total Play Time:</strong> @Utilities.FormatTotalPlayTime(plays.Sum(p => p.DurationInMinutes))</p>
                         }
                         else
                         {
