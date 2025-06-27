@@ -27,7 +27,13 @@ public class BGStatsImportService(HttpClient httpClient, ILogger<BGStatsImportSe
             if (_cachedData == null)
                 await LoadBGStatsDataAsync();
 
-            _logger.LogInformation("Loaded {PlayCount} plays from BGStats export", _cachedData!.Plays.Count);
+            if (_cachedData == null || _cachedData.Plays == null)
+            {
+                _logger.LogWarning("No valid BGStats data available");
+                return [];
+            }
+
+            _logger.LogInformation("Loaded {PlayCount} plays from BGStats export", _cachedData.Plays.Count);
 
             if (_magicGameId == -1)
             {
@@ -36,14 +42,14 @@ public class BGStatsImportService(HttpClient httpClient, ILogger<BGStatsImportSe
             }
 
             // Create a lookup dictionary for player names
-            var playerNamesById = _cachedData.Players.ToDictionary(p => p.Id, p => p.Name);
+            var playerNamesById = _cachedData.Players?.ToDictionary(p => p.Id, p => p.Name) ?? [];
 
             foreach (var play in _cachedData.Plays)
             {
                 try
                 {
                     // Set PlayerName for each PlayerScore and clean deck names
-                    foreach (var playerScore in play.PlayerScores)
+                    foreach (var playerScore in play.PlayerScores ?? [])
                     {
                         if (playerNamesById.TryGetValue(playerScore.PlayerRefId, out var name))
                             playerScore.PlayerName = name;
@@ -161,48 +167,72 @@ public class BGStatsImportService(HttpClient httpClient, ILogger<BGStatsImportSe
                 return _cachedData;
             }
 
+            _logger.LogInformation("Loading BGStats export data... (Thread ID: {ThreadId})", Environment.CurrentManagedThreadId);
+            var loadStartTime = DateTime.UtcNow;
+            
+            // Try to load data from either BGStatsExport.json or SampleData.json
+            string jsonContent;
+            string dataSource;
+            
             try
             {
-                _logger.LogInformation("Loading BGStats export data... (Thread ID: {ThreadId})", Environment.CurrentManagedThreadId);
-                var loadStartTime = DateTime.UtcNow;
-                
-                var jsonContent = await _httpClient.GetStringAsync("sample-data/BGStatsExport.json");
-
-                var jsonOptions = new JsonSerializerOptions
-                {
-                    PropertyNameCaseInsensitive = true,
-                    AllowTrailingCommas = true,
-                    ReadCommentHandling = JsonCommentHandling.Skip
-                };
-
-                _cachedData = JsonSerializer.Deserialize<BGStatsExport>(jsonContent, jsonOptions);
-
-                if (_cachedData == null)
-                {
-                    _logger.LogError("Failed to deserialize BGStats export data");
-                    return new BGStatsExport();
-                }
-
-                SetMagicGameId();
-
-                PurgeIrrelevantData();
-
-                var loadDuration = DateTime.UtcNow - loadStartTime;
-                _logger.LogInformation("Successfully loaded BGStats export with {PlayCount} plays in {LoadDuration}ms",
-                    _cachedData.Plays.Count, loadDuration.TotalMilliseconds);
-
-                return _cachedData;
+                var result = await LoadJsonContentAsync();
+                jsonContent = result.jsonContent;
+                dataSource = result.dataSource;
             }
-            catch (Exception ex)
+            catch (HttpRequestException)
             {
-                _logger.LogError(ex, "Error loading BGStats export data");
-                return new BGStatsExport();
+                _logger.LogError("No valid JSON content could be loaded from any file");
+                return CreateEmptyBGStatsExport();
             }
+
+            // Parse the JSON content
+            var jsonOptions = new JsonSerializerOptions
+            {
+                PropertyNameCaseInsensitive = true,
+                AllowTrailingCommas = true,
+                ReadCommentHandling = JsonCommentHandling.Skip
+            };
+
+            try
+            {
+                _cachedData = JsonSerializer.Deserialize<BGStatsExport>(jsonContent, jsonOptions);
+            }
+            catch (JsonException jsonEx)
+            {
+                _logger.LogError(jsonEx, "Failed to parse JSON from {DataSource}. The file may be corrupted or not in the expected format.", dataSource);
+                return CreateEmptyBGStatsExport();
+            }
+
+            if (_cachedData == null)
+            {
+                _logger.LogError("Failed to deserialize BGStats export data from {DataSource}", dataSource);
+                return CreateEmptyBGStatsExport();
+            }
+
+            SetMagicGameId();
+            PurgeIrrelevantData();
+
+            var loadDuration = DateTime.UtcNow - loadStartTime;
+            _logger.LogInformation("Successfully loaded {DataSource} with {PlayCount} plays in {LoadDuration}ms",
+                dataSource, _cachedData.Plays.Count, loadDuration.TotalMilliseconds);
+
+            return _cachedData;
         }
         finally
         {
             _dataLoadSemaphore.Release();
         }
+    }
+
+    private static BGStatsExport CreateEmptyBGStatsExport()
+    {
+        return new BGStatsExport
+        {
+            Games = [],
+            Plays = [],
+            Players = []
+        };
     }
 
     private void SetMagicGameId()
@@ -264,5 +294,46 @@ public class BGStatsImportService(HttpClient httpClient, ILogger<BGStatsImportSe
 
         _logger.LogInformation("Data purging completed. Final counts - Games: {GameCount}, Plays: {PlayCount}, Players: {PlayerCount}",
             _cachedData.Games.Count, _cachedData.Plays.Count, _cachedData.Players.Count);
+    }
+
+    private async Task<(string jsonContent, string dataSource)> LoadJsonContentAsync()
+    {
+        var files = new[]
+        {
+            ("sample-data/BGStatsExport.json", "BGStatsExport.json"),
+            ("sample-data/SampleData.json", "SampleData.json")
+        };
+
+        foreach (var (filePath, dataSource) in files)
+        {
+            var result = await TryLoadFileAsync(filePath, dataSource);
+            if (result.success)
+                return (result.content, result.dataSource);
+        }
+
+        _logger.LogError("Failed to load both BGStatsExport.json and SampleData.json");
+        throw new HttpRequestException("No valid data files could be loaded");
+    }
+
+    private async Task<(bool success, string content, string dataSource)> TryLoadFileAsync(string filePath, string dataSource)
+    {
+        try
+        {
+            var content = await _httpClient.GetStringAsync(filePath);
+            _logger.LogInformation("Successfully loaded {DataSource} (Content length: {ContentLength})", dataSource, content.Length);
+            
+            if (string.IsNullOrWhiteSpace(content))
+            {
+                _logger.LogWarning("{DataSource} is empty", dataSource);
+                return (false, string.Empty, dataSource);
+            }
+
+            return (true, content, dataSource);
+        }
+        catch (HttpRequestException ex)
+        {
+            _logger.LogWarning(ex, "Failed to load {DataSource}", dataSource);
+            return (false, string.Empty, dataSource);
+        }
     }
 }
