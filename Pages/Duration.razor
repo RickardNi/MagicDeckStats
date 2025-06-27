@@ -92,9 +92,35 @@
                                     </button>
                                 </th>
                                 <th class="text-center">
+                                    <button class="btn btn-link text-decoration-none p-0 fw-bold" @onclick="() => SortBy(SortColumn.WinDuration)">
+                                        Win Duration (min)
+                                        @if (currentSortColumn == SortColumn.WinDuration)
+                                        {
+                                            <i class="bi @(isAscending ? "bi-sort-up" : "bi-sort-down")"></i>
+                                        }
+                                        else
+                                        {
+                                            <i class="bi bi-sort text-muted"></i>
+                                        }
+                                    </button>
+                                </th>
+                                <th class="text-center">
                                     <button class="btn btn-link text-decoration-none p-0 fw-bold" @onclick="() => SortBy(SortColumn.Losses)">
                                         Losses
                                         @if (currentSortColumn == SortColumn.Losses)
+                                        {
+                                            <i class="bi @(isAscending ? "bi-sort-up" : "bi-sort-down")"></i>
+                                        }
+                                        else
+                                        {
+                                            <i class="bi bi-sort text-muted"></i>
+                                        }
+                                    </button>
+                                </th>
+                                <th class="text-center">
+                                    <button class="btn btn-link text-decoration-none p-0 fw-bold" @onclick="() => SortBy(SortColumn.LossDuration)">
+                                        Loss Duration (min)
+                                        @if (currentSortColumn == SortColumn.LossDuration)
                                         {
                                             <i class="bi @(isAscending ? "bi-sort-up" : "bi-sort-down")"></i>
                                         }
@@ -142,7 +168,31 @@
                                         <span class="text-success fw-bold">@deck.Wins</span>
                                     </td>
                                     <td class="text-center">
+                                        @if (deck.Wins > 0)
+                                        {
+                                            var winDurationColor = deck.WinDuration >= 120 ? "text-danger" : 
+                                                                  deck.WinDuration >= 90 ? "text-warning" : "text-success";
+                                            <span class="fw-bold @winDurationColor">@(deck.WinDuration.ToString("F1"))</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted">-</span>
+                                        }
+                                    </td>
+                                    <td class="text-center">
                                         <span class="text-danger">@deck.Losses</span>
+                                    </td>
+                                    <td class="text-center">
+                                        @if (deck.Losses > 0)
+                                        {
+                                            var lossDurationColor = deck.LossDuration >= 120 ? "text-danger" : 
+                                                                  deck.LossDuration >= 90 ? "text-warning" : "text-success";
+                                            <span class="fw-bold @lossDurationColor">@(deck.LossDuration.ToString("F1"))</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted">-</span>
+                                        }
                                     </td>
                                     <td class="text-center">
                                         <span class="fw-bold @winRateColor">@(winRatePercentage.ToString("F1"))%</span>
@@ -245,7 +295,11 @@
                 TotalGames = g.Count(),
                 Wins = g.Count(x => x.PlayerScore.IsWinner),
                 Losses = g.Count(x => !x.PlayerScore.IsWinner),
-                AverageDuration = g.Average(x => x.Play.DurationInMinutes)
+                AverageDuration = g.Average(x => x.Play.DurationInMinutes),
+                WinDuration = g.Where(x => x.PlayerScore.IsWinner).Any() ? 
+                             g.Where(x => x.PlayerScore.IsWinner).Average(x => x.Play.DurationInMinutes) : 0,
+                LossDuration = g.Where(x => !x.PlayerScore.IsWinner).Any() ? 
+                             g.Where(x => !x.PlayerScore.IsWinner).Average(x => x.Play.DurationInMinutes) : 0
             }).ToList();
         }
         catch (Exception ex)
@@ -283,6 +337,8 @@
             SortColumn.Wins => isAscending ? query.OrderBy(d => d.Wins) : query.OrderByDescending(d => d.Wins),
             SortColumn.Losses => isAscending ? query.OrderBy(d => d.Losses) : query.OrderByDescending(d => d.Losses),
             SortColumn.WinRate => isAscending ? query.OrderBy(d => d.WinRate) : query.OrderByDescending(d => d.WinRate),
+            SortColumn.WinDuration => isAscending ? query.OrderBy(d => d.WinDuration) : query.OrderByDescending(d => d.WinDuration),
+            SortColumn.LossDuration => isAscending ? query.OrderBy(d => d.LossDuration) : query.OrderByDescending(d => d.LossDuration),
             _ => query.OrderBy(d => d.AverageDuration)
         };
 
@@ -296,7 +352,9 @@
         TotalGames,
         Wins,
         Losses,
-        WinRate
+        WinRate,
+        WinDuration,
+        LossDuration
     }
 
     private class DeckStats
@@ -306,6 +364,8 @@
         public int Wins { get; set; }
         public int Losses { get; set; }
         public double AverageDuration { get; set; }
+        public double WinDuration { get; set; }
+        public double LossDuration { get; set; }
 
         public double WinRate => TotalGames > 0 ? (double)Wins / TotalGames : 0;
     }
