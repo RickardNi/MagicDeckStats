@@ -36,14 +36,14 @@
                     </div>
                     <div class="card-body">
                         <dl class="row mb-0">
-                            <dt class="col-sm-5">Total Games</dt>
-                            <dd class="col-sm-7">@deckStats.TotalGames (<span class="text-success">@deckStats.Wins W</span> / <span class="text-danger">@deckStats.Losses L</span>)</dd>
+                            <dt class="col-sm-5">Total Plays</dt>
+                            <dd class="col-sm-7">@deckStats.TotalPlays (<span class="text-success">@deckStats.Wins W</span> / <span class="text-danger">@deckStats.Losses L</span>)</dd>
                             <dt class="col-sm-5">Win Rate</dt>
                             <dd class="col-sm-7 fw-bold">@(deckStats.WinRate.ToString("P1"))</dd>
                             <dt class="col-sm-5">First Player Win Rate</dt>
-                            <dd class="col-sm-7 fw-bold">@((gamesAsFirstPlayer > 0 ? (double)winsAsFirstPlayer / gamesAsFirstPlayer : 0).ToString("P1"))</dd>
+                            <dd class="col-sm-7 fw-bold">@((playsAsFirstPlayer > 0 ? (double)winsAsFirstPlayer / playsAsFirstPlayer : 0).ToString("P1"))</dd>
                             <dt class="col-sm-5">Win Rate When Going Second</dt>
-                            <dd class="col-sm-7 fw-bold">@((gamesAsNonFirstPlayer > 0 ? (double)winsAsNonFirstPlayer / gamesAsNonFirstPlayer : 0).ToString("P1"))</dd>
+                            <dd class="col-sm-7 fw-bold">@((playsAsNonFirstPlayer > 0 ? (double)winsAsNonFirstPlayer / playsAsNonFirstPlayer : 0).ToString("P1"))</dd>
                             <dt class="col-sm-5">Average Duration</dt>
                             <dd class="col-sm-7">@((averageDuration > 0 ? $"{averageDuration:F1} min" : "-") )</dd>
                         </dl>
@@ -64,7 +64,7 @@
                             <ApexChart TItem="FirstPlayerStats" Options="@firstPlayerChartOptions">
                                 <ApexPointSeries TItem="FirstPlayerStats"
                                                  Items="@firstPlayerStats"
-                                                 Name="Games"
+                                                 Name="Plays"
                                                  SeriesType="SeriesType.Pie"
                                                  XValue="@(e => e.Result)"
                                                  YValue="@(e => e.Count)"
@@ -104,7 +104,7 @@
                             <ApexChart TItem="FirstPlayerStats" Options="@goingSecondChartOptions">
                                 <ApexPointSeries TItem="FirstPlayerStats"
                                                  Items="@goingSecondStats"
-                                                 Name="Games"
+                                                 Name="Plays"
                                                  SeriesType="SeriesType.Pie"
                                                  XValue="@(e => e.Result)"
                                                  YValue="@(e => e.Count)"
@@ -160,9 +160,9 @@
                                         </button>
                                     </th>
                                     <th class="text-center">
-                                        <button class="btn btn-link text-decoration-none p-0 fw-bold" @onclick="() => SortBy(MatchupSortColumn.Games)">
-                                            Games
-                                            @if (currentSortColumn == MatchupSortColumn.Games)
+                                        <button class="btn btn-link text-decoration-none p-0 fw-bold" @onclick="() => SortBy(MatchupSortColumn.Plays)">
+                                            Plays
+                                            @if (currentSortColumn == MatchupSortColumn.Plays)
                                             {
                                                 <i class="bi @(isAscending ? "bi-sort-up" : "bi-sort-down")"></i>
                                             }
@@ -220,7 +220,7 @@
                                         <td>
                                             <NavLink class="deck-link" href="@($"/deck/{vs.OpponentDeck}")">@vs.OpponentDeck</NavLink>
                                         </td>
-                                        <td class="text-center">@vs.Games</td>
+                                        <td class="text-center">@vs.Plays</td>
                                         <td class="text-center text-success">@vs.Wins</td>
                                         <td class="text-center text-danger">@vs.Losses</td>
                                         <td class="text-center fw-bold">@(vs.WinRate.ToString("P1"))</td>
@@ -232,7 +232,7 @@
                 }
                 else
                 {
-                    <div class="alert alert-info">No games against other decks found.</div>
+                    <div class="alert alert-info">No plays against other decks found.</div>
                 }
             </div>
         </div>
@@ -262,9 +262,9 @@
                                         </button>
                                     </th>
                                     <th class="text-center">
-                                        <button class="btn btn-link text-decoration-none p-0 fw-bold" @onclick="() => SortByPlayer(PlayerSortColumn.Games)">
-                                            Games
-                                            @if (currentPlayerSortColumn == PlayerSortColumn.Games)
+                                        <button class="btn btn-link text-decoration-none p-0 fw-bold" @onclick="() => SortByPlayer(PlayerSortColumn.Plays)">
+                                            Plays
+                                            @if (currentPlayerSortColumn == PlayerSortColumn.Plays)
                                             {
                                                 <i class="bi @(isPlayerSortAscending ? "bi-sort-up" : "bi-sort-down")"></i>
                                             }
@@ -333,7 +333,7 @@
                                 {
                                     <tr>
                                         <td>@ps.PlayerName</td>
-                                        <td class="text-center">@ps.Games</td>
+                                        <td class="text-center">@ps.Plays</td>
                                         <td class="text-center text-success">@ps.Wins</td>
                                         <td class="text-center text-danger">@ps.Losses</td>
                                         <td class="text-center fw-bold">@(ps.WinRate.ToString("P1"))</td>
@@ -372,19 +372,19 @@
     private List<FirstPlayerStats> goingSecondStats = new();
     private int winsAsFirstPlayer = 0;
     private int winsAsNonFirstPlayer = 0;
-    private int gamesAsFirstPlayer = 0;
-    private int gamesAsNonFirstPlayer = 0;
+    private int playsAsFirstPlayer = 0;
+    private int playsAsNonFirstPlayer = 0;
 
-    private MatchupSortColumn currentSortColumn = MatchupSortColumn.Games;
+    private MatchupSortColumn currentSortColumn = MatchupSortColumn.Plays;
     private bool isAscending = false;
 
-    private PlayerSortColumn currentPlayerSortColumn = PlayerSortColumn.Games;
+    private PlayerSortColumn currentPlayerSortColumn = PlayerSortColumn.Plays;
     private bool isPlayerSortAscending = false;
 
     private enum MatchupSortColumn
     {
         OpponentDeck,
-        Games,
+        Plays,
         Wins,
         Losses,
         WinRate
@@ -393,7 +393,7 @@
     private enum PlayerSortColumn
     {
         Player,
-        Games,
+        Plays,
         Wins,
         Losses,
         WinRate,
@@ -434,8 +434,8 @@
             case MatchupSortColumn.OpponentDeck:
                 query = isAscending ? query.OrderBy(m => m.OpponentDeck) : query.OrderByDescending(m => m.OpponentDeck);
                 break;
-            case MatchupSortColumn.Games:
-                query = isAscending ? query.OrderBy(m => m.Games) : query.OrderByDescending(m => m.Games);
+            case MatchupSortColumn.Plays:
+                query = isAscending ? query.OrderBy(m => m.Plays) : query.OrderByDescending(m => m.Plays);
                 break;
             case MatchupSortColumn.Wins:
                 query = isAscending ? query.OrderBy(m => m.Wins) : query.OrderByDescending(m => m.Wins);
@@ -458,8 +458,8 @@
             case PlayerSortColumn.Player:
                 query = isPlayerSortAscending ? query.OrderBy(p => p.PlayerName) : query.OrderByDescending(p => p.PlayerName);
                 break;
-            case PlayerSortColumn.Games:
-                query = isPlayerSortAscending ? query.OrderBy(p => p.Games) : query.OrderByDescending(p => p.Games);
+            case PlayerSortColumn.Plays:
+                query = isPlayerSortAscending ? query.OrderBy(p => p.Plays) : query.OrderByDescending(p => p.Plays);
                 break;
             case PlayerSortColumn.Wins:
                 query = isPlayerSortAscending ? query.OrderBy(p => p.Wins) : query.OrderByDescending(p => p.Wins);
@@ -494,8 +494,8 @@
             winsAsNonFirstPlayer = 0;
             lossesAsFirstPlayer = 0;
             lossesAsNonFirstPlayer = 0;
-            gamesAsFirstPlayer = 0;
-            gamesAsNonFirstPlayer = 0;
+            playsAsFirstPlayer = 0;
+            playsAsNonFirstPlayer = 0;
 
             var plays = await BGStatsService.GetMagicPlaysAsync();
             deckPlays = plays.Where(p => p.PlayerScores.Any(ps => ps.Deck == deckName)).ToList();
@@ -505,16 +505,16 @@
             }
 
             var allScores = deckPlays.SelectMany(p => p.PlayerScores).Where(ps => ps.Deck == deckName).ToList();
-            var totalGames = allScores.Count;
+            var totalPlays = allScores.Count;
             var wins = allScores.Count(ps => ps.IsWinner);
             var losses = allScores.Count(ps => !ps.IsWinner);
-            var winRate = totalGames > 0 ? (double)wins / totalGames : 0;
+            var winRate = totalPlays > 0 ? (double)wins / totalPlays : 0;
             averageDuration = deckPlays.Any() ? deckPlays.Average(p => p.DurationInMinutes) : 0;
 
             deckStats = new DeckStats
             {
                 DeckName = deckName,
-                TotalGames = totalGames,
+                TotalPlays = totalPlays,
                 Wins = wins,
                 Losses = losses,
                 WinRate = winRate
@@ -525,8 +525,8 @@
             lossesAsFirstPlayer = deckPlays.Count(p => p.PlayerScores.Any(ps => !ps.IsWinner && ps.IsFirstPlayer && ps.Deck == deckName));
             winsAsNonFirstPlayer = deckPlays.Count(p => p.PlayerScores.Any(ps => ps.IsWinner && !ps.IsFirstPlayer && ps.Deck == deckName));
             lossesAsNonFirstPlayer = deckPlays.Count(p => p.PlayerScores.Any(ps => !ps.IsWinner && !ps.IsFirstPlayer && ps.Deck == deckName));
-            gamesAsFirstPlayer = deckPlays.Count(p => p.PlayerScores.Any(ps => ps.IsFirstPlayer && ps.Deck == deckName));
-            gamesAsNonFirstPlayer = deckPlays.Count(p => p.PlayerScores.Any(ps => !ps.IsFirstPlayer && ps.Deck == deckName));
+            playsAsFirstPlayer = deckPlays.Count(p => p.PlayerScores.Any(ps => ps.IsFirstPlayer && ps.Deck == deckName));
+            playsAsNonFirstPlayer = deckPlays.Count(p => p.PlayerScores.Any(ps => !ps.IsFirstPlayer && ps.Deck == deckName));
             
             firstPlayerStats = new List<FirstPlayerStats>
             {
@@ -605,7 +605,7 @@
             };
 
             // Calculate win rate vs other decks
-            var matchupGroups = new Dictionary<string, (int Games, int Wins, int Losses)>();
+            var matchupGroups = new Dictionary<string, (int Plays, int Wins, int Losses)>();
             foreach (var play in deckPlays)
             {
                 var thisDeckScore = play.PlayerScores.FirstOrDefault(ps => ps.Deck == deckName);
@@ -614,23 +614,23 @@
                 {
                     if (!matchupGroups.ContainsKey(opp.Deck))
                         matchupGroups[opp.Deck] = (0, 0, 0);
-                    var games = matchupGroups[opp.Deck].Games + 1;
+                    var numberOfPlays = matchupGroups[opp.Deck].Plays + 1;
                     var winsVs = matchupGroups[opp.Deck].Wins + (thisDeckScore?.IsWinner == true ? 1 : 0);
                     var lossesVs = matchupGroups[opp.Deck].Losses + (thisDeckScore?.IsWinner == false ? 1 : 0);
-                    matchupGroups[opp.Deck] = (games, winsVs, lossesVs);
+                    matchupGroups[opp.Deck] = (numberOfPlays, winsVs, lossesVs);
                 }
             }
             matchupStats = matchupGroups.Select(kvp => new MatchupStats
             {
                 OpponentDeck = kvp.Key,
-                Games = kvp.Value.Games,
+                Plays = kvp.Value.Plays,
                 Wins = kvp.Value.Wins,
                 Losses = kvp.Value.Losses,
-                WinRate = kvp.Value.Games > 0 ? (double)kvp.Value.Wins / kvp.Value.Games : 0
+                WinRate = kvp.Value.Plays > 0 ? (double)kvp.Value.Wins / kvp.Value.Plays : 0
             }).ToList();
 
             // Calculate player stats for this deck
-            var playerGroups = new Dictionary<string, (int Games, int Wins, int Losses, List<double> Durations)>();
+            var playerGroups = new Dictionary<string, (int Plays, int Wins, int Losses, List<double> Durations)>();
             foreach (var play in deckPlays)
             {
                 var thisDeckScores = play.PlayerScores.Where(ps => ps.Deck == deckName).ToList();
@@ -643,23 +643,23 @@
                     if (!playerGroups.ContainsKey(playerName))
                         playerGroups[playerName] = (0, 0, 0, new List<double>());
 
-                    var games = playerGroups[playerName].Games + 1;
+                    var numberOfPlays = playerGroups[playerName].Plays + 1;
                     var playerWins = playerGroups[playerName].Wins + (score.IsWinner ? 1 : 0);
                     var playerLosses = playerGroups[playerName].Losses + (score.IsWinner ? 0 : 1);
                     var durations = playerGroups[playerName].Durations;
                     durations.Add(play.DurationInMinutes);
                     
-                    playerGroups[playerName] = (games, playerWins, playerLosses, durations);
+                    playerGroups[playerName] = (numberOfPlays, playerWins, playerLosses, durations);
                 }
             }
 
             playerStats = playerGroups.Select(kvp => new PlayerStats
             {
                 PlayerName = kvp.Key,
-                Games = kvp.Value.Games,
+                Plays = kvp.Value.Plays,
                 Wins = kvp.Value.Wins,
                 Losses = kvp.Value.Losses,
-                WinRate = kvp.Value.Games > 0 ? (double)kvp.Value.Wins / kvp.Value.Games : 0,
+                WinRate = kvp.Value.Plays > 0 ? (double)kvp.Value.Wins / kvp.Value.Plays : 0,
                 AverageDuration = kvp.Value.Durations.Any() ? kvp.Value.Durations.Average() : 0
             }).ToList();
         }
@@ -681,7 +681,7 @@
     private class DeckStats
     {
         public string DeckName { get; set; } = string.Empty;
-        public int TotalGames { get; set; }
+        public int TotalPlays { get; set; }
         public int Wins { get; set; }
         public int Losses { get; set; }
         public double WinRate { get; set; }
@@ -690,7 +690,7 @@
     private class MatchupStats
     {
         public string OpponentDeck { get; set; } = string.Empty;
-        public int Games { get; set; }
+        public int Plays { get; set; }
         public int Wins { get; set; }
         public int Losses { get; set; }
         public double WinRate { get; set; }
@@ -705,7 +705,7 @@
     private class PlayerStats
     {
         public string PlayerName { get; set; } = string.Empty;
-        public int Games { get; set; }
+        public int Plays { get; set; }
         public int Wins { get; set; }
         public int Losses { get; set; }
         public double WinRate { get; set; }

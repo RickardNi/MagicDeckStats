@@ -105,9 +105,9 @@
                                     </button>
                                 </th>
                                 <th class="text-center">
-                                    <button class="btn btn-link text-decoration-none p-0 fw-bold" @onclick="() => SortBy(SortColumn.TotalGames)">
-                                        Total Games
-                                        @if (currentSortColumn == SortColumn.TotalGames)
+                                    <button class="btn btn-link text-decoration-none p-0 fw-bold" @onclick="() => SortBy(SortColumn.Plays)">
+                                        Plays
+                                        @if (currentSortColumn == SortColumn.Plays)
                                         {
                                             <i class="bi @(isAscending ? "bi-sort-up" : "bi-sort-down")"></i>
                                         }
@@ -187,7 +187,7 @@
                         <tbody>
                             @foreach (var deck in GetSortedDeckStats())
                             {
-                                var winRatePercentage = deck.TotalGames > 0 ? (double)deck.Wins / deck.TotalGames * 100 : 0;
+                                var winRatePercentage = deck.TotalPlays > 0 ? (double)deck.Wins / deck.TotalPlays * 100 : 0;
                                 var winRateColor = winRatePercentage >= 60 ? "text-success" :
                                 winRatePercentage >= 40 ? "text-warning" : "text-danger";
                                 var durationColor = deck.AverageDuration >= 120 ? "text-danger" :
@@ -201,7 +201,7 @@
                                         <span class="fw-bold">@(deck.AverageDuration.ToString("F1"))</span>
                                     </td>
                                     <td class="text-center">
-                                        <span>@deck.TotalGames</span>
+                                        <span>@deck.TotalPlays</span>
                                     </td>
                                     <td class="text-center">
                                         <span class="text-success">@deck.Wins</span>
@@ -285,7 +285,7 @@
             deckStats = deckGroups.Select(g => new DeckStats
             {
                 DeckName = g.Key,
-                TotalGames = g.Count(),
+                TotalPlays = g.Count(),
                 Wins = g.Count(x => x.PlayerScore.IsWinner),
                 Losses = g.Count(x => !x.PlayerScore.IsWinner),
                 AverageDuration = g.Average(x => x.Play.DurationInMinutes),
@@ -326,7 +326,7 @@
         {
             SortColumn.DeckName => isAscending ? query.OrderBy(d => d.DeckName) : query.OrderByDescending(d => d.DeckName),
             SortColumn.Duration => isAscending ? query.OrderBy(d => d.AverageDuration) : query.OrderByDescending(d => d.AverageDuration),
-            SortColumn.TotalGames => isAscending ? query.OrderBy(d => d.TotalGames) : query.OrderByDescending(d => d.TotalGames),
+            SortColumn.Plays => isAscending ? query.OrderBy(d => d.TotalPlays) : query.OrderByDescending(d => d.TotalPlays),
             SortColumn.Wins => isAscending ? query.OrderBy(d => d.Wins) : query.OrderByDescending(d => d.Wins),
             SortColumn.Losses => isAscending ? query.OrderBy(d => d.Losses) : query.OrderByDescending(d => d.Losses),
             SortColumn.WinRate => isAscending ? query.OrderBy(d => d.WinRate) : query.OrderByDescending(d => d.WinRate),
@@ -342,7 +342,7 @@
     {
         DeckName,
         Duration,
-        TotalGames,
+        Plays,
         Wins,
         Losses,
         WinRate,
@@ -353,13 +353,13 @@
     private class DeckStats
     {
         public string DeckName { get; set; } = string.Empty;
-        public int TotalGames { get; set; }
+        public int TotalPlays { get; set; }
         public int Wins { get; set; }
         public int Losses { get; set; }
         public double AverageDuration { get; set; }
         public double WinDuration { get; set; }
         public double LossDuration { get; set; }
 
-        public double WinRate => TotalGames > 0 ? (double)Wins / TotalGames : 0;
+        public double WinRate => TotalPlays > 0 ? (double)Wins / TotalPlays : 0;
     }
 }

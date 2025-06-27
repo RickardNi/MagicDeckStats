@@ -36,15 +36,15 @@
                         {
                             var firstPlayerWins = plays.Count(p => p.PlayerScores.Any(ps => ps.IsWinner && ps.IsFirstPlayer));
                             var firstPlayerLosses = plays.Count(p => p.PlayerScores.Any(ps => !ps.IsWinner && ps.IsFirstPlayer));
-                            var totalGames = plays.Count;
-                            var firstPlayerWinRate = totalGames > 0 ? (firstPlayerWins * 100.0 / totalGames) : 0;
-                            var firstPlayerLossRate = totalGames > 0 ? (firstPlayerLosses * 100.0 / totalGames) : 0;
+                            var totalPlays = plays.Count;
+                            var firstPlayerWinRate = totalPlays > 0 ? (firstPlayerWins * 100.0 / totalPlays) : 0;
+                            var firstPlayerLossRate = totalPlays > 0 ? (firstPlayerLosses * 100.0 / totalPlays) : 0;
                             
                             <ApexChart TItem="FirstPlayerStats"
                                        Options="@firstPlayerChartOptions">
                                 <ApexPointSeries TItem="FirstPlayerStats"
                                                 Items="@firstPlayerStats"
-                                                Name="Games"
+                                                Name="Plays"
                                                 SeriesType="SeriesType.Pie"
                                                 XValue="@(e => e.Result)"
                                                 YValue="@(e => e.Count)"
@@ -98,7 +98,7 @@
                             <p><strong>Longest Game:</strong> @longestGame.DurationInMinutes minutes</p>
                             <p><strong>Total Play Time:</strong> @Utilities.FormatTotalPlayTime(plays.Sum(p => p.DurationInMinutes))</p>
                             <hr />
-                            <p><strong>Most Played Deck:</strong> <NavLink class="deck-link" href="@($"/deck/{mostPlayedDeck.Key}")">@mostPlayedDeck.Key</NavLink> (@mostPlayedDeck.Count() games)</p>
+                            <p><strong>Most Played Deck:</strong> <NavLink class="deck-link" href="@($"/deck/{mostPlayedDeck.Key}")">@mostPlayedDeck.Key</NavLink> (@mostPlayedDeck.Count() plays)</p>
                         }
                         else
                         {

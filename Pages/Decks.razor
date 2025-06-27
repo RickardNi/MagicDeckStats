@@ -53,9 +53,9 @@
                                     </button>
                                 </th>
                                 <th class="text-center">
-                                    <button class="btn btn-link text-decoration-none p-0 fw-bold" @onclick="() => SortBy(SortColumn.TotalGames)">
-                                        Total Games
-                                        @if (currentSortColumn == SortColumn.TotalGames)
+                                    <button class="btn btn-link text-decoration-none p-0 fw-bold" @onclick="() => SortBy(SortColumn.Plays)">
+                                        Plays
+                                        @if (currentSortColumn == SortColumn.Plays)
                                         {
                                             <i class="bi @(isAscending ? "bi-sort-up" : "bi-sort-down")"></i>
                                         }
@@ -122,7 +122,7 @@
                         <tbody>
                             @foreach (var deck in GetSortedDeckStats())
                             {
-                                var winRatePercentage = deck.TotalGames > 0 ? (double)deck.Wins / deck.TotalGames * 100 : 0;
+                                var winRatePercentage = deck.TotalPlays > 0 ? (double)deck.Wins / deck.TotalPlays * 100 : 0;
                                 var winRateColor = winRatePercentage >= 60 ? "text-success" : 
                                                  winRatePercentage >= 40 ? "text-warning" : "text-danger";
                                 
@@ -131,7 +131,7 @@
                                         <NavLink class="deck-link" href="@($"/deck/{deck.DeckName}")">@deck.DeckName</NavLink>
                                     </td>
                                     <td class="text-center">
-                                        @deck.TotalGames
+                                        @deck.TotalPlays
                                     </td>
                                     <td class="text-center">
                                         <span class="text-success fw-bold">@deck.Wins</span>
@@ -173,7 +173,7 @@
                                      Name="Win Rate"
                                      SeriesType="SeriesType.Bar"
                                      XValue="e => e.DeckName"
-                                     YValue="e => (decimal)(e.TotalGames > 0 ? (int)((double)e.Wins / e.TotalGames * 100) : 0)" />
+                                     YValue="e => (decimal)(e.TotalPlays > 0 ? (int)((double)e.Wins / e.TotalPlays * 100) : 0)" />
                 </ApexChart>
             </div>
         </div>
@@ -205,7 +205,7 @@
             deckStats = deckGroups.Select(g => new DeckStats
             {
                 DeckName = g.Key,
-                TotalGames = g.Count(),
+                TotalPlays = g.Count(),
                 Wins = g.Count(ps => ps.IsWinner),
                 Losses = g.Count(ps => !ps.IsWinner),
                 LastPlayed = g.Max(ps => DateTime.Parse(plays.First(p => p.PlayerScores.Contains(ps)).Date))
@@ -239,7 +239,7 @@
         var query = currentSortColumn switch
         {
             SortColumn.DeckName => deckStats.AsQueryable(),
-            SortColumn.TotalGames => deckStats.AsQueryable(),
+            SortColumn.Plays => deckStats.AsQueryable(),
             SortColumn.Wins => deckStats.AsQueryable(),
             SortColumn.Losses => deckStats.AsQueryable(),
             SortColumn.WinRate => deckStats.AsQueryable(),
@@ -250,12 +250,12 @@
         var sortedDeckStats = currentSortColumn switch
         {
             SortColumn.DeckName => isAscending ? query.OrderBy(d => d.DeckName) : query.OrderByDescending(d => d.DeckName),
-            SortColumn.TotalGames => isAscending ? query.OrderBy(d => d.TotalGames) : query.OrderByDescending(d => d.TotalGames),
+            SortColumn.Plays => isAscending ? query.OrderBy(d => d.TotalPlays) : query.OrderByDescending(d => d.TotalPlays),
             SortColumn.Wins => isAscending ? query.OrderBy(d => d.Wins) : query.OrderByDescending(d => d.Wins),
             SortColumn.Losses => isAscending ? query.OrderBy(d => d.Losses) : query.OrderByDescending(d => d.Losses),
             SortColumn.WinRate => isAscending ? query.OrderBy(d => d.WinRate) : query.OrderByDescending(d => d.WinRate),
             SortColumn.LastPlayed => isAscending ? query.OrderBy(d => d.LastPlayed ?? DateTime.MinValue) : query.OrderByDescending(d => d.LastPlayed ?? DateTime.MinValue),
-            _ => query.OrderByDescending(d => d.WinRate).ThenByDescending(d => d.TotalGames)
+            _ => query.OrderByDescending(d => d.WinRate).ThenByDescending(d => d.TotalPlays)
         };
 
         return sortedDeckStats.ToList();
@@ -264,7 +264,7 @@
     private enum SortColumn
     {
         DeckName,
-        TotalGames,
+        Plays,
         Wins,
         Losses,
         WinRate,
@@ -274,11 +274,11 @@
     private class DeckStats
     {
         public string DeckName { get; set; } = string.Empty;
-        public int TotalGames { get; set; }
+        public int TotalPlays { get; set; }
         public int Wins { get; set; }
         public int Losses { get; set; }
         public DateTime? LastPlayed { get; set; }
         
-        public double WinRate => TotalGames > 0 ? (double)Wins / TotalGames : 0;
+        public double WinRate => TotalPlays > 0 ? (double)Wins / TotalPlays : 0;
     }
 } 
