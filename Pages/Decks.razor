@@ -153,7 +153,28 @@
                                 
                                 <tr>
                                     <td>
-                                        <NavLink class="deck-link" href="@Utilities.GetDeckUrl(deck.DeckName)">@deck.DeckName</NavLink>
+                                        <div class="d-flex align-items-center">
+                                            <NavLink class="deck-link" href="@Utilities.GetDeckUrl(deck.DeckName)">@deck.DeckName</NavLink>
+                                            @{
+                                                var tags = Utilities.GetDeckTags(deck.DeckName);
+                                            }
+                                            @if (tags.Any())
+                                            {
+                                                <div class="ms-2 d-flex gap-1">
+                                                    @foreach (var tag in tags)
+                                                    {
+                                                        var badgeClass = tag switch
+                                                        {
+                                                            "Tour Winner" => "bg-success",
+                                                            "Archived" => "bg-danger",
+                                                            "Finalist" => "bg-warning",
+                                                            _ => "bg-secondary"
+                                                        };
+                                                        <span class="badge @badgeClass">@tag</span>
+                                                    }
+                                                </div>
+                                            }
+                                        </div>
                                     </td>
                                     <td class="text-center">
                                         @deck.TotalPlays
