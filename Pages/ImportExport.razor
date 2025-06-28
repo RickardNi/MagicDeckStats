@@ -389,11 +389,13 @@
         {
             "Dick", "Thomas", "David", "Valter", "Johan", "Atli", "Mikael", "Robert",
             "Markus", "Magnus", "Morgan", "Jeffrey", "Martin", "Daniel", "Christian",
-            "Joakim", "Afonso", "Paulinho", "Patrik"
+            "Joakim", "Afonso", "Paulinho", "Patrik",
+            "Anette", "Eva", "Cathrine", "Anna", "Ulrika", "Kajsa", "Sara", "Agnes", "Sofia", "Jennie"
         };
 
         var anonymizedPlayers = new List<Player>();
         var usedNames = new HashSet<string>();
+        var nameCounts = new Dictionary<string, int>();
         var random = new Random();
 
         foreach (var player in players)
@@ -411,15 +413,23 @@
             }
             else
             {
-                // If all names are used, add a number to make it unique
+                // If all names are used, add a letter to make it unique
                 var baseName = anonymizedNames[random.Next(anonymizedNames.Length)];
-                var counter = 1;
-                anonymizedName = $"{baseName}{counter}";
+                
+                if (!nameCounts.ContainsKey(baseName))
+                {
+                    nameCounts[baseName] = 0;
+                }
+                nameCounts[baseName]++;
+                
+                var letterIndex = nameCounts[baseName] - 1; // Start with A (index 0)
+                anonymizedName = $"{baseName} {(char)('A' + letterIndex)}";
 
                 while (usedNames.Contains(anonymizedName))
                 {
-                    counter++;
-                    anonymizedName = $"{baseName}{counter}";
+                    nameCounts[baseName]++;
+                    letterIndex = nameCounts[baseName] - 1;
+                    anonymizedName = $"{baseName} {(char)('A' + letterIndex)}";
                 }
                 usedNames.Add(anonymizedName);
             }
