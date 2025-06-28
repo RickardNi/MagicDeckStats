@@ -202,18 +202,18 @@ code {
 /* Custom styles for mobile table optimization */
 @media (max-width: 767.98px) {
     .table thead th {
-        font-size: 0.8rem !important;
-        padding-top: 0.5rem !important;
-        padding-bottom: 0.5rem !important;
+        font-size: 0.7rem !important;
+        padding-top: 0.3rem !important;
+        padding-bottom: 0.3rem !important;
     }
     
     .table tbody td {
-        font-size: 0.9rem !important;
-        padding-top: 0.5rem !important;
-        padding-bottom: 0.5rem !important;
+        font-size: 0.7rem !important;
+        padding-top: 0.2rem !important;
+        padding-bottom: 0.2rem !important;
     }
     
     .card-body {
-        padding: 1rem !important;
+        padding: 0rem !important;
     }
 }
