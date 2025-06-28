@@ -1,5 +1,26 @@
 ﻿@inherits LayoutComponentBase
 <div class="page">
+    <!-- Mobile Navbar (outside sidebar so it's always visible on mobile) -->
+    <div class="mobile-navbar d-lg-none">
+        <div class="mobile-nav-container">
+            <NavLink class="mobile-nav-link" href="" Match="NavLinkMatch.All" title="Dashboard">
+                <span class="bi bi-bar-chart-fill" aria-hidden="true"></span>
+            </NavLink>
+            <NavLink class="mobile-nav-link" href="plays" title="All Plays">
+                <span class="bi bi-list-ul" aria-hidden="true"></span>
+            </NavLink>
+            <NavLink class="mobile-nav-link" href="players" title="Players">
+                <span class="bi bi-people-fill" aria-hidden="true"></span>
+            </NavLink>
+            <NavLink class="mobile-nav-link" href="decks" title="Decks">
+                <span class="bi bi-stack" aria-hidden="true"></span>
+            </NavLink>
+            <NavLink class="mobile-nav-link" href="duration" title="Duration">
+                <span class="bi bi-clock" aria-hidden="true"></span>
+            </NavLink>
+        </div>
+    </div>
+
     <div class="sidebar">
         <NavMenu />
     </div>
