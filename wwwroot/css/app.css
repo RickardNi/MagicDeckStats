@@ -219,7 +219,9 @@ code {
         padding-bottom: 0.2rem !important;
     }
     
-    .card-body {
+    /* Only remove padding from card bodies that contain tables */
+    .card-body .table-responsive {
+        margin: -1rem;
         padding: 0rem !important;
     }
 }
