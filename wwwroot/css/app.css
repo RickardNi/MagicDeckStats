@@ -223,3 +223,8 @@ code {
         padding: 0rem !important;
     }
 }
+
+/* Custom win rate colors */
+.text-success-dark {
+    color: #0d5a2c !important;
+}

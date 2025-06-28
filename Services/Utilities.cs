@@ -1,4 +1,5 @@
 using System.Web;
+using MagicDeckStats.Models;
 
 namespace MagicDeckStats.Services
 {
@@ -24,5 +25,13 @@ namespace MagicDeckStats.Services
             // This ensures it works correctly on GitHub Pages with /MagicDeckStats/ base href
             return $"deck/{encodedDeckName}";
         }
+
+        public static string GetWinRateColor(double winRatePercentage) => winRatePercentage switch
+        {
+            > 60 => "text-success-dark",
+            >= 45 => "text-success",
+            >= 35 => "text-warning",
+            _ => "text-danger"
+        };
     }
 } 

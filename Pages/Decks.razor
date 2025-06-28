@@ -149,8 +149,7 @@
                             @foreach (var deck in GetSortedDeckStats())
                             {
                                 var winRatePercentage = deck.TotalPlays > 0 ? (double)deck.Wins / deck.TotalPlays * 100 : 0;
-                                var winRateColor = winRatePercentage >= 60 ? "text-success" : 
-                                                 winRatePercentage >= 40 ? "text-warning" : "text-danger";
+                                var winRateColor = Utilities.GetWinRateColor(winRatePercentage);
                                 
                                 <tr>
                                     <td>
@@ -172,8 +171,7 @@
                                         @if (deck.FirstPlayerPlays > 0)
                                         {
                                             var firstPlayerWinRate = deck.FirstPlayerWinRate * 100;
-                                            var firstPlayerColor = firstPlayerWinRate >= 60 ? "text-success" : 
-                                                                   firstPlayerWinRate >= 40 ? "text-warning" : "text-danger";
+                                            var firstPlayerColor = Utilities.GetWinRateColor(firstPlayerWinRate);
                                             <span class="fw-bold @firstPlayerColor">@(firstPlayerWinRate.ToString("F1"))%</span>
                                         }
                                         else
@@ -185,8 +183,7 @@
                                         @if (deck.GoingSecondPlays > 0)
                                         {
                                             var goingSecondWinRate = deck.GoingSecondWinRate * 100;
-                                            var goingSecondColor = goingSecondWinRate >= 60 ? "text-success" : 
-                                                                   goingSecondWinRate >= 40 ? "text-warning" : "text-danger";
+                                            var goingSecondColor = Utilities.GetWinRateColor(goingSecondWinRate);
                                             <span class="fw-bold @goingSecondColor">@(goingSecondWinRate.ToString("F1"))%</span>
                                         }
                                         else

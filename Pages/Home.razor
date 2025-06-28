@@ -258,7 +258,9 @@
                                             <td>@player.GamesPlayed</td>
                                             <td>@player.UniqueDecks</td>
                                             <td>@player.Wins</td>
-                                            <td>@player.WinRate.ToString("F1")%</td>
+                                            <td>
+                                                <span class="fw-bold @Utilities.GetWinRateColor(player.WinRate)">@player.WinRate.ToString("F1")%</span>
+                                            </td>
                                             <td>
                                                 <NavLink class="deck-link" href="@Utilities.GetDeckUrl(player.FavouriteDeck)">@player.FavouriteDeck</NavLink>
                                             </td>
