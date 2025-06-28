@@ -188,8 +188,7 @@
                             @foreach (var deck in GetSortedDeckStats())
                             {
                                 var winRatePercentage = deck.TotalPlays > 0 ? (double)deck.Wins / deck.TotalPlays * 100 : 0;
-                                var winRateColor = winRatePercentage >= 60 ? "text-success" :
-                                winRatePercentage >= 40 ? "text-warning" : "text-danger";
+                                var winRateColor = Utilities.GetWinRateColorForDeck(winRatePercentage);
                                 var durationColor = deck.AverageDuration >= 120 ? "text-danger" :
                                 deck.AverageDuration >= 90 ? "text-warning" : "text-success";
 

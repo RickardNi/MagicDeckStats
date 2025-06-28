@@ -26,10 +26,17 @@ namespace MagicDeckStats.Services
             return $"deck/{encodedDeckName}";
         }
 
-        public static string GetWinRateColor(double winRatePercentage) => winRatePercentage switch
+        public static string GetWinRateColorForDeck(double winRate) => winRate switch
         {
             > 60 => "text-success-dark",
             >= 45 => "text-success",
+            >= 35 => "text-warning",
+            _ => "text-danger"
+        };
+
+        public static string GetWinRateColorForPlayer(double winRate) => winRate switch
+        {
+            > 50 => "text-success",
             >= 35 => "text-warning",
             _ => "text-danger"
         };

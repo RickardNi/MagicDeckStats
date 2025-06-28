@@ -40,7 +40,7 @@
                             <dt class="col-sm-5">Total Plays</dt>
                             <dd class="col-sm-7">@deckStats.TotalPlays (<span class="text-success">@deckStats.Wins W</span> / <span class="text-danger">@deckStats.Losses L</span>)</dd>
                             <dt class="col-sm-5">Win Rate</dt>
-                            <dd class="col-sm-7">@(deckStats.WinRate.ToString("P1"))</dd>
+                            <dd class="col-sm-7 @(Utilities.GetWinRateColorForDeck(deckStats.WinRate * 100))">@(deckStats.WinRate.ToString("P1"))</dd>
                             <dt class="col-sm-5">First Player Win Rate</dt>
                             <dd class="col-sm-7">@((playsAsFirstPlayer > 0 ? (double)winsAsFirstPlayer / playsAsFirstPlayer : 0).ToString("P1"))</dd>
                             <dt class="col-sm-5">Win Rate When Going Second</dt>
@@ -233,7 +233,7 @@
                                         <td class="text-center">@vs.Plays</td>
                                         <td class="text-center text-success">@vs.Wins</td>
                                         <td class="text-center text-danger">@vs.Losses</td>
-                                        <td class="text-center fw-bold">@(vs.WinRate.ToString("P1"))</td>
+                                        <td class="text-center fw-bold @(Utilities.GetWinRateColorForDeck(vs.WinRate * 100))">@(vs.WinRate.ToString("P1"))</td>
                                     </tr>
                                 }
                             </tbody>
@@ -346,7 +346,7 @@
                                         <td class="text-center">@ps.Plays</td>
                                         <td class="text-center text-success">@ps.Wins</td>
                                         <td class="text-center text-danger">@ps.Losses</td>
-                                        <td class="text-center fw-bold">@(ps.WinRate.ToString("P1"))</td>
+                                        <td class="text-center fw-bold @(Utilities.GetWinRateColorForPlayer(ps.WinRate * 100))">@(ps.WinRate.ToString("P1"))</td>
                                         <td class="text-center">@(ps.AverageDuration > 0 ? $"{ps.AverageDuration:F1} min" : "-")</td>
                                     </tr>
                                 }

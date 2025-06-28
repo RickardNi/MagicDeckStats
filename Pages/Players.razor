@@ -204,14 +204,14 @@
                                     </td>
                                     <td class="text-center">
                                         @{
-                                            var winRateColor = GetWinRateColor(player.WinRate);
+                                            var winRateColor = Utilities.GetWinRateColorForPlayer(player.WinRate);
                                         }
                                         <span class="fw-bold @winRateColor">@player.WinRate.ToString("F1")%</span>
                                     </td>
                                     <td class="text-center">
                                         @if (player.FirstPlayerWinRate > 0)
                                         {
-                                            var firstPlayerColor = GetWinRateColor(player.FirstPlayerWinRate);
+                                            var firstPlayerColor = Utilities.GetWinRateColorForPlayer(player.FirstPlayerWinRate);
                                             <span class="fw-bold @firstPlayerColor">@player.FirstPlayerWinRate.ToString("F1")%</span>
                                         }
                                         else
@@ -222,7 +222,7 @@
                                     <td class="text-center">
                                         @if (player.SecondPlayerWinRate > 0)
                                         {
-                                            var secondPlayerColor = GetWinRateColor(player.SecondPlayerWinRate);
+                                            var secondPlayerColor = Utilities.GetWinRateColorForPlayer(player.SecondPlayerWinRate);
                                             <span class="fw-bold @secondPlayerColor">@player.SecondPlayerWinRate.ToString("F1")%</span>
                                         }
                                         else
@@ -503,21 +503,5 @@
         }
 
         UpdateCurrentPagePlayerStats();
-    }
-
-    private string GetWinRateColor(double winRate)
-    {
-        if (winRate > 50)
-        {
-            return "text-success";
-        }
-        else if (winRate >= 35)
-        {
-            return "text-warning";
-        }
-        else
-        {
-            return "text-danger";
-        }
     }
 } 
