@@ -226,7 +226,10 @@
                                             UniqueDecks = g.Select(ps => ps.Deck).Distinct().Count(),
                                             FavouriteDeck = g.GroupBy(ps => ps.Deck)
                                                              .OrderByDescending(dg => dg.Count())
-                                                             .First().Key
+                                                             .First().Key,
+                                            FavouriteDeckPlays = g.GroupBy(ps => ps.Deck)
+                                                                  .OrderByDescending(dg => dg.Count())
+                                                                  .First().Count()
                                         })
                                         .OrderByDescending(p => p.GamesPlayed)
                                         .Take(15)
@@ -262,7 +265,7 @@
                                                 <span class="fw-bold @Utilities.GetWinRateColor(player.WinRate)">@player.WinRate.ToString("F1")%</span>
                                             </td>
                                             <td>
-                                                <NavLink class="deck-link" href="@Utilities.GetDeckUrl(player.FavouriteDeck)">@player.FavouriteDeck</NavLink>
+                                                <NavLink class="deck-link" href="@Utilities.GetDeckUrl(player.FavouriteDeck)">@player.FavouriteDeck</NavLink> (@player.FavouriteDeckPlays)
                                             </td>
                                         </tr>
                                     }

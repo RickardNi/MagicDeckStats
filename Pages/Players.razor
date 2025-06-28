@@ -231,7 +231,7 @@
                                         }
                                     </td>
                                     <td>
-                                        <NavLink class="deck-link" href="@Utilities.GetDeckUrl(player.FavouriteDeck)">@player.FavouriteDeck</NavLink>
+                                        <NavLink class="deck-link" href="@Utilities.GetDeckUrl(player.FavouriteDeck)">@player.FavouriteDeck</NavLink> (@player.FavouriteDeckPlays)
                                     </td>
                                 </tr>
                             }
@@ -335,6 +335,7 @@
         public double WinRate { get; set; }
         public int UniqueDecks { get; set; }
         public string FavouriteDeck { get; set; } = string.Empty;
+        public int FavouriteDeckPlays { get; set; }
         public double FirstPlayerWinRate { get; set; }
         public double SecondPlayerWinRate { get; set; }
     }
@@ -405,6 +406,9 @@
                 FavouriteDeck = g.GroupBy(ps => ps.Deck)
                                  .OrderByDescending(dg => dg.Count())
                                  .First().Key,
+                FavouriteDeckPlays = g.Count(ps => ps.Deck == g.GroupBy(ps => ps.Deck)
+                                 .OrderByDescending(dg => dg.Count())
+                                 .First().Key),
                 FirstPlayerWinRate = g.Count(ps => ps.IsFirstPlayer) > 0 
                     ? g.Count(ps => ps.IsWinner && ps.IsFirstPlayer) * 100.0 / g.Count(ps => ps.IsFirstPlayer)
                     : 0,
