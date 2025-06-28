@@ -67,7 +67,7 @@
                                 </th>
                                 <th class="text-center">
                                     <button class="btn btn-link text-decoration-none p-0 fw-bold" @onclick="() => SortBy(SortColumn.GamesPlayed)">
-                                        Games Played
+                                        Plays
                                         @if (currentSortColumn == SortColumn.GamesPlayed)
                                         {
                                             <i class="bi @(isAscending ? "bi-sort-up" : "bi-sort-down")"></i>
@@ -105,9 +105,9 @@
                                     </button>
                                 </th>
                                 <th class="text-center">
-                                    <button class="btn btn-link text-decoration-none p-0 fw-bold" @onclick="() => SortBy(SortColumn.WinRate)">
-                                        Win %
-                                        @if (currentSortColumn == SortColumn.WinRate)
+                                    <button class="btn btn-link text-decoration-none p-0 fw-bold" @onclick="() => SortBy(SortColumn.Losses)">
+                                        Losses
+                                        @if (currentSortColumn == SortColumn.Losses)
                                         {
                                             <i class="bi @(isAscending ? "bi-sort-up" : "bi-sort-down")"></i>
                                         }
@@ -117,10 +117,10 @@
                                         }
                                     </button>
                                 </th>
-                                <th>
-                                    <button class="btn btn-link text-decoration-none p-0 fw-bold" @onclick="() => SortBy(SortColumn.FavouriteDeck)">
-                                        Most Played Deck
-                                        @if (currentSortColumn == SortColumn.FavouriteDeck)
+                                <th class="text-center">
+                                    <button class="btn btn-link text-decoration-none p-0 fw-bold" @onclick="() => SortBy(SortColumn.WinRate)">
+                                        Win %
+                                        @if (currentSortColumn == SortColumn.WinRate)
                                         {
                                             <i class="bi @(isAscending ? "bi-sort-up" : "bi-sort-down")"></i>
                                         }
@@ -147,6 +147,19 @@
                                     <button class="btn btn-link text-decoration-none p-0 fw-bold" @onclick="() => SortBy(SortColumn.SecondPlayerWinRate)">
                                         <i class="bi bi-2-square me-1"></i> Player Win %
                                         @if (currentSortColumn == SortColumn.SecondPlayerWinRate)
+                                        {
+                                            <i class="bi @(isAscending ? "bi-sort-up" : "bi-sort-down")"></i>
+                                        }
+                                        else
+                                        {
+                                            <i class="bi bi-sort text-muted"></i>
+                                        }
+                                    </button>
+                                </th>
+                                <th>
+                                    <button class="btn btn-link text-decoration-none p-0 fw-bold" @onclick="() => SortBy(SortColumn.FavouriteDeck)">
+                                        Most Played Deck
+                                        @if (currentSortColumn == SortColumn.FavouriteDeck)
                                         {
                                             <i class="bi @(isAscending ? "bi-sort-up" : "bi-sort-down")"></i>
                                         }
@@ -187,20 +200,18 @@
                                         <span class="text-success fw-bold">@player.Wins</span>
                                     </td>
                                     <td class="text-center">
+                                        <span class="text-danger fw-bold">@player.Losses</span>
+                                    </td>
+                                    <td class="text-center">
                                         @{
-                                            var winRateColor = player.WinRate >= 60 ? "text-success" : 
-                                                             player.WinRate >= 40 ? "text-warning" : "text-danger";
+                                            var winRateColor = GetWinRateColor(player.WinRate);
                                         }
                                         <span class="fw-bold @winRateColor">@player.WinRate.ToString("F1")%</span>
-                                    </td>
-                                    <td>
-                                        <NavLink class="deck-link" href="@Utilities.GetDeckUrl(player.FavouriteDeck)">@player.FavouriteDeck</NavLink>
                                     </td>
                                     <td class="text-center">
                                         @if (player.FirstPlayerWinRate > 0)
                                         {
-                                            var firstPlayerColor = player.FirstPlayerWinRate >= 60 ? "text-success" : 
-                                                                   player.FirstPlayerWinRate >= 40 ? "text-warning" : "text-danger";
+                                            var firstPlayerColor = GetWinRateColor(player.FirstPlayerWinRate);
                                             <span class="fw-bold @firstPlayerColor">@player.FirstPlayerWinRate.ToString("F1")%</span>
                                         }
                                         else
@@ -211,14 +222,16 @@
                                     <td class="text-center">
                                         @if (player.SecondPlayerWinRate > 0)
                                         {
-                                            var secondPlayerColor = player.SecondPlayerWinRate >= 60 ? "text-success" : 
-                                                                    player.SecondPlayerWinRate >= 40 ? "text-warning" : "text-danger";
+                                            var secondPlayerColor = GetWinRateColor(player.SecondPlayerWinRate);
                                             <span class="fw-bold @secondPlayerColor">@player.SecondPlayerWinRate.ToString("F1")%</span>
                                         }
                                         else
                                         {
                                             <span class="text-muted">-</span>
                                         }
+                                    </td>
+                                    <td>
+                                        <NavLink class="deck-link" href="@Utilities.GetDeckUrl(player.FavouriteDeck)">@player.FavouriteDeck</NavLink>
                                     </td>
                                 </tr>
                             }
@@ -318,6 +331,7 @@
         public string PlayerName { get; set; } = string.Empty;
         public int GamesPlayed { get; set; }
         public int Wins { get; set; }
+        public int Losses { get; set; }
         public double WinRate { get; set; }
         public int UniqueDecks { get; set; }
         public string FavouriteDeck { get; set; } = string.Empty;
@@ -332,6 +346,7 @@
         GamesPlayed,
         UniqueDecks,
         Wins,
+        Losses,
         WinRate,
         FavouriteDeck,
         FirstPlayerWinRate,
@@ -384,6 +399,7 @@
                 PlayerName = g.Key,
                 GamesPlayed = g.Count(),
                 Wins = g.Count(ps => ps.IsWinner),
+                Losses = g.Count(ps => !ps.IsWinner),
                 WinRate = g.Count(ps => ps.IsWinner) * 100.0 / g.Count(),
                 UniqueDecks = g.Select(ps => ps.Deck).Distinct().Count(),
                 FavouriteDeck = g.GroupBy(ps => ps.Deck)
@@ -446,6 +462,10 @@
         {
             sortedStats = isAscending ? sortedStats.OrderBy(p => p.Wins).ToList() : sortedStats.OrderByDescending(p => p.Wins).ToList();
         }
+        else if (currentSortColumn == SortColumn.Losses)
+        {
+            sortedStats = isAscending ? sortedStats.OrderBy(p => p.Losses).ToList() : sortedStats.OrderByDescending(p => p.Losses).ToList();
+        }
         else if (currentSortColumn == SortColumn.WinRate)
         {
             sortedStats = isAscending ? sortedStats.OrderBy(p => p.WinRate).ToList() : sortedStats.OrderByDescending(p => p.WinRate).ToList();
@@ -479,5 +499,21 @@
         }
 
         UpdateCurrentPagePlayerStats();
+    }
+
+    private string GetWinRateColor(double winRate)
+    {
+        if (winRate > 50)
+        {
+            return "text-success";
+        }
+        else if (winRate >= 35)
+        {
+            return "text-warning";
+        }
+        else
+        {
+            return "text-danger";
+        }
     }
 } 
