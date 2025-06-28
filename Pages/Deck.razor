@@ -40,13 +40,22 @@
                             <dt class="col-sm-5">Total Plays</dt>
                             <dd class="col-sm-7">@deckStats.TotalPlays (<span class="text-success">@deckStats.Wins W</span> / <span class="text-danger">@deckStats.Losses L</span>)</dd>
                             <dt class="col-sm-5">Win Rate</dt>
-                            <dd class="col-sm-7 fw-bold">@(deckStats.WinRate.ToString("P1"))</dd>
+                            <dd class="col-sm-7">@(deckStats.WinRate.ToString("P1"))</dd>
                             <dt class="col-sm-5">First Player Win Rate</dt>
-                            <dd class="col-sm-7 fw-bold">@((playsAsFirstPlayer > 0 ? (double)winsAsFirstPlayer / playsAsFirstPlayer : 0).ToString("P1"))</dd>
+                            <dd class="col-sm-7">@((playsAsFirstPlayer > 0 ? (double)winsAsFirstPlayer / playsAsFirstPlayer : 0).ToString("P1"))</dd>
                             <dt class="col-sm-5">Win Rate When Going Second</dt>
-                            <dd class="col-sm-7 fw-bold">@((playsAsNonFirstPlayer > 0 ? (double)winsAsNonFirstPlayer / playsAsNonFirstPlayer : 0).ToString("P1"))</dd>
+                            <dd class="col-sm-7">@((playsAsNonFirstPlayer > 0 ? (double)winsAsNonFirstPlayer / playsAsNonFirstPlayer : 0).ToString("P1"))</dd>
                             <dt class="col-sm-5">Average Duration</dt>
                             <dd class="col-sm-7">@((averageDuration > 0 ? $"{averageDuration:F1} min" : "-") )</dd>
+                        </dl>
+                        <hr class="my-3" />
+                        <dl class="row mb-0">
+                            <dt class="col-sm-5">Most Played By</dt>
+                            <dd class="col-sm-7">@(GetMostPlayedByPlayer())</dd>
+                            <dt class="col-sm-5">Most Successfully Played By</dt>
+                            <dd class="col-sm-7">@(GetMostSuccessfulPlayer())</dd>
+                            <dt class="col-sm-5">Least Successfully Played By</dt>
+                            <dd class="col-sm-7">@(GetLeastSuccessfulPlayer())</dd>
                         </dl>
                     </div>
                 </div>
@@ -680,6 +689,33 @@
     private string GetPointColor(FirstPlayerStats stats)
     {
         return stats.Result == "Wins" ? "#28a745" : "#dc3545";
+    }
+
+    private string GetMostPlayedByPlayer()
+    {
+        if (!playerStats.Any())
+            return "-";
+
+        var mostPlayed = playerStats.OrderByDescending(p => p.Plays).First();
+        return $"{mostPlayed.PlayerName} ({mostPlayed.Plays} plays)";
+    }
+
+    private string GetMostSuccessfulPlayer()
+    {
+        if (!playerStats.Any())
+            return "-";
+
+        var mostSuccessful = playerStats.OrderByDescending(p => p.WinRate).First();
+        return $"{mostSuccessful.PlayerName} ({mostSuccessful.WinRate:P1})";
+    }
+
+    private string GetLeastSuccessfulPlayer()
+    {
+        if (!playerStats.Any())
+            return "-";
+
+        var leastSuccessful = playerStats.OrderBy(p => p.WinRate).First();
+        return $"{leastSuccessful.PlayerName} ({leastSuccessful.WinRate:P1})";
     }
 
     private class DeckStats
