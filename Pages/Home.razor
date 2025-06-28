@@ -40,17 +40,19 @@
                             var firstPlayerWinRate = totalPlays > 0 ? (firstPlayerWins * 100.0 / totalPlays) : 0;
                             var firstPlayerLossRate = totalPlays > 0 ? (firstPlayerLosses * 100.0 / totalPlays) : 0;
                             
-                            <ApexChart TItem="FirstPlayerStats"
-                                       Options="@firstPlayerChartOptions">
-                                <ApexPointSeries TItem="FirstPlayerStats"
-                                                Items="@firstPlayerStats"
-                                                Name="Plays"
-                                                SeriesType="SeriesType.Pie"
-                                                XValue="@(e => e.Result)"
-                                                YValue="@(e => e.Count)"
-                                                PointColor="e => GetPointColor(e)"
-                                                ShowDataLabels />
-                            </ApexChart>
+                            <div class="d-flex justify-content-center">
+                                <ApexChart TItem="FirstPlayerStats"
+                                           Options="@firstPlayerChartOptions">
+                                    <ApexPointSeries TItem="FirstPlayerStats"
+                                                    Items="@firstPlayerStats"
+                                                    Name="Plays"
+                                                    SeriesType="SeriesType.Pie"
+                                                    XValue="@(e => e.Result)"
+                                                    YValue="@(e => e.Count)"
+                                                    PointColor="e => GetPointColor(e)"
+                                                    ShowDataLabels />
+                                </ApexChart>
+                            </div>
                             
                             <div class="row text-center mt-3">
                                 <div class="col-6">
