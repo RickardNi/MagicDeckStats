@@ -160,7 +160,7 @@ main {
 /* Mobile layout adjustments */
 @media (max-width: 991.98px) {
     .page {
-        margin-top: 4rem;
+        margin-top: 3rem;
     }
     
     .sidebar {
