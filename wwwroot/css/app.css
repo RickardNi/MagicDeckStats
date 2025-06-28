@@ -198,3 +198,22 @@ code {
 .deck-link.text-danger {
     color: #dc3545 !important;
 }
+
+/* Custom styles for mobile table optimization */
+@media (max-width: 767.98px) {
+    .table thead th {
+        font-size: 0.8rem !important;
+        padding-top: 0.5rem !important;
+        padding-bottom: 0.5rem !important;
+    }
+    
+    .table tbody td {
+        font-size: 0.9rem !important;
+        padding-top: 0.5rem !important;
+        padding-bottom: 0.5rem !important;
+    }
+    
+    .card-body {
+        padding: 1rem !important;
+    }
+}
