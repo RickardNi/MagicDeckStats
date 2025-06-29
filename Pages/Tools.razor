@@ -4,7 +4,7 @@
 @using Microsoft.AspNetCore.Components
 @inject IBGStatsImportService BGStatsService
 
-<PageTitle>Tools - Magic Deck Stats</PageTitle>
+<PageTitle>Magic Deck Stats - Tools</PageTitle>
 
 <div class="container mt-2 mt-md-4">
     <h1><i class="bi bi-tools me-3 d-none d-md-inline"></i> Tools</h1>
@@ -45,15 +45,135 @@
             </div>
         </div>
     </div>
+    
+    <div class="card mt-4">
+        <div class="card-header">
+            <h5 class="card-title mb-0">
+                <i class="bi bi-exclamation-triangle"></i>Consistency Checks
+            </h5>
+        </div>
+        <div class="card-body">
+            @if (playsWithoutOneWinner == null || playsWithoutOneStartPlayer == null)
+            {
+                <div class="alert alert-info">
+                    <i class="bi bi-arrow-clockwise spin"></i> Loading plays data...
+                </div>
+            }
+            else
+            {
+                @if (!playsWithoutOneWinner.Any())
+                {
+                    <div class="alert alert-success">
+                        <i class="bi bi-check-circle"></i> All plays have exactly one winner
+                    </div>
+                }
+                else
+                {
+                    <h6>Plays Without Exactly One Winner</h6>
+                    @foreach (var play in playsWithoutOneWinner)
+                    {
+                        var winners = play.PlayerScores.Where(ps => ps.IsWinner).ToList();
+                        var totalPlayers = play.PlayerScores.Count;
+                        var issue = winners.Count == 0 ? "No winners" : 
+                                   winners.Count > 1 ? $"Multiple winners ({winners.Count})" : "Unknown issue";
+                        
+                        <div class="card mb-2">
+                            <div class="card-body p-3">
+                                <div class="d-flex justify-content-between align-items-start mb-2">
+                                    <h6 class="mb-0">@DateTime.Parse(play.Date).ToString("yyyy-MM-dd")</h6>
+                                    <span class="badge @(winners.Count == 0 ? "bg-danger" : "bg-warning")">@issue</span>
+                                </div>
+                                <div class="small text-muted mb-2">
+                                    Duration: @(play.DurationInMinutes > 0 ? $"{play.DurationInMinutes} min" : "-") | 
+                                    Winners: @winners.Count
+                                </div>
+                                <div class="small">
+                                    @foreach (var playerScore in play.PlayerScores)
+                                    {
+                                        <div class="d-flex align-items-center mb-1">
+                                            <span class="me-2">@playerScore.PlayerName</span>
+                                            <span class="text-muted me-2">(@playerScore.Deck)</span>
+                                            @if (playerScore.IsWinner)
+                                            {
+                                                <span class="badge bg-success me-1">WINNER</span>
+                                            }
+                                            @if (playerScore.IsFirstPlayer)
+                                            {
+                                                <span class="badge bg-warning">FIRST</span>
+                                            }
+                                        </div>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                    }
+                }
+
+                <hr class="my-3" />
+
+                @if (!playsWithoutOneStartPlayer.Any())
+                {
+                    <div class="alert alert-success">
+                        <i class="bi bi-check-circle"></i> All plays have exactly one start player
+                    </div>
+                }
+                else
+                {
+                    <h6>Plays Without Exactly One Start Player</h6>
+                    @foreach (var play in playsWithoutOneStartPlayer)
+                    {
+                        var startPlayers = play.PlayerScores.Where(ps => ps.IsFirstPlayer).ToList();
+                        var totalPlayers = play.PlayerScores.Count;
+                        var issue = startPlayers.Count == 0 ? "No start players" : 
+                                   startPlayers.Count > 1 ? $"Multiple start players ({startPlayers.Count})" : "Unknown issue";
+                        
+                        <div class="card mb-2">
+                            <div class="card-body p-3">
+                                <div class="d-flex justify-content-between align-items-start mb-2">
+                                    <h6 class="mb-0">@DateTime.Parse(play.Date).ToString("yyyy-MM-dd")</h6>
+                                    <span class="badge @(startPlayers.Count == 0 ? "bg-danger" : "bg-warning")">@issue</span>
+                                </div>
+                                <div class="small text-muted mb-2">
+                                    Duration: @(play.DurationInMinutes > 0 ? $"{play.DurationInMinutes} min" : "-") | 
+                                    Start Players: @startPlayers.Count
+                                </div>
+                                <div class="small">
+                                    @foreach (var playerScore in play.PlayerScores)
+                                    {
+                                        <div class="d-flex align-items-center mb-1">
+                                            <span class="me-2">@playerScore.PlayerName</span>
+                                            <span class="text-muted me-2">(@playerScore.Deck)</span>
+                                            @if (playerScore.IsWinner)
+                                            {
+                                                <span class="badge bg-success me-1">WINNER</span>
+                                            }
+                                            @if (playerScore.IsFirstPlayer)
+                                            {
+                                                <span class="badge bg-warning">FIRST</span>
+                                            }
+                                        </div>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                    }
+                }
+            }
+        </div>
+    </div>
 </div>
 
 @code {
     private string playerNamesText = "";
     private string processedResult = "";
+    private List<Play>? playsWithoutOneWinner;
+    private List<Play>? playsWithoutOneStartPlayer;
 
     protected override async Task OnInitializedAsync()
     {
         await LoadMostFrequentPlayers();
+        await LoadPlaysWithoutOneWinner();
+        await LoadPlaysWithoutOneStartPlayer();
     }
 
     private async Task LoadMostFrequentPlayers()
@@ -76,6 +196,40 @@
         {
             // If data loading fails, leave the textarea empty
             playerNamesText = "";
+        }
+    }
+
+    private async Task LoadPlaysWithoutOneWinner()
+    {
+        try
+        {
+            var plays = await BGStatsService.GetMagicPlaysAsync();
+            
+            playsWithoutOneWinner = plays
+                .Where(p => p.PlayerScores.Count(ps => ps.IsWinner) != 1)
+                .OrderByDescending(p => p.Date)
+                .ToList();
+        }
+        catch
+        {
+            playsWithoutOneWinner = new List<Play>();
+        }
+    }
+
+    private async Task LoadPlaysWithoutOneStartPlayer()
+    {
+        try
+        {
+            var plays = await BGStatsService.GetMagicPlaysAsync();
+            
+            playsWithoutOneStartPlayer = plays
+                .Where(p => p.PlayerScores.Count(ps => ps.IsFirstPlayer) != 1)
+                .OrderByDescending(p => p.Date)
+                .ToList();
+        }
+        catch
+        {
+            playsWithoutOneStartPlayer = new List<Play>();
         }
     }
 
