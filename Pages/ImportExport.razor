@@ -95,6 +95,31 @@
                         </div>
                     </div>
 
+                    @if (nameModificationOption == "anonymize")
+                    {
+                        <div class="mb-3">
+                            <label for="excludePlayerIds" class="form-label">Exclude Player IDs from Anonymization (Optional)</label>
+                            <input type="text" id="excludePlayerIds" class="form-control" 
+                                   @bind="excludePlayerIds" 
+                                   @bind:event="oninput"
+                                   @onchange="OnExcludePlayerIdsChanged"
+                                   placeholder="Enter player IDs separated by commas (e.g., 1, 3, 5)" />
+                            <small class="text-muted">Leave empty to anonymize all players. Enter player IDs separated by commas to keep their original first name.</small>
+                        </div>
+
+                        var excludedIds = ParseExcludePlayerIds();
+                        if (excludedIds.Any())
+                        {
+                            <div class="mb-3">
+                                <small class="text-warning">
+                                    <i class="bi bi-info-circle me-1"></i>
+                                    The following players will keep their original first name: 
+                                    @string.Join(", ", excludedIds)
+                                </small>
+                            </div>
+                        }
+                    }
+
                     <div class="mb-3">
                         <label for="exportTextarea" class="form-label">Current Data (JSON)</label>
                         <textarea id="exportTextarea" class="form-control export-textarea" readonly>@exportedJson</textarea>
@@ -166,6 +191,7 @@
     private string copyStatus = string.Empty;
     private bool copySuccess = false;
     private string nameModificationOption = "none";
+    private string excludePlayerIds = "2, 3, 7, 10, 44, 47, 71";
 
     protected override async Task OnInitializedAsync()
     {
@@ -285,7 +311,7 @@
                         PlayerName = ps.PlayerName
                     }).ToList()
                 }).ToList(),
-                Players = ProcessPlayerNames(currentData.Players, nameModificationOption)
+                Players = ProcessPlayerNames(currentData.Players, nameModificationOption, ParseExcludePlayerIds())
             };
 
             var jsonOptions = new JsonSerializerOptions
@@ -324,7 +350,7 @@
         await RefreshExportData();
     }
 
-    private List<Player> ProcessPlayerNames(List<Player> players, string nameModificationOption)
+    private List<Player> ProcessPlayerNames(List<Player> players, string nameModificationOption, HashSet<int> excludedPlayerIds)
     {
         switch (nameModificationOption)
         {
@@ -333,7 +359,7 @@
             case "simplify":
                 return SimplifyPlayerNames(players);
             case "anonymize":
-                return AnonymizePlayerNames(players);
+                return AnonymizePlayerNames(players, excludedPlayerIds);
             default:
                 throw new ArgumentException("Invalid name modification option");
         }
@@ -383,7 +409,7 @@
         return simplifiedPlayers;
     }
 
-    private List<Player> AnonymizePlayerNames(List<Player> players)
+    private List<Player> AnonymizePlayerNames(List<Player> players, HashSet<int> excludedPlayerIds)
     {
         var anonymizedNames = new[]
         {
@@ -397,13 +423,24 @@
             "Sara", "Agnes", "Sofia", "Jennie"
         };
 
+        // Prepare simplified names for excluded players
+        var simplifiedPlayers = SimplifyPlayerNames(players.Where(p => excludedPlayerIds.Contains(p.Id)).ToList())
+            .ToDictionary(p => p.Id, p => p.Name);
+
+        // Add all simplified names to usedNames to prevent any anonymized player from getting a simplified name
+        var usedNames = new HashSet<string>(simplifiedPlayers.Values);
         var anonymizedPlayers = new List<Player>();
-        var usedNames = new HashSet<string>();
         var nameCounts = new Dictionary<string, int>();
         var random = new Random();
 
         foreach (var player in players)
         {
+            if (excludedPlayerIds.Contains(player.Id))
+            {
+                anonymizedPlayers.Add(new Player { Id = player.Id, Name = simplifiedPlayers[player.Id] });
+                continue;
+            }
+
             string anonymizedName;
 
             // Try to find an unused name
@@ -419,13 +456,13 @@
             {
                 // If all names are used, add a letter to make it unique
                 var baseName = anonymizedNames[random.Next(anonymizedNames.Length)];
-                
+
                 if (!nameCounts.ContainsKey(baseName))
                 {
                     nameCounts[baseName] = 0;
                 }
                 nameCounts[baseName]++;
-                
+
                 var letterIndex = nameCounts[baseName] - 1; // Start with A (index 0)
                 anonymizedName = $"{baseName} {(char)('A' + letterIndex)}";
 
@@ -460,5 +497,27 @@
     {
         nameModificationOption = "anonymize";
         await OnNameModificationChanged();
+    }
+
+    private async Task OnExcludePlayerIdsChanged()
+    {
+        if (nameModificationOption == "anonymize")
+        {
+            await RefreshExportData();
+        }
+    }
+
+    private HashSet<int> ParseExcludePlayerIds()
+    {
+        if (string.IsNullOrEmpty(excludePlayerIds))
+        {
+            return new HashSet<int>();
+        }
+
+        var ids = excludePlayerIds.Split(',', StringSplitOptions.RemoveEmptyEntries)
+                                 .Select(id => int.TryParse(id, out var parsedId) ? parsedId : 0)
+                                 .Where(id => id > 0)
+                                 .ToHashSet();
+        return ids;
     }
 }
