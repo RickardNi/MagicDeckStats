@@ -5,21 +5,22 @@ namespace MagicDeckStats.Services;
 
 public interface IBGStatsImportService
 {
-    Task<List<Play>> GetMagicPlaysAsync();
+    Task<List<Play>> GetMagicPlaysAsync(HashSet<string>? variantFilter = null);
     Task<bool> ImportDataAsync(string jsonContent);
     Task<BGStatsExport?> GetCurrentDataAsync();
 }
 
-public class BGStatsImportService(HttpClient httpClient, ILogger<BGStatsImportService> logger) : IBGStatsImportService
+public class BGStatsImportService(HttpClient httpClient, ILogger<BGStatsImportService> logger, IGlobalFilterService globalFilterService) : IBGStatsImportService
 {
     private readonly HttpClient _httpClient = httpClient;
     private readonly ILogger<BGStatsImportService> _logger = logger;
+    private readonly IGlobalFilterService _globalFilterService = globalFilterService;
     private BGStatsExport? _cachedData;
     private int _magicGameId = -1;
     private readonly SemaphoreSlim _dataLoadSemaphore = new(1, 1);
     private readonly SemaphoreSlim _playsLoadSemaphore = new(1, 1);
 
-    public async Task<List<Play>> GetMagicPlaysAsync()
+    public async Task<List<Play>> GetMagicPlaysAsync(HashSet<string>? variantFilter = null)
     {
         await _playsLoadSemaphore.WaitAsync();
 
@@ -40,7 +41,8 @@ public class BGStatsImportService(HttpClient httpClient, ILogger<BGStatsImportSe
                 return [];
             }
 
-            return _cachedData.Plays;
+            var filteredPlays = _cachedData.Plays.Where(p => variantFilter == null || variantFilter.Contains(p.Variant)).ToList();
+            return filteredPlays;
         }
         finally
         {
@@ -80,6 +82,7 @@ public class BGStatsImportService(HttpClient httpClient, ILogger<BGStatsImportSe
                 EnrichPlayerScoreData();
                 SetMagicGameId();
                 PurgeIrrelevantData();
+                PopulateGlobalFilterWithVariants();
 
                 _logger.LogInformation("Successfully imported BGStats data with {GameCount} games, {PlayCount} plays, {PlayerCount} players",
                     importedData.Games.Count, importedData.Plays.Count, importedData.Players.Count);
@@ -184,6 +187,7 @@ public class BGStatsImportService(HttpClient httpClient, ILogger<BGStatsImportSe
             EnrichPlayerScoreData();
             SetMagicGameId();
             PurgeIrrelevantData();
+            PopulateGlobalFilterWithVariants();
 
             var loadDuration = DateTime.UtcNow - loadStartTime;
             _logger.LogInformation("Successfully loaded {DataSource} with {PlayCount} plays in {LoadDuration}ms",
@@ -333,5 +337,17 @@ public class BGStatsImportService(HttpClient httpClient, ILogger<BGStatsImportSe
         {
             return (false, string.Empty, dataSource);
         }
+    }
+
+    private void PopulateGlobalFilterWithVariants()
+    {
+        if (_cachedData == null)
+            return;
+
+        var allVariants = _cachedData.Plays
+            .Select(p => p.Variant)
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .ToList();
+        _globalFilterService.SetAllAvailableVariants(allVariants);
     }
 }

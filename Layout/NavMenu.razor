@@ -1,5 +1,6 @@
 ﻿@using MagicDeckStats.Services
 @inject IBGStatsImportService BGStatsService
+@inject IGlobalFilterService GlobalFilterService
 
 <div class="@NavMenuCssClass nav-scrollable d-flex flex-column" @onclick="ToggleNavMenu">
     <nav class="nav flex-column">
@@ -53,7 +54,8 @@
                     <div class="form-check form-switch">
                         <input class="form-check-input" type="checkbox" 
                                id="variant-@displayVariant.Replace(" ", "-").ToLower()" 
-                               checked disabled />
+                               checked="@GlobalFilterService.IsVariantSelected(variant)"
+                               @onchange="(e) => OnVariantFilterChanged(variant, e.Value)" />
                         <label class="form-check-label small text-light" for="variant-@displayVariant.Replace(" ", "-").ToLower()">
                             @displayVariant
                         </label>
@@ -84,5 +86,21 @@
     private void ToggleNavMenu()
     {
         collapseNavMenu = !collapseNavMenu;
+    }
+
+    private void OnVariantFilterChanged(string variant, object? isChecked)
+    {
+        var selectedVariants = new HashSet<string>(GlobalFilterService.SelectedVariants);
+        
+        if (isChecked is bool checkedValue && checkedValue)
+        {
+            selectedVariants.Add(variant);
+        }
+        else
+        {
+            selectedVariants.Remove(variant);
+        }
+        
+        GlobalFilterService.SetVariantFilter(selectedVariants);
     }
 }

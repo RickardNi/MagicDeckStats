@@ -9,5 +9,6 @@ builder.RootComponents.Add<HeadOutlet>("head::after");
 
 builder.Services.AddSingleton(sp => new HttpClient { BaseAddress = new Uri(builder.HostEnvironment.BaseAddress) });
 builder.Services.AddSingleton<IBGStatsImportService, BGStatsImportService>();
+builder.Services.AddSingleton<IGlobalFilterService, GlobalFilterService>();
 
 await builder.Build().RunAsync();
