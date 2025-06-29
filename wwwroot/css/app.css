@@ -199,6 +199,15 @@ code {
     color: #dc3545 !important;
 }
 
+.player-link {
+    color: #212529 !important;
+    text-decoration: none;
+}
+
+.player-link:hover {
+    color: #0071c1 !important;
+}
+
 /* Custom styles for mobile table optimization */
 @media (max-width: 767.98px) {
     .table thead th {

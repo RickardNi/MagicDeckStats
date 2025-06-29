@@ -193,7 +193,11 @@
                                             <span class="text-muted">@player.Rank</span>
                                         }
                                     </td>
-                                    <td><strong>@player.PlayerName</strong></td>
+                                    <td>
+                                        <NavLink class="player-link" href="@Utilities.GetPlayerUrl(player.PlayerRefId)">
+                                            <strong>@player.PlayerName</strong>
+                                        </NavLink>
+                                    </td>
                                     <td class="text-center">@player.GamesPlayed</td>
                                     <td class="text-center">@player.UniqueDecks</td>
                                     <td class="text-center">
@@ -329,6 +333,7 @@
     {
         public int Rank { get; set; }
         public string PlayerName { get; set; } = string.Empty;
+        public int PlayerRefId { get; set; }
         public int GamesPlayed { get; set; }
         public int Wins { get; set; }
         public int Losses { get; set; }
@@ -398,6 +403,7 @@
             {
                 Rank = index + 1,
                 PlayerName = g.Key,
+                PlayerRefId = g.First().PlayerRefId,
                 GamesPlayed = g.Count(),
                 Wins = g.Count(ps => ps.IsWinner),
                 Losses = g.Count(ps => !ps.IsWinner),

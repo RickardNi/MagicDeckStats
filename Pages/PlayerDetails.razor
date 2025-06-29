@@ -1,0 +1,144 @@
+@page "/player/{playerId:int}"
+@using MagicDeckStats.Models
+@using MagicDeckStats.Services
+@inject IBGStatsImportService BGStatsService
+
+<PageTitle>Magic Deck Stats - Player Details</PageTitle>
+
+<div class="container mt-4">
+    <div>
+        <h1><i class="bi bi-person-fill me-3"></i> Player: <span class="fw-bold">@(playerStats?.PlayerName ?? $"Player {playerId}")</span></h1>
+    </div>
+
+    @if (isLoading)
+    {
+        <div class="alert alert-info">
+            <i class="bi bi-arrow-clockwise spin"></i> Loading player details...
+        </div>
+    }
+    else if (errorMessage != null)
+    {
+        <div class="alert alert-danger">
+            <i class="bi bi-exclamation-triangle"></i> @errorMessage
+        </div>
+    }
+    else if (playerStats == null)
+    {
+        <div class="alert alert-warning">
+            <i class="bi bi-exclamation-triangle"></i> Player not found.
+        </div>
+    }
+    else
+    {
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0">Stats</h5>
+                    </div>
+                    <div class="card-body">
+                        <dl class="row mb-0">
+                            <dt class="col-sm-5">Total Plays</dt>
+                            <dd class="col-sm-7">@playerStats.TotalPlays (<span class="text-success">@playerStats.Wins W</span> / <span class="text-danger">@playerStats.Losses L</span>)</dd>
+                            <dt class="col-sm-5">Win Rate</dt>
+                            <dd class="col-sm-7 @(Utilities.GetWinRateColorForPlayer(playerStats.WinRate * 100))">@(playerStats.WinRate.ToString("P1"))</dd>
+                            <dt class="col-sm-5">First Player Win Rate</dt>
+                            <dd class="col-sm-7">@((playsAsFirstPlayer > 0 ? (double)winsAsFirstPlayer / playsAsFirstPlayer : 0).ToString("P1"))</dd>
+                            <dt class="col-sm-5">Win Rate When Going Second</dt>
+                            <dd class="col-sm-7">@((playsAsNonFirstPlayer > 0 ? (double)winsAsNonFirstPlayer / playsAsNonFirstPlayer : 0).ToString("P1"))</dd>
+                            <dt class="col-sm-5">Average Duration</dt>
+                            <dd class="col-sm-7">@((averageDuration > 0 ? $"{averageDuration:F1} min" : "-") )</dd>
+                        </dl>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+@code {
+    [Parameter]
+    public int playerId { get; set; }
+
+    private bool isLoading = true;
+    private string? errorMessage;
+    private PlayerStats? playerStats;
+    private double averageDuration = 0;
+    private List<Play> playerPlays = new();
+    private int winsAsFirstPlayer = 0;
+    private int winsAsNonFirstPlayer = 0;
+    private int lossesAsFirstPlayer = 0;
+    private int lossesAsNonFirstPlayer = 0;
+    private int playsAsFirstPlayer = 0;
+    private int playsAsNonFirstPlayer = 0;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        try
+        {
+            isLoading = true;
+            errorMessage = null;
+            playerStats = null;
+            averageDuration = 0;
+            playerPlays.Clear();
+            winsAsFirstPlayer = 0;
+            winsAsNonFirstPlayer = 0;
+            lossesAsFirstPlayer = 0;
+            lossesAsNonFirstPlayer = 0;
+            playsAsFirstPlayer = 0;
+            playsAsNonFirstPlayer = 0;
+
+            var plays = await BGStatsService.GetMagicPlaysAsync();
+            playerPlays = plays.Where(p => p.PlayerScores.Any(ps => ps.PlayerRefId == playerId)).ToList();
+            
+            if (!playerPlays.Any())
+            {
+                return;
+            }
+
+            var allScores = playerPlays.SelectMany(p => p.PlayerScores).Where(ps => ps.PlayerRefId == playerId).ToList();
+            var totalPlays = allScores.Count;
+            var wins = allScores.Count(ps => ps.IsWinner);
+            var losses = allScores.Count(ps => !ps.IsWinner);
+            var winRate = totalPlays > 0 ? (double)wins / totalPlays : 0;
+            averageDuration = playerPlays.Any() ? playerPlays.Average(p => p.DurationInMinutes) : 0;
+
+            // Get player name from the first score
+            var playerName = allScores.FirstOrDefault()?.PlayerName ?? $"Player {playerId}";
+
+            playerStats = new PlayerStats
+            {
+                PlayerName = playerName,
+                TotalPlays = totalPlays,
+                Wins = wins,
+                Losses = losses,
+                WinRate = winRate
+            };
+
+            // Calculate first player statistics
+            winsAsFirstPlayer = playerPlays.Count(p => p.PlayerScores.Any(ps => ps.IsWinner && ps.IsFirstPlayer && ps.PlayerRefId == playerId));
+            lossesAsFirstPlayer = playerPlays.Count(p => p.PlayerScores.Any(ps => !ps.IsWinner && ps.IsFirstPlayer && ps.PlayerRefId == playerId));
+            winsAsNonFirstPlayer = playerPlays.Count(p => p.PlayerScores.Any(ps => ps.IsWinner && !ps.IsFirstPlayer && ps.PlayerRefId == playerId));
+            lossesAsNonFirstPlayer = playerPlays.Count(p => p.PlayerScores.Any(ps => !ps.IsWinner && !ps.IsFirstPlayer && ps.PlayerRefId == playerId));
+            playsAsFirstPlayer = playerPlays.Count(p => p.PlayerScores.Any(ps => ps.IsFirstPlayer && ps.PlayerRefId == playerId));
+            playsAsNonFirstPlayer = playerPlays.Count(p => p.PlayerScores.Any(ps => !ps.IsFirstPlayer && ps.PlayerRefId == playerId));
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Error loading player details: {ex.Message}";
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private class PlayerStats
+    {
+        public string PlayerName { get; set; } = string.Empty;
+        public int TotalPlays { get; set; }
+        public int Wins { get; set; }
+        public int Losses { get; set; }
+        public double WinRate { get; set; }
+    }
+} 

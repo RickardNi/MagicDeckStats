@@ -26,6 +26,13 @@ namespace MagicDeckStats.Services
             return $"deck/{encodedDeckName}";
         }
 
+        public static string GetPlayerUrl(int playerId)
+        {
+            // Return a relative path without leading slash to work with base href
+            // This ensures it works correctly on GitHub Pages with /MagicDeckStats/ base href
+            return $"player/{playerId}";
+        }
+
         public static string GetWinRateColorForDeck(double winRate) => winRate switch
         {
             > 60 => "text-success-dark",
