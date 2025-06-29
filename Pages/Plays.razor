@@ -10,7 +10,7 @@
     <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center mb-4">
         <h1><i class="bi bi-list-ul me-4 d-none d-md-inline"></i>All Plays</h1>
         <div class="text-muted mt-1 mt-md-0">
-            Showing @((currentPage - 1) * pageSize + 1)-@Math.Min(currentPage * pageSize, totalPlays) of @totalPlays plays
+            Showing @((currentPage - 1) * pageSize + 1)-@Math.Min(currentPage * pageSize, filteredPlays.Count) of @filteredPlays.Count plays
         </div>
     </div>
 
@@ -34,6 +34,51 @@
     }
     else
     {
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="bi bi-funnel me-2"></i>Filters</h5>
+            </div>
+            <div class="card-body">
+                <div class="row g-3">
+                    <div class="col-md-3">
+                        <label for="startDate" class="form-label">Start Date</label>
+                        <input type="date" class="form-control" id="startDate" @bind="StartDate" @bind:event="oninput" />
+                    </div>
+                    <div class="col-md-3">
+                        <label for="endDate" class="form-label">End Date</label>
+                        <input type="date" class="form-control" id="endDate" @bind="EndDate" @bind:event="oninput" />
+                    </div>
+                    <div class="col-md-2 d-flex align-items-end">
+                        <button class="btn btn-secondary w-100" @onclick="ClearFilters">
+                            <i class="bi bi-arrow-clockwise me-1"></i>Reset
+                        </button>
+                    </div>
+                </div>
+                <div class="row g-3 mt-2">
+                    <div class="col-md-6">
+                        <label for="playerFilter" class="form-label">Players</label>
+                        <select class="form-select" id="playerFilter" multiple size="6" @key="selectKey" @onchange="OnPlayerSelectionChanged">
+                            @foreach (var player in allPlayers)
+                            {
+                                var isSelected = selectedPlayers.Contains(player);
+                                <option value="@player" selected="@isSelected">@player</option>
+                            }
+                        </select>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="mt-0 mt-md-4">
+                            <ul class="small text-muted mb-0">
+                                <li class="mb-1"><strong>0 players:</strong> Show all plays</li>
+                                <li class="mb-1"><strong>1 player:</strong> Show all plays involving that player</li>
+                                <li class="mb-1"><strong>2 players:</strong> Show only 2-player games between those players</li>
+                                <li class="mb-1"><strong>3+ players:</strong> Show plays where all players are among the selected ones</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <div class="card">
             <div class="card-body">
                 <PlaysTable Plays="@currentPagePlays" />
@@ -114,12 +159,47 @@
     private bool isLoading = true;
     private string? errorMessage;
     private List<Play> plays = new();
+    private List<Play> filteredPlays = new();
     private List<Play> currentPagePlays = new();
+    private List<string> allPlayers = new();
     
     private int currentPage = 1;
     private int pageSize = 100;
-    private int totalPlays = 0;
     private int totalPages = 0;
+    
+    // Filter properties
+    private DateTime? startDate;
+    private DateTime? endDate;
+    private List<string> selectedPlayers = new();
+    
+    // Key to force re-rendering of the select element
+    private int selectKey = 0;
+
+    private DateTime? StartDate
+    {
+        get => startDate;
+        set
+        {
+            if (startDate != value)
+            {
+                startDate = value;
+                ApplyFilters();
+            }
+        }
+    }
+
+    private DateTime? EndDate
+    {
+        get => endDate;
+        set
+        {
+            if (endDate != value)
+            {
+                endDate = value;
+                ApplyFilters();
+            }
+        }
+    }
 
     protected override async Task OnInitializedAsync()
     {
@@ -130,10 +210,31 @@
             plays = await BGStatsService.GetMagicPlaysAsync();
             plays = plays.OrderByDescending(p => p.Date).ToList();
             
-            totalPlays = plays.Count;
-            totalPages = (int)Math.Ceiling((double)totalPlays / pageSize);
+            // Extract all unique player names
+            allPlayers = plays.SelectMany(p => p.PlayerScores)
+                             .Select(ps => ps.PlayerName)
+                             .Distinct()
+                             .OrderBy(name => name)
+                             .ToList();
             
-            UpdateCurrentPagePlays();
+            // Set default date range to earliest and latest dates in plays
+            var validDates = plays.Where(p => DateTime.TryParse(p.Date, out _))
+                                 .Select(p => DateTime.Parse(p.Date))
+                                 .ToList();
+            
+            if (validDates.Any())
+            {
+                startDate = validDates.Min();
+                endDate = validDates.Max();
+            }
+            else
+            {
+                // Fallback to last 30 days if no valid dates found
+                endDate = DateTime.Today;
+                startDate = endDate.Value.AddDays(-30);
+            }
+            
+            ApplyFilters();
         }
         catch (Exception ex)
         {
@@ -145,10 +246,81 @@
         }
     }
 
+    private void ApplyFilters()
+    {
+        var query = plays.AsEnumerable();
+
+        // Apply date filter
+        if (startDate.HasValue)
+        {
+            query = query.Where(p => DateTime.TryParse(p.Date, out var playDate) && playDate >= startDate.Value);
+        }
+        
+        if (endDate.HasValue)
+        {
+            query = query.Where(p => DateTime.TryParse(p.Date, out var playDate) && playDate <= endDate.Value);
+        }
+
+        // Apply player filter
+        if (selectedPlayers.Count == 1)
+        {
+            // Show all plays involving the selected player
+            query = query.Where(p => p.PlayerScores.Any(ps => selectedPlayers.Contains(ps.PlayerName)));
+        }
+        else if (selectedPlayers.Count == 2)
+        {
+            // Show only plays involving exactly those two players
+            query = query.Where(p => 
+                p.PlayerScores.Count == 2 && 
+                p.PlayerScores.All(ps => selectedPlayers.Contains(ps.PlayerName)));
+        }
+        else if (selectedPlayers.Count > 2)
+        {
+            // Show plays where all players in the play are among the selected ones
+            query = query.Where(p => p.PlayerScores.All(ps => selectedPlayers.Contains(ps.PlayerName)));
+        }
+        // If selectedPlayers.Count == 0, no filtering applied (show all plays)
+
+        filteredPlays = query.ToList();
+        
+        // Reset to first page and update pagination
+        currentPage = 1;
+        totalPages = (int)Math.Ceiling((double)filteredPlays.Count / pageSize);
+        
+        UpdateCurrentPagePlays();
+    }
+
+    private void ClearFilters()
+    {
+        // Reset to earliest and latest dates in plays
+        var validDates = plays.Where(p => DateTime.TryParse(p.Date, out _))
+                             .Select(p => DateTime.Parse(p.Date))
+                             .ToList();
+        
+        if (validDates.Any())
+        {
+            startDate = validDates.Min();
+            endDate = validDates.Max();
+        }
+        else
+        {
+            startDate = null;
+            endDate = null;
+        }
+        
+        selectedPlayers.Clear();
+        
+        // Change the key to force Blazor to completely re-render the select element
+        selectKey++;
+        
+        ApplyFilters();
+        StateHasChanged();
+    }
+
     private void UpdateCurrentPagePlays()
     {
         var skip = (currentPage - 1) * pageSize;
-        currentPagePlays = plays.Skip(skip).Take(pageSize).ToList();
+        currentPagePlays = filteredPlays.Skip(skip).Take(pageSize).ToList();
     }
 
     private void GoToPage(int page)
@@ -158,5 +330,22 @@
             currentPage = page;
             UpdateCurrentPagePlays();
         }
+    }
+
+    private void OnPlayerSelectionChanged(ChangeEventArgs e)
+    {
+        if (e.Value is IEnumerable<string> selectedValues)
+        {
+            selectedPlayers = selectedValues.ToList();
+        }
+        else if (e.Value is string singleValue)
+        {
+            selectedPlayers = new List<string> { singleValue };
+        }
+        else
+        {
+            selectedPlayers = new List<string>();
+        }
+        ApplyFilters();
     }
 } 
