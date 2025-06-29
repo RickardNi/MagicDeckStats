@@ -176,7 +176,7 @@ code {
 
 /* Add spacing between icons and text in card titles */
 .card-title .bi {
-    margin-right: 0.5rem !important;
+    margin-right: 0.75rem !important;
 }
 
 .deck-link {
