@@ -17,10 +17,10 @@ else
                     <th>Duration</th>
                     <th class="flag-icon-column"></th>
                     <th>Winner</th>
-                    <th>First Player</th>
+                    <th>Player</th>
                     <th class="flag-icon-column"></th>
                     <th>Loser</th>
-                    <th>Second Player</th>
+                    <th>Player</th>
                 </tr>
             </thead>
             <tbody>
@@ -47,7 +47,7 @@ else
                         <td>
                             @if (winner != null)
                             {
-                                <span class="text-success">@winner.PlayerName</span>
+                                <NavLink class="player-link text-success" href="@Utilities.GetPlayerUrl(winner.PlayerRefId)">@winner.PlayerName</NavLink>
                             }
                             else
                             {
@@ -69,7 +69,7 @@ else
                         <td>
                             @if (loser != null)
                             {
-                                <span class="text-danger">@loser.PlayerName</span>
+                                <NavLink class="player-link text-danger" href="@Utilities.GetPlayerUrl(loser.PlayerRefId)">@loser.PlayerName</NavLink>
                             }
                             else
                             {

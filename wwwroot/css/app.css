@@ -204,8 +204,19 @@ code {
     text-decoration: none;
 }
 
-.player-link:hover {
+.player-link:hover,
+.player-link.text-success:hover,
+.player-link.text-danger:hover {
     color: #0071c1 !important;
+}
+
+/* Allow color classes to override the default black color for player links */
+.player-link.text-success {
+    color: #198754 !important;
+}
+
+.player-link.text-danger {
+    color: #dc3545 !important;
 }
 
 /* Custom styles for mobile table optimization */
