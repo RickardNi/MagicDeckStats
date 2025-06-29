@@ -216,10 +216,11 @@
                                 @{
                                     var playerStats = plays
                                         .SelectMany(p => p.PlayerScores)
-                                        .GroupBy(ps => ps.PlayerName)
+                                        .GroupBy(ps => new { ps.PlayerName, ps.PlayerRefId })
                                         .Select(g => new
                                         {
-                                            PlayerName = g.Key,
+                                            PlayerName = g.Key.PlayerName,
+                                            PlayerRefId = g.Key.PlayerRefId,
                                             GamesPlayed = g.Count(),
                                             Wins = g.Count(ps => ps.IsWinner),
                                             WinRate = g.Count(ps => ps.IsWinner) * 100.0 / g.Count(),
@@ -257,7 +258,11 @@
                                                     <span class="text-muted">@(i + 1)</span>
                                                 }
                                             </td>
-                                            <td><strong>@player.PlayerName</strong></td>
+                                            <td>
+                                                <NavLink class="player-link" href="@Utilities.GetPlayerUrl(player.PlayerRefId)">
+                                                    <strong>@player.PlayerName</strong>
+                                                </NavLink>
+                                            </td>
                                             <td>@player.GamesPlayed</td>
                                             <td>@player.UniqueDecks</td>
                                             <td>@player.Wins</td>
