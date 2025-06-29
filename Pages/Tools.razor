@@ -1,6 +1,7 @@
 @page "/tools"
 @using MagicDeckStats.Services
 @using MagicDeckStats.Models
+@using Microsoft.AspNetCore.Components
 @inject IBGStatsImportService BGStatsService
 
 <PageTitle>Tools - Magic Deck Stats</PageTitle>
@@ -12,7 +13,7 @@
         <div class="col-md-8">
             <div class="card">
                 <div class="card-header">
-                    <h5 class="mb-0">Player Names Input</h5>
+                    <h5 class="mb-0">Create Matchups</h5>
                 </div>
                 <div class="card-body">
                     <div class="mb-3">
@@ -27,24 +28,19 @@
                     </div>
                     
                     <div class="d-flex gap-2">
-                        <button class="btn btn-primary" @onclick="ProcessPlayerNames">
-                            Create Matchups
+                        <button class="btn btn-primary" @onclick="CreateMatchups">
+                            Randomize Matches
                         </button>
                     </div>
+                    
+                    @if (!string.IsNullOrEmpty(processedResult))
+                    {
+                        <div class="mt-3">
+                            <div class="matches-result">@((MarkupString)processedResult)</div>
+                        </div>
+                    }
                 </div>
             </div>
-            
-            @if (!string.IsNullOrEmpty(processedResult))
-            {
-                <div class="card mt-3">
-                    <div class="card-header">
-                        <h6 class="mb-0">Processed Result</h6>
-                    </div>
-                    <div class="card-body">
-                        <pre class="mb-0">@processedResult</pre>
-                    </div>
-                </div>
-            }
         </div>
         
         <div class="col-md-4">
@@ -93,7 +89,7 @@
         }
     }
 
-    private void ProcessPlayerNames()
+    private void CreateMatchups()
     {
         if (string.IsNullOrWhiteSpace(playerNamesText))
         {
@@ -122,21 +118,23 @@
         var random = new Random();
         var shuffledPlayers = players.OrderBy(x => random.Next()).ToList();
 
-        processedResult = $"Created matchups for {players.Count} players:\n\n";
+        processedResult = "<table class=\"matches-table\">";
 
         // Create matchups
         for (int i = 0; i < shuffledPlayers.Count - 1; i += 2)
         {
             var player1 = shuffledPlayers[i];
             var player2 = shuffledPlayers[i + 1];
-            processedResult += $"Match {i / 2 + 1}: {player1} vs {player2}\n";
+            processedResult += $"<tr><td>Match {i / 2 + 1}:</td><td><span class=\"player-name\">{player1}</span></td><td>vs</td><td><span class=\"player-name\">{player2}</span></td></tr>";
         }
 
         // Handle walkover if odd number of players
         if (shuffledPlayers.Count % 2 != 0)
         {
             var walkoverPlayer = shuffledPlayers[shuffledPlayers.Count - 1];
-            processedResult += $"\nBye: {walkoverPlayer}";
+            processedResult += $"<tr><td>Bye:</td><td><span class=\"player-name\">{walkoverPlayer}</span></td><td></td><td></td></tr>";
         }
+
+        processedResult += "</table>";
     }
 } 

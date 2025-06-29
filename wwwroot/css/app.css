@@ -251,8 +251,53 @@ code {
     color: #0d5a2c !important;
 }
 
+/* Global textarea styling to match ImportExport page */
 textarea.form-control {
     font-family: 'Roboto Mono', 'Courier New', monospace;
     font-size: 0.875rem;
     font-weight: 500;
+}
+
+/* Matches result styling */
+.matches-result {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    font-size: 0.95rem;
+    line-height: 1.6;
+    color: #495057;
+    background-color: #f8f9fa;
+    border: 1px solid #dee2e6;
+    border-radius: 0.375rem;
+    padding: 1rem;
+    white-space: pre-line;
+}
+
+.matches-result .player-name {
+    font-weight: 600;
+    color: #000000;
+    padding: 0.1rem 0.3rem;
+    border-radius: 0.25rem;
+    margin: 0 0.1rem;
+}
+
+.matches-table {
+    width: auto;
+    border-collapse: collapse;
+}
+
+.matches-table td {
+    padding: 0.25rem 0.5rem;
+    vertical-align: top;
+}
+
+.matches-table td:first-child {
+    width: auto;
+    font-weight: 500;
+}
+
+.matches-table td:nth-child(2) {
+    width: auto;
+}
+
+.matches-table td:nth-child(4) {
+    width: auto;
 }
