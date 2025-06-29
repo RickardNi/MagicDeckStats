@@ -41,7 +41,7 @@
                             <tr>
                                 <th>
                                     <button class="btn btn-link text-decoration-none p-0 fw-bold" @onclick="() => SortBy(SortColumn.DeckName)">
-                                        Deck Name
+                                        Name
                                         @if (currentSortColumn == SortColumn.DeckName)
                                         {
                                             <i class="bi @(isAscending ? "bi-sort-up" : "bi-sort-down")"></i>
@@ -56,6 +56,19 @@
                                     <button class="btn btn-link text-decoration-none p-0 fw-bold" @onclick="() => SortBy(SortColumn.Plays)">
                                         Plays
                                         @if (currentSortColumn == SortColumn.Plays)
+                                        {
+                                            <i class="bi @(isAscending ? "bi-sort-up" : "bi-sort-down")"></i>
+                                        }
+                                        else
+                                        {
+                                            <i class="bi bi-sort text-muted"></i>
+                                        }
+                                    </button>
+                                </th>
+                                <th class="text-center">
+                                    <button class="btn btn-link text-decoration-none p-0 fw-bold" @onclick="() => SortBy(SortColumn.WinRate)">
+                                        Win Rate
+                                        @if (currentSortColumn == SortColumn.WinRate)
                                         {
                                             <i class="bi @(isAscending ? "bi-sort-up" : "bi-sort-down")"></i>
                                         }
@@ -92,21 +105,8 @@
                                     </button>
                                 </th>
                                 <th class="text-center">
-                                    <button class="btn btn-link text-decoration-none p-0 fw-bold" @onclick="() => SortBy(SortColumn.WinRate)">
-                                        Win %
-                                        @if (currentSortColumn == SortColumn.WinRate)
-                                        {
-                                            <i class="bi @(isAscending ? "bi-sort-up" : "bi-sort-down")"></i>
-                                        }
-                                        else
-                                        {
-                                            <i class="bi bi-sort text-muted"></i>
-                                        }
-                                    </button>
-                                </th>
-                                <th class="text-center">
                                     <button class="btn btn-link text-decoration-none p-0 fw-bold" @onclick="() => SortBy(SortColumn.FirstPlayerWinRate)">
-                                        <i class="bi bi-1-square me-1"></i> Player Win %
+                                        <i class="bi bi-1-square me-1"></i> Player Win
                                         @if (currentSortColumn == SortColumn.FirstPlayerWinRate)
                                         {
                                             <i class="bi @(isAscending ? "bi-sort-up" : "bi-sort-down")"></i>
@@ -119,7 +119,7 @@
                                 </th>
                                 <th class="text-center">
                                     <button class="btn btn-link text-decoration-none p-0 fw-bold" @onclick="() => SortBy(SortColumn.GoingSecondWinRate)">
-                                        <i class="bi bi-2-square me-1"></i> Player Win %
+                                        <i class="bi bi-2-square me-1"></i> Player Win
                                         @if (currentSortColumn == SortColumn.GoingSecondWinRate)
                                         {
                                             <i class="bi @(isAscending ? "bi-sort-up" : "bi-sort-down")"></i>
@@ -162,13 +162,13 @@
                                         @deck.TotalPlays
                                     </td>
                                     <td class="text-center">
+                                        <span class="fw-bold @winRateColor">@(winRatePercentage.ToString("F1"))%</span>
+                                    </td>
+                                    <td class="text-center">
                                         <span class="text-success fw-bold">@deck.Wins</span>
                                     </td>
                                     <td class="text-center">
                                         <span class="text-danger">@deck.Losses</span>
-                                    </td>
-                                    <td class="text-center">
-                                        <span class="fw-bold @winRateColor">@(winRatePercentage.ToString("F1"))%</span>
                                     </td>
                                     <td class="text-center">
                                         @if (deck.FirstPlayerPlays > 0)
