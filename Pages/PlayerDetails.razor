@@ -57,6 +57,126 @@
                 </div>
             </div>
         </div>
+
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0">Decks</h5>
+                    </div>
+                    <div class="card-body">
+                        @if (deckStats.Any())
+                        {
+                            <div class="table-responsive">
+                                <table class="table table-striped table-hover">
+                                    <thead>
+                                        <tr>
+                                            <th>
+                                                <button class="btn btn-link text-decoration-none p-0 fw-bold" @onclick="@(() => SortBy("Deck"))">
+                                                    Name
+                                                    @if (currentSort == "Deck")
+                                                    {
+                                                        <i class="bi @(sortAscending ? "bi-sort-up" : "bi-sort-down")"></i>
+                                                    }
+                                                    else
+                                                    {
+                                                        <i class="bi bi-sort text-muted"></i>
+                                                    }
+                                                </button>
+                                            </th>
+                                            <th class="text-center">
+                                                <button class="btn btn-link text-decoration-none p-0 fw-bold" @onclick="@(() => SortBy("Plays"))">
+                                                    Plays
+                                                    @if (currentSort == "Plays")
+                                                    {
+                                                        <i class="bi @(sortAscending ? "bi-sort-up" : "bi-sort-down")"></i>
+                                                    }
+                                                    else
+                                                    {
+                                                        <i class="bi bi-sort text-muted"></i>
+                                                    }
+                                                </button>
+                                            </th>
+                                            <th class="text-center">
+                                                <button class="btn btn-link text-decoration-none p-0 fw-bold" @onclick="@(() => SortBy("WinRate"))">
+                                                    Win Rate
+                                                    @if (currentSort == "WinRate")
+                                                    {
+                                                        <i class="bi @(sortAscending ? "bi-sort-up" : "bi-sort-down")"></i>
+                                                    }
+                                                    else
+                                                    {
+                                                        <i class="bi bi-sort text-muted"></i>
+                                                    }
+                                                </button>
+                                            </th>
+                                            <th class="text-center">
+                                                <button class="btn btn-link text-decoration-none p-0 fw-bold" @onclick="@(() => SortBy("Wins"))">
+                                                    Wins
+                                                    @if (currentSort == "Wins")
+                                                    {
+                                                        <i class="bi @(sortAscending ? "bi-sort-up" : "bi-sort-down")"></i>
+                                                    }
+                                                    else
+                                                    {
+                                                        <i class="bi bi-sort text-muted"></i>
+                                                    }
+                                                </button>
+                                            </th>
+                                            <th class="text-center">
+                                                <button class="btn btn-link text-decoration-none p-0 fw-bold" @onclick="@(() => SortBy("Losses"))">
+                                                    Losses
+                                                    @if (currentSort == "Losses")
+                                                    {
+                                                        <i class="bi @(sortAscending ? "bi-sort-up" : "bi-sort-down")"></i>
+                                                    }
+                                                    else
+                                                    {
+                                                        <i class="bi bi-sort text-muted"></i>
+                                                    }
+                                                </button>
+                                            </th>
+                                            <th>
+                                                <button class="btn btn-link text-decoration-none p-0 fw-bold" @onclick="@(() => SortBy("LastPlayed"))">
+                                                    Last Played
+                                                    @if (currentSort == "LastPlayed")
+                                                    {
+                                                        <i class="bi @(sortAscending ? "bi-sort-up" : "bi-sort-down")"></i>
+                                                    }
+                                                    else
+                                                    {
+                                                        <i class="bi bi-sort text-muted"></i>
+                                                    }
+                                                </button>
+                                            </th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @foreach (var deck in sortedDeckStats)
+                                        {
+                                            <tr>
+                                                <td>
+                                                    <NavLink class="deck-link" href="@Utilities.GetDeckUrl(deck.DeckName)">@deck.DeckName</NavLink>
+                                                </td>
+                                                <td class="text-center">@deck.Plays</td>
+                                                <td class="text-center @(Utilities.GetWinRateColorForPlayer(deck.WinRate * 100))">@(deck.WinRate.ToString("P1"))</td>
+                                                <td class="text-center text-success">@deck.Wins</td>
+                                                <td class="text-center text-danger">@deck.Losses</td>
+                                                <td>@(deck.LastPlayed?.ToString("yyyy-MM-dd") ?? "-")</td>
+                                            </tr>
+                                        }
+                                    </tbody>
+                                </table>
+                            </div>
+                        }
+                        else
+                        {
+                            <p class="text-muted mb-0">No deck data available.</p>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
     }
 </div>
 
@@ -77,6 +197,10 @@
     private int playsAsNonFirstPlayer = 0;
     private string? mostPlayedDeck;
     private int uniqueDecksCount = 0;
+    private List<DeckStats> deckStats = new();
+    private string currentSort = "Plays";
+    private bool sortAscending = false;
+    private List<DeckStats> sortedDeckStats = new();
 
     protected override async Task OnParametersSetAsync()
     {
@@ -95,6 +219,7 @@
             playsAsNonFirstPlayer = 0;
             mostPlayedDeck = null;
             uniqueDecksCount = 0;
+            deckStats.Clear();
 
             var plays = await BGStatsService.GetMagicPlaysAsync();
             playerPlays = plays.Where(p => p.PlayerScores.Any(ps => ps.PlayerRefId == playerId)).ToList();
@@ -146,6 +271,37 @@
                 .Where(ps => !string.IsNullOrWhiteSpace(ps.Deck))
                 .GroupBy(ps => ps.Deck)
                 .Count();
+
+            // Calculate deck statistics
+            deckStats = allScores
+                .Where(ps => !string.IsNullOrWhiteSpace(ps.Deck))
+                .GroupBy(ps => ps.Deck)
+                .Select(g => new DeckStats
+                {
+                    DeckName = g.Key,
+                    Plays = g.Count(),
+                    Wins = g.Count(ps => ps.IsWinner),
+                    Losses = g.Count(ps => !ps.IsWinner),
+                    WinRate = g.Count(ps => ps.IsWinner) / (double)g.Count()
+                })
+                .ToList();
+
+            // Populate last played dates for each deck
+            foreach (var deck in deckStats)
+            {
+                var lastPlay = playerPlays
+                    .Where(p => p.PlayerScores.Any(ps => ps.Deck == deck.DeckName))
+                    .OrderByDescending(p => p.Date)
+                    .FirstOrDefault();
+                
+                if (lastPlay != null && DateTime.TryParse(lastPlay.Date, out var lastPlayDate))
+                {
+                    deck.LastPlayed = lastPlayDate;
+                }
+            }
+
+            // Sort the deck stats based on the current sort criteria
+            sortedDeckStats = GetSortedDeckStats(deckStats, currentSort, sortAscending);
         }
         catch (Exception ex)
         {
@@ -157,6 +313,38 @@
         }
     }
 
+    private void SortBy(string column)
+    {
+        if (column == currentSort)
+        {
+            sortAscending = !sortAscending;
+        }
+        else
+        {
+            currentSort = column;
+            sortAscending = false;
+        }
+
+        // Sort the deck stats based on the new sort criteria
+        sortedDeckStats = GetSortedDeckStats(deckStats, currentSort, sortAscending);
+    }
+
+    private List<DeckStats> GetSortedDeckStats(List<DeckStats> deckStats, string column, bool sortAscending)
+    {
+        var sorted = column switch
+        {
+            "Deck" => sortAscending ? deckStats.OrderBy(d => d.DeckName).ToList() : deckStats.OrderByDescending(d => d.DeckName).ToList(),
+            "Plays" => sortAscending ? deckStats.OrderBy(d => d.Plays).ToList() : deckStats.OrderByDescending(d => d.Plays).ToList(),
+            "Wins" => sortAscending ? deckStats.OrderBy(d => d.Wins).ToList() : deckStats.OrderByDescending(d => d.Wins).ToList(),
+            "Losses" => sortAscending ? deckStats.OrderBy(d => d.Losses).ToList() : deckStats.OrderByDescending(d => d.Losses).ToList(),
+            "WinRate" => sortAscending ? deckStats.OrderBy(d => d.WinRate).ToList() : deckStats.OrderByDescending(d => d.WinRate).ToList(),
+            "LastPlayed" => sortAscending ? deckStats.OrderBy(d => d.LastPlayed ?? DateTime.MinValue).ToList() : deckStats.OrderByDescending(d => d.LastPlayed ?? DateTime.MinValue).ToList(),
+            _ => deckStats.OrderBy(d => d.DeckName).ToList()
+        };
+
+        return sorted;
+    }
+
     private class PlayerStats
     {
         public string PlayerName { get; set; } = string.Empty;
@@ -164,5 +352,15 @@
         public int Wins { get; set; }
         public int Losses { get; set; }
         public double WinRate { get; set; }
+    }
+
+    private class DeckStats
+    {
+        public string DeckName { get; set; } = string.Empty;
+        public int Plays { get; set; }
+        public int Wins { get; set; }
+        public int Losses { get; set; }
+        public double WinRate { get; set; }
+        public DateTime? LastPlayed { get; set; }
     }
 } 
