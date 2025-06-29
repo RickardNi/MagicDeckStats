@@ -51,7 +51,9 @@
                             <dt class="col-sm-5">Average Duration</dt>
                             <dd class="col-sm-7">@((averageDuration > 0 ? $"{averageDuration:F1} min" : "-") )</dd>
                             <dt class="col-sm-5">Most Played Deck</dt>
-                            <dd class="col-sm-7">@(mostPlayedDeck ?? "-")</dd>
+                            <dd class="col-sm-7">@(mostPlayedDeck != null ? $"{mostPlayedDeck} ({mostPlayedDeckPlays} plays)" : "-")</dd>
+                            <dt class="col-sm-5">Most Successful Deck</dt>
+                            <dd class="col-sm-7">@(mostSuccessfulDeck != null ? $"{mostSuccessfulDeck} ({mostSuccessfulDeckWinRate.ToString("P1")})" : "-")</dd>
                         </dl>
                     </div>
                 </div>
@@ -197,6 +199,9 @@
     private int playsAsNonFirstPlayer = 0;
     private string? mostPlayedDeck;
     private int uniqueDecksCount = 0;
+    private string? mostSuccessfulDeck;
+    private int mostPlayedDeckPlays = 0;
+    private double mostSuccessfulDeckWinRate = 0;
     private List<DeckStats> deckStats = new();
     private string currentSort = "Plays";
     private bool sortAscending = false;
@@ -219,6 +224,9 @@
             playsAsNonFirstPlayer = 0;
             mostPlayedDeck = null;
             uniqueDecksCount = 0;
+            mostSuccessfulDeck = null;
+            mostPlayedDeckPlays = 0;
+            mostSuccessfulDeckWinRate = 0;
             deckStats.Clear();
 
             var plays = await BGStatsService.GetMagicPlaysAsync();
@@ -264,7 +272,11 @@
                 .OrderByDescending(d => d.Plays)
                 .ToList();
             
-            mostPlayedDeck = deckPlays.Any() ? deckPlays.First().Deck : null;
+            if (deckPlays.Any())
+            {
+                mostPlayedDeck = deckPlays.First().Deck;
+                mostPlayedDeckPlays = deckPlays.First().Plays;
+            }
 
             // Calculate unique decks count
             uniqueDecksCount = allScores
@@ -285,6 +297,19 @@
                     WinRate = g.Count(ps => ps.IsWinner) / (double)g.Count()
                 })
                 .ToList();
+
+            // Calculate most successful deck (highest win rate)
+            var mostSuccessfulDeckData = deckStats
+                .Where(d => d.Plays >= 2) // Require at least 2 plays to avoid skewed results
+                .OrderByDescending(d => d.WinRate)
+                .ThenByDescending(d => d.Plays) // Tiebreaker: more plays
+                .FirstOrDefault();
+            
+            if (mostSuccessfulDeckData != null)
+            {
+                mostSuccessfulDeck = mostSuccessfulDeckData.DeckName;
+                mostSuccessfulDeckWinRate = mostSuccessfulDeckData.WinRate;
+            }
 
             // Populate last played dates for each deck
             foreach (var deck in deckStats)
