@@ -40,14 +40,18 @@
                         <dl class="row mb-0">
                             <dt class="col-sm-5">Total Plays</dt>
                             <dd class="col-sm-7">@playerStats.TotalPlays (<span class="text-success">@playerStats.Wins W</span> / <span class="text-danger">@playerStats.Losses L</span>)</dd>
+                            <dt class="col-sm-5">Decks played</dt>
+                            <dd class="col-sm-7">@uniqueDecksCount</dd>
                             <dt class="col-sm-5">Win Rate</dt>
                             <dd class="col-sm-7 @(Utilities.GetWinRateColorForPlayer(playerStats.WinRate * 100))">@(playerStats.WinRate.ToString("P1"))</dd>
                             <dt class="col-sm-5">First Player Win Rate</dt>
-                            <dd class="col-sm-7">@((playsAsFirstPlayer > 0 ? (double)winsAsFirstPlayer / playsAsFirstPlayer : 0).ToString("P1"))</dd>
+                            <dd class="col-sm-7 @(Utilities.GetWinRateColorForPlayer(playsAsFirstPlayer > 0 ? (double)winsAsFirstPlayer / playsAsFirstPlayer * 100 : 0))">@((playsAsFirstPlayer > 0 ? (double)winsAsFirstPlayer / playsAsFirstPlayer : 0).ToString("P1"))</dd>
                             <dt class="col-sm-5">Win Rate When Going Second</dt>
-                            <dd class="col-sm-7">@((playsAsNonFirstPlayer > 0 ? (double)winsAsNonFirstPlayer / playsAsNonFirstPlayer : 0).ToString("P1"))</dd>
+                            <dd class="col-sm-7 @(Utilities.GetWinRateColorForPlayer(playsAsNonFirstPlayer > 0 ? (double)winsAsNonFirstPlayer / playsAsNonFirstPlayer * 100 : 0))">@((playsAsNonFirstPlayer > 0 ? (double)winsAsNonFirstPlayer / playsAsNonFirstPlayer : 0).ToString("P1"))</dd>
                             <dt class="col-sm-5">Average Duration</dt>
                             <dd class="col-sm-7">@((averageDuration > 0 ? $"{averageDuration:F1} min" : "-") )</dd>
+                            <dt class="col-sm-5">Most Played Deck</dt>
+                            <dd class="col-sm-7">@(mostPlayedDeck ?? "-")</dd>
                         </dl>
                     </div>
                 </div>
@@ -71,6 +75,8 @@
     private int lossesAsNonFirstPlayer = 0;
     private int playsAsFirstPlayer = 0;
     private int playsAsNonFirstPlayer = 0;
+    private string? mostPlayedDeck;
+    private int uniqueDecksCount = 0;
 
     protected override async Task OnParametersSetAsync()
     {
@@ -87,6 +93,8 @@
             lossesAsNonFirstPlayer = 0;
             playsAsFirstPlayer = 0;
             playsAsNonFirstPlayer = 0;
+            mostPlayedDeck = null;
+            uniqueDecksCount = 0;
 
             var plays = await BGStatsService.GetMagicPlaysAsync();
             playerPlays = plays.Where(p => p.PlayerScores.Any(ps => ps.PlayerRefId == playerId)).ToList();
@@ -122,6 +130,22 @@
             lossesAsNonFirstPlayer = playerPlays.Count(p => p.PlayerScores.Any(ps => !ps.IsWinner && !ps.IsFirstPlayer && ps.PlayerRefId == playerId));
             playsAsFirstPlayer = playerPlays.Count(p => p.PlayerScores.Any(ps => ps.IsFirstPlayer && ps.PlayerRefId == playerId));
             playsAsNonFirstPlayer = playerPlays.Count(p => p.PlayerScores.Any(ps => !ps.IsFirstPlayer && ps.PlayerRefId == playerId));
+
+            // Calculate most played deck
+            var deckPlays = allScores
+                .Where(ps => !string.IsNullOrWhiteSpace(ps.Deck))
+                .GroupBy(ps => ps.Deck)
+                .Select(g => new { Deck = g.Key, Plays = g.Count() })
+                .OrderByDescending(d => d.Plays)
+                .ToList();
+            
+            mostPlayedDeck = deckPlays.Any() ? deckPlays.First().Deck : null;
+
+            // Calculate unique decks count
+            uniqueDecksCount = allScores
+                .Where(ps => !string.IsNullOrWhiteSpace(ps.Deck))
+                .GroupBy(ps => ps.Deck)
+                .Count();
         }
         catch (Exception ex)
         {
