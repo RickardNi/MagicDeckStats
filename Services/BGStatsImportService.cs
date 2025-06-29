@@ -348,6 +348,11 @@ public class BGStatsImportService(HttpClient httpClient, ILogger<BGStatsImportSe
             .Select(p => p.Variant)
             .Distinct(StringComparer.OrdinalIgnoreCase)
             .ToList();
-        _globalFilterService.SetAllAvailableVariants(allVariants);
+
+        // Exclude MTG Arena variants from the default filter
+        var defaultVariants = allVariants.Where(v => 
+            !v.Contains("MTG Arena", StringComparison.OrdinalIgnoreCase)).ToList();
+        
+        _globalFilterService.SetAllAvailableVariants(defaultVariants);
     }
 }
