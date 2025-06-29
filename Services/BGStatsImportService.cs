@@ -22,6 +22,7 @@ public class BGStatsImportService(HttpClient httpClient, ILogger<BGStatsImportSe
     public async Task<List<Play>> GetMagicPlaysAsync()
     {
         await _playsLoadSemaphore.WaitAsync();
+
         try
         {
             if (_cachedData == null)
@@ -33,42 +34,12 @@ public class BGStatsImportService(HttpClient httpClient, ILogger<BGStatsImportSe
                 return [];
             }
 
-            _logger.LogInformation("Loaded {PlayCount} plays from BGStats export", _cachedData.Plays.Count);
-
             if (_magicGameId == -1)
             {
                 _logger.LogWarning("Magic: The Gathering game not found in BGStats export");
                 return [];
             }
 
-            // Create a lookup dictionary for player names
-            var playerNamesById = _cachedData.Players?.ToDictionary(p => p.Id, p => p.Name) ?? [];
-
-            foreach (var play in _cachedData.Plays)
-            {
-                try
-                {
-                    // Set PlayerName for each PlayerScore and clean deck names
-                    foreach (var playerScore in play.PlayerScores ?? [])
-                    {
-                        if (playerNamesById.TryGetValue(playerScore.PlayerRefId, out var name))
-                            playerScore.PlayerName = name;
-                        else
-                        {
-                            _logger.LogError("Player with {PlayerRedId} not found", playerScore.PlayerRefId);
-                            playerScore.PlayerName = "Unknown Player";
-                        }
-
-                        playerScore.Deck = CleanDeckPrefix(playerScore.Deck);
-                    }
-                }
-                catch (Exception ex)
-                {
-                    _logger.LogError(ex, "Error parsing play with date: {PlayDate}", play.Date);
-                }
-            }
-
-            _logger.LogInformation("Successfully parsed {ParsedPlayCount} Magic: The Gathering plays", _cachedData.Plays.Count);
             return _cachedData.Plays;
         }
         finally
@@ -105,6 +76,7 @@ public class BGStatsImportService(HttpClient httpClient, ILogger<BGStatsImportSe
                 _cachedData = importedData;
                 _magicGameId = -1; // Clear magic game ID to force recalculation
 
+                EnrichPlayerScoreData();
                 SetMagicGameId();
                 PurgeIrrelevantData();
 
@@ -210,6 +182,7 @@ public class BGStatsImportService(HttpClient httpClient, ILogger<BGStatsImportSe
                 return CreateEmptyBGStatsExport();
             }
 
+            EnrichPlayerScoreData();
             SetMagicGameId();
             PurgeIrrelevantData();
 
@@ -233,6 +206,32 @@ public class BGStatsImportService(HttpClient httpClient, ILogger<BGStatsImportSe
             Plays = [],
             Players = []
         };
+    }
+
+    private void EnrichPlayerScoreData()
+    {
+        if (_cachedData == null)
+            return;
+
+        // Create a lookup dictionary for player names
+        var playerNamesById = _cachedData.Players?.ToDictionary(p => p.Id, p => p.Name) ?? [];
+
+        foreach (var play in _cachedData.Plays)
+        {
+            // Set PlayerName for each PlayerScore and clean deck names
+            foreach (var playerScore in play.PlayerScores ?? [])
+            {
+                if (playerNamesById.TryGetValue(playerScore.PlayerRefId, out var name))
+                    playerScore.PlayerName = name;
+                else
+                {
+                    _logger.LogError("Player with {PlayerRefId} not found", playerScore.PlayerRefId);
+                    playerScore.PlayerName = "Unknown Player";
+                }
+
+                playerScore.Deck = CleanDeckPrefix(playerScore.Deck);
+            }
+        }
     }
 
     private void SetMagicGameId()
