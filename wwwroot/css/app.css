@@ -239,3 +239,9 @@ code {
 .text-success-dark {
     color: #0d5a2c !important;
 }
+
+textarea.form-control {
+    font-family: 'Roboto Mono', 'Courier New', monospace;
+    font-size: 0.875rem;
+    font-weight: 500;
+}

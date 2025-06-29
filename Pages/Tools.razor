@@ -1,0 +1,142 @@
+@page "/tools"
+@using MagicDeckStats.Services
+@using MagicDeckStats.Models
+@inject IBGStatsImportService BGStatsService
+
+<PageTitle>Tools - Magic Deck Stats</PageTitle>
+
+<div class="container mt-4">
+    <h1><i class="bi bi-tools me-3 d-none d-md-inline"></i> Tools</h1>
+    
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">Player Names Input</h5>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <label for="playerNames" class="form-label">Enter player names (one per line):</label>
+                        <textarea 
+                            id="playerNames" 
+                            class="form-control" 
+                            rows="10" 
+                            placeholder="Enter player names here, one per line..."
+                            @bind="playerNamesText">
+                        </textarea>
+                    </div>
+                    
+                    <div class="d-flex gap-2">
+                        <button class="btn btn-primary" @onclick="ProcessPlayerNames">
+                            Create Matchups
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            @if (!string.IsNullOrEmpty(processedResult))
+            {
+                <div class="card mt-3">
+                    <div class="card-header">
+                        <h6 class="mb-0">Processed Result</h6>
+                    </div>
+                    <div class="card-body">
+                        <pre class="mb-0">@processedResult</pre>
+                    </div>
+                </div>
+            }
+        </div>
+        
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-header">
+                    <h6 class="mb-0">Instructions</h6>
+                </div>
+                <div class="card-body">
+                    <p class="mb-2">Enter player names in the text area, with one name per line.</p>
+                    <p class="mb-0">This tool can be used for various player name processing tasks.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    private string playerNamesText = "";
+    private string processedResult = "";
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadMostFrequentPlayers();
+    }
+
+    private async Task LoadMostFrequentPlayers()
+    {
+        try
+        {
+            var plays = await BGStatsService.GetMagicPlaysAsync();
+            
+            var playerFrequency = plays
+                .SelectMany(p => p.PlayerScores)
+                .GroupBy(ps => ps.PlayerName)
+                .OrderByDescending(g => g.Count())
+                .Take(8)
+                .Select(g => g.Key)
+                .ToList();
+
+            playerNamesText = string.Join("\n", playerFrequency);
+        }
+        catch
+        {
+            // If data loading fails, leave the textarea empty
+            playerNamesText = "";
+        }
+    }
+
+    private void ProcessPlayerNames()
+    {
+        if (string.IsNullOrWhiteSpace(playerNamesText))
+        {
+            processedResult = "No player names entered.";
+            return;
+        }
+
+        var players = playerNamesText.Split('\n', StringSplitOptions.RemoveEmptyEntries)
+                                   .Select(line => line.Trim())
+                                   .Where(line => !string.IsNullOrWhiteSpace(line))
+                                   .ToList();
+
+        if (players.Count == 0)
+        {
+            processedResult = "No valid player names found.";
+            return;
+        }
+
+        if (players.Count == 1)
+        {
+            processedResult = "Only one player entered. Need at least 2 players for matchups.";
+            return;
+        }
+
+        // Randomize the player list
+        var random = new Random();
+        var shuffledPlayers = players.OrderBy(x => random.Next()).ToList();
+
+        processedResult = $"Created matchups for {players.Count} players:\n\n";
+
+        // Create matchups
+        for (int i = 0; i < shuffledPlayers.Count - 1; i += 2)
+        {
+            var player1 = shuffledPlayers[i];
+            var player2 = shuffledPlayers[i + 1];
+            processedResult += $"Match {i / 2 + 1}: {player1} vs {player2}\n";
+        }
+
+        // Handle walkover if odd number of players
+        if (shuffledPlayers.Count % 2 != 0)
+        {
+            var walkoverPlayer = shuffledPlayers[shuffledPlayers.Count - 1];
+            processedResult += $"\nBye: {walkoverPlayer}";
+        }
+    }
+} 
