@@ -52,6 +52,11 @@
                             <dd class="col-sm-7 @(Utilities.GetWinRateColorForPlayer(playsAsNonFirstPlayer > 0 ? (double)winsAsNonFirstPlayer / playsAsNonFirstPlayer * 100 : 0))">@((playsAsNonFirstPlayer > 0 ? (double)winsAsNonFirstPlayer / playsAsNonFirstPlayer : 0).ToString("P1"))</dd>
                             <dt class="col-sm-5">Average Duration</dt>
                             <dd class="col-sm-7">@((averageDuration > 0 ? $"{averageDuration:F1} min" : "-") )</dd>
+                            <dt class="col-sm-5">First Player</dt>
+                            <dd class="col-sm-7">@((playerStats.TotalPlays > 0 ? (double)playsAsFirstPlayer / playerStats.TotalPlays : 0).ToString("P1"))</dd>
+                        </dl>
+                        <hr class="my-3" />
+                        <dl class="row mb-0">
                             <dt class="col-sm-5">Most Played Deck</dt>
                             <dd class="col-sm-7">@(mostPlayedDeck != null ? $"{mostPlayedDeck} ({mostPlayedDeckPlays} plays)" : "-")</dd>
                             <dt class="col-sm-5">Most Successful Deck</dt>
