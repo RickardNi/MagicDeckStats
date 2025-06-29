@@ -156,6 +156,19 @@
                                         }
                                     </button>
                                 </th>
+                                <th class="text-center">
+                                    <button class="btn btn-link text-decoration-none p-0 fw-bold" @onclick="() => SortBy(SortColumn.FirstPlayer)">
+                                        <i class="bi bi-1-square me-1"></i>
+                                        @if (currentSortColumn == SortColumn.FirstPlayer)
+                                        {
+                                            <i class="bi @(isAscending ? "bi-sort-up" : "bi-sort-down")"></i>
+                                        }
+                                        else
+                                        {
+                                            <i class="bi bi-sort text-muted"></i>
+                                        }
+                                    </button>
+                                </th>
                                 <th>
                                     <button class="btn btn-link text-decoration-none p-0 fw-bold" @onclick="() => SortBy(SortColumn.FavouriteDeck)">
                                         Most Played Deck
@@ -233,6 +246,9 @@
                                         {
                                             <span class="text-muted">-</span>
                                         }
+                                    </td>
+                                    <td class="text-center">
+                                        <span class="fw-bold">@player.FirstPlayer.ToString("F1")%</span>
                                     </td>
                                     <td>
                                         <NavLink class="deck-link" href="@Utilities.GetDeckUrl(player.FavouriteDeck)">@player.FavouriteDeck</NavLink> (@player.FavouriteDeckPlays)
@@ -343,6 +359,7 @@
         public int FavouriteDeckPlays { get; set; }
         public double FirstPlayerWinRate { get; set; }
         public double SecondPlayerWinRate { get; set; }
+        public double FirstPlayer { get; set; }
     }
 
     private enum SortColumn
@@ -356,7 +373,8 @@
         WinRate,
         FavouriteDeck,
         FirstPlayerWinRate,
-        SecondPlayerWinRate
+        SecondPlayerWinRate,
+        FirstPlayer
     }
 
     protected override async Task OnInitializedAsync()
@@ -420,7 +438,8 @@
                     : 0,
                 SecondPlayerWinRate = g.Count(ps => !ps.IsFirstPlayer) > 0 
                     ? g.Count(ps => ps.IsWinner && !ps.IsFirstPlayer) * 100.0 / g.Count(ps => !ps.IsFirstPlayer)
-                    : 0
+                    : 0,
+                FirstPlayer = g.Count(ps => ps.IsFirstPlayer) * 100.0 / g.Count()
             })
             .OrderByDescending(p => p.GamesPlayed)
             .ThenByDescending(p => p.WinRate)
@@ -491,6 +510,10 @@
         else if (currentSortColumn == SortColumn.SecondPlayerWinRate)
         {
             sortedStats = isAscending ? sortedStats.OrderBy(p => p.SecondPlayerWinRate).ToList() : sortedStats.OrderByDescending(p => p.SecondPlayerWinRate).ToList();
+        }
+        else if (currentSortColumn == SortColumn.FirstPlayer)
+        {
+            sortedStats = isAscending ? sortedStats.OrderBy(p => p.FirstPlayer).ToList() : sortedStats.OrderByDescending(p => p.FirstPlayer).ToList();
         }
 
         return sortedStats;
