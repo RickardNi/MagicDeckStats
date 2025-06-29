@@ -52,20 +52,20 @@
                         }
                         @if (fastestDeck != null)
                         {
-                            <p><strong>Fastest Deck:</strong> <NavLink class="deck-link" href="@Utilities.GetDeckUrl(fastestDeck.DeckName)">@fastestDeck.DeckName</NavLink> (@(Math.Round(fastestDeck.AverageDuration).ToString()) min)</p>
+                            <p><strong>Fastest Deck:</strong> <NavLink class="deck-link" href="@Utilities.GetDeckUrl(fastestDeck.DeckName)">@fastestDeck.DeckName</NavLink> (@(fastestDeck.AverageDuration.ToString("F1")) min)</p>
                         }
                         @if (slowestDeck != null)
                         {
-                            <p><strong>Slowest Deck:</strong> <NavLink class="deck-link" href="@Utilities.GetDeckUrl(slowestDeck.DeckName)">@slowestDeck.DeckName</NavLink> (@(Math.Round(slowestDeck.AverageDuration).ToString()) min)</p>
+                            <p><strong>Slowest Deck:</strong> <NavLink class="deck-link" href="@Utilities.GetDeckUrl(slowestDeck.DeckName)">@slowestDeck.DeckName</NavLink> (@(slowestDeck.AverageDuration.ToString("F1")) min)</p>
                         }
                         <hr />
                         @if (fastestWinDeck != null)
                         {
-                            <p><strong>Fastest Win Deck:</strong> <NavLink class="deck-link" href="@Utilities.GetDeckUrl(fastestWinDeck.DeckName)">@fastestWinDeck.DeckName</NavLink> (@(Math.Round(fastestWinDeck.WinDuration).ToString()) min)</p>
+                            <p><strong>Fastest Deck When Winning:</strong> <NavLink class="deck-link" href="@Utilities.GetDeckUrl(fastestWinDeck.DeckName)">@fastestWinDeck.DeckName</NavLink> (@(fastestWinDeck.WinDuration.ToString("F1")) min)</p>
                         }
                         @if (slowestWinDeck != null)
                         {
-                            <p><strong>Slowest Win Deck:</strong> <NavLink class="deck-link" href="@Utilities.GetDeckUrl(slowestWinDeck.DeckName)">@slowestWinDeck.DeckName</NavLink> (@(Math.Round(slowestWinDeck.WinDuration).ToString()) min)</p>
+                            <p><strong>Slowest Deck When Winning:</strong> <NavLink class="deck-link" href="@Utilities.GetDeckUrl(slowestWinDeck.DeckName)">@slowestWinDeck.DeckName</NavLink> (@(slowestWinDeck.WinDuration.ToString("F1")) min)</p>
                         }
                     </div>
                 </div>
