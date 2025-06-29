@@ -3,6 +3,7 @@
 @using MagicDeckStats.Services
 @using MagicDeckStats.Models
 @inject IBGStatsImportService BGStatsService
+@inject IGlobalFilterService GlobalFilterService
 
 <PageTitle>Magic Deck Stats - All Plays</PageTitle>
 
@@ -175,39 +176,32 @@
     // Key to force re-rendering of the select element
     private int selectKey = 0;
 
-    private DateTime? StartDate
+    protected override void OnInitialized()
     {
-        get => startDate;
-        set
-        {
-            if (startDate != value)
-            {
-                startDate = value;
-                ApplyFilters();
-            }
-        }
+        GlobalFilterService.OnFilterChanged += OnFilterChanged;
     }
 
-    private DateTime? EndDate
+    public void Dispose()
     {
-        get => endDate;
-        set
-        {
-            if (endDate != value)
-            {
-                endDate = value;
-                ApplyFilters();
-            }
-        }
+        GlobalFilterService.OnFilterChanged -= OnFilterChanged;
     }
 
-    protected override async Task OnInitializedAsync()
+    private async void OnFilterChanged()
+    {
+        await InvokeAsync(async () =>
+        {
+            await LoadData();
+            StateHasChanged();
+        });
+    }
+
+    private async Task LoadData()
     {
         try
         {
             isLoading = true;
 
-            plays = await BGStatsService.GetMagicPlaysAsync();
+            plays = await BGStatsService.GetMagicPlaysAsync(GlobalFilterService.SelectedVariants);
             plays = plays.OrderByDescending(p => p.Date).ToList();
             
             // Extract all unique player names
@@ -243,6 +237,37 @@
         finally
         {
             isLoading = false;
+        }
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadData();
+    }
+
+    private DateTime? StartDate
+    {
+        get => startDate;
+        set
+        {
+            if (startDate != value)
+            {
+                startDate = value;
+                ApplyFilters();
+            }
+        }
+    }
+
+    private DateTime? EndDate
+    {
+        get => endDate;
+        set
+        {
+            if (endDate != value)
+            {
+                endDate = value;
+                ApplyFilters();
+            }
         }
     }
 

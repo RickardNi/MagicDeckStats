@@ -2,6 +2,7 @@
 @using MagicDeckStats.Services
 @using MagicDeckStats.Models
 @inject IBGStatsImportService BGStatsService
+@inject IGlobalFilterService GlobalFilterService
 
 <PageTitle>Magic Deck Stats - Players</PageTitle>
 
@@ -367,14 +368,32 @@
         FirstPlayer
     }
 
-    protected override async Task OnInitializedAsync()
+    protected override void OnInitialized()
+    {
+        GlobalFilterService.OnFilterChanged += OnFilterChanged;
+    }
+
+    public void Dispose()
+    {
+        GlobalFilterService.OnFilterChanged -= OnFilterChanged;
+    }
+
+    private async void OnFilterChanged()
+    {
+        await InvokeAsync(async () =>
+        {
+            await LoadData();
+            StateHasChanged();
+        });
+    }
+
+    private async Task LoadData()
     {
         try
         {
             isLoading = true;
             
-            // Get all Magic plays
-            plays = await BGStatsService.GetMagicPlaysAsync();
+            plays = await BGStatsService.GetMagicPlaysAsync(GlobalFilterService.SelectedVariants);
             
             // Calculate player statistics
             CalculatePlayerStats();
@@ -392,6 +411,11 @@
         {
             isLoading = false;
         }
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadData();
     }
 
     private void CalculatePlayerStats()

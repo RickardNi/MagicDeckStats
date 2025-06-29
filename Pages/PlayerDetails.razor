@@ -2,6 +2,7 @@
 @using MagicDeckStats.Models
 @using MagicDeckStats.Services
 @inject IBGStatsImportService BGStatsService
+@inject IGlobalFilterService GlobalFilterService
 
 <PageTitle>Magic Deck Stats - Player Details</PageTitle>
 
@@ -328,7 +329,26 @@
     private bool headToHeadSortAscending = false;
     private List<HeadToHeadStats> sortedHeadToHeadStats = new();
 
-    protected override async Task OnParametersSetAsync()
+    protected override void OnInitialized()
+    {
+        GlobalFilterService.OnFilterChanged += OnFilterChanged;
+    }
+
+    public void Dispose()
+    {
+        GlobalFilterService.OnFilterChanged -= OnFilterChanged;
+    }
+
+    private async void OnFilterChanged()
+    {
+        await InvokeAsync(async () =>
+        {
+            await LoadData();
+            StateHasChanged();
+        });
+    }
+
+    private async Task LoadData()
     {
         try
         {
@@ -351,7 +371,7 @@
             deckStats.Clear();
             headToHeadStats.Clear();
 
-            var plays = await BGStatsService.GetMagicPlaysAsync();
+            var plays = await BGStatsService.GetMagicPlaysAsync(GlobalFilterService.SelectedVariants);
             playerPlays = plays.Where(p => p.PlayerScores.Any(ps => ps.PlayerRefId == playerId)).ToList();
             
             if (!playerPlays.Any())
@@ -461,6 +481,11 @@
         {
             isLoading = false;
         }
+    }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        await LoadData();
     }
 
     private void SortBy(string column)

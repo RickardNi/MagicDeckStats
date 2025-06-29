@@ -2,6 +2,7 @@
 @using MagicDeckStats.Services
 @using MagicDeckStats.Models
 @inject IBGStatsImportService BGStatsService
+@inject IGlobalFilterService GlobalFilterService
 
 <PageTitle>Magic Deck Stats - Duration</PageTitle>
 
@@ -370,14 +371,32 @@
     private PlayerSortColumn currentPlayerSortColumn = PlayerSortColumn.AverageDuration;
     private bool isPlayerSortAscending = true;
 
-    protected override async Task OnInitializedAsync()
+    protected override void OnInitialized()
+    {
+        GlobalFilterService.OnFilterChanged += OnFilterChanged;
+    }
+
+    public void Dispose()
+    {
+        GlobalFilterService.OnFilterChanged -= OnFilterChanged;
+    }
+
+    private async void OnFilterChanged()
+    {
+        await InvokeAsync(async () =>
+        {
+            await LoadData();
+            StateHasChanged();
+        });
+    }
+
+    private async Task LoadData()
     {
         try
         {
             isLoading = true;
 
-            // Get all Magic plays
-            var plays = await BGStatsService.GetMagicPlaysAsync();
+            var plays = await BGStatsService.GetMagicPlaysAsync(GlobalFilterService.SelectedVariants);
 
             // Calculate deck statistics with duration
             var deckGroups = plays
@@ -426,6 +445,11 @@
         {
             isLoading = false;
         }
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadData();
     }
 
     private void SortBy(SortColumn column)
