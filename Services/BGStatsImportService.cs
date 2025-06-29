@@ -71,6 +71,7 @@ public class BGStatsImportService(HttpClient httpClient, ILogger<BGStatsImportSe
 
             // Clear cached data to force reload
             await _dataLoadSemaphore.WaitAsync();
+
             try
             {
                 _cachedData = importedData;
@@ -119,8 +120,6 @@ public class BGStatsImportService(HttpClient httpClient, ILogger<BGStatsImportSe
 
     private async Task<BGStatsExport> LoadBGStatsDataAsync()
     {
-        _logger.LogInformation("LoadBGStatsDataAsync - Thread ID: {ThreadId}", Environment.CurrentManagedThreadId);
-
         if (_cachedData != null)
         {
             _logger.LogInformation("Returning cached BGStats data (Plays: {PlayCount})", 
@@ -252,15 +251,12 @@ public class BGStatsImportService(HttpClient httpClient, ILogger<BGStatsImportSe
         }
 
         _magicGameId = magicGame.Id;
-        _logger.LogInformation("Found Magic: The Gathering game with ID: {GameId}", _magicGameId);
     }
 
     private void PurgeIrrelevantData()
     {
         if (_cachedData == null)
             return;
-
-        _logger.LogInformation("Purging irrelevant data from BGStats export...");
 
         // Keep only the Magic: The Gathering game
         var magicGame = _cachedData.Games.FirstOrDefault(g => g.Name.Equals("Magic: The Gathering", StringComparison.OrdinalIgnoreCase));
@@ -273,8 +269,12 @@ public class BGStatsImportService(HttpClient httpClient, ILogger<BGStatsImportSe
         // Keep only plays that reference the Magic game
         var originalPlayCount = _cachedData.Plays.Count;
         _cachedData.Plays = [.. _cachedData.Plays.Where(p => p.GameRefId == _magicGameId)];
-        _logger.LogInformation("Removed {RemovedPlayCount} non-Magic plays, kept {KeptPlayCount} Magic plays", 
-            originalPlayCount - _cachedData.Plays.Count, _cachedData.Plays.Count);
+
+        if (originalPlayCount - _cachedData.Plays.Count > 0)
+        {
+            _logger.LogInformation("Removed {RemovedPlayCount} non-Magic plays, kept {KeptPlayCount} Magic plays",
+                originalPlayCount - _cachedData.Plays.Count, _cachedData.Plays.Count);
+        }
 
         // Temporary filter: only include Battle Decks variants
         _cachedData.Plays = [.. _cachedData.Plays.Where(p => p.Variant.Contains("Battle Decks") && !p.Variant.Contains("Two-Headed Giant"))];
@@ -288,11 +288,12 @@ public class BGStatsImportService(HttpClient httpClient, ILogger<BGStatsImportSe
 
         var originalPlayerCount = _cachedData.Players.Count;
         _cachedData.Players = [.. _cachedData.Players.Where(p => playerIdsInPlays.Contains(p.Id))];
-        _logger.LogInformation("Removed {RemovedPlayerCount} unreferenced players, kept {KeptPlayerCount} referenced players",
-            originalPlayerCount - _cachedData.Players.Count, _cachedData.Players.Count);
 
-        _logger.LogInformation("Data purging completed. Final counts - Games: {GameCount}, Plays: {PlayCount}, Players: {PlayerCount}",
-            _cachedData.Games.Count, _cachedData.Plays.Count, _cachedData.Players.Count);
+        if (originalPlayerCount - _cachedData.Players.Count > 0)
+        {
+            _logger.LogInformation("Removed {RemovedPlayerCount} unreferenced players, kept {KeptPlayerCount} referenced players",
+                originalPlayerCount - _cachedData.Players.Count, _cachedData.Players.Count);
+        }
     }
 
     private async Task<(string jsonContent, string dataSource)> LoadJsonContentAsync()
@@ -319,7 +320,6 @@ public class BGStatsImportService(HttpClient httpClient, ILogger<BGStatsImportSe
         try
         {
             var content = await _httpClient.GetStringAsync(filePath);
-            _logger.LogInformation("Successfully loaded {DataSource} (Content length: {ContentLength})", dataSource, content.Length);
             
             if (string.IsNullOrWhiteSpace(content))
             {
@@ -329,9 +329,8 @@ public class BGStatsImportService(HttpClient httpClient, ILogger<BGStatsImportSe
 
             return (true, content, dataSource);
         }
-        catch (HttpRequestException ex)
+        catch (HttpRequestException)
         {
-            _logger.LogWarning(ex, "Failed to load {DataSource}", dataSource);
             return (false, string.Empty, dataSource);
         }
     }
