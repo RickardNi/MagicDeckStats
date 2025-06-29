@@ -44,14 +44,14 @@
     @if (availableVariants.Any())
     {
         <div class="nav-item px-3 mt-auto">
-            <div class="nav-link text-start">
-                <span class="bi bi-funnel text-light" aria-hidden="true"></span> <span class="text-light">Variants</span>
+            <div class="nav-link text-start d-flex align-items-center">
+                <span class="bi bi-funnel text-light" aria-hidden="true"></span>
             </div>
-            <div class="ms-3">
+            <div class="mt-2">
                 @foreach (var variant in availableVariants)
                 {
                     var displayVariant = string.IsNullOrWhiteSpace(variant) ? "<no variants>" : variant;
-                    <div class="form-check form-switch">
+                    <div class="form-check form-switch mb-2">
                         <input class="form-check-input" type="checkbox" 
                                id="variant-@displayVariant.Replace(" ", "-").ToLower()" 
                                checked="@GlobalFilterService.IsVariantSelected(variant)"
