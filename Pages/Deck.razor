@@ -1,8 +1,10 @@
 @page "/deck/{urlDeckName}"
 @using MagicDeckStats.Models
 @using MagicDeckStats.Services
+@using MagicDeckStats.Components
 @using System.Web
 @inject IBGStatsImportService BGStatsService
+@inject IGlobalFilterService GlobalFilterService
 
 <PageTitle>Magic Deck Stats - Deck Details</PageTitle>
 
@@ -375,7 +377,8 @@
     }
 </div>
 
-@code {
+@code
+{
     [Parameter]
     public string urlDeckName { get; set; } = string.Empty;
 
@@ -403,103 +406,26 @@
     private PlayerSortColumn currentPlayerSortColumn = PlayerSortColumn.Plays;
     private bool isPlayerSortAscending = false;
 
-    private enum MatchupSortColumn
+    protected override void OnInitialized()
     {
-        OpponentDeck,
-        Plays,
-        Wins,
-        Losses,
-        WinRate
+        GlobalFilterService.OnFilterChanged += OnFilterChanged;
     }
 
-    private enum PlayerSortColumn
+    public void Dispose()
     {
-        Player,
-        Plays,
-        Wins,
-        Losses,
-        WinRate,
-        Duration
+        GlobalFilterService.OnFilterChanged -= OnFilterChanged;
     }
 
-    private void SortBy(MatchupSortColumn column)
+    private async void OnFilterChanged()
     {
-        if (column == currentSortColumn)
+        await InvokeAsync(async () =>
         {
-            isAscending = !isAscending;
-        }
-        else
-        {
-            currentSortColumn = column;
-            isAscending = false;
-        }
+            await LoadDeckData();
+            StateHasChanged();
+        });
     }
 
-    private void SortByPlayer(PlayerSortColumn column)
-    {
-        if (column == currentPlayerSortColumn)
-        {
-            isPlayerSortAscending = !isPlayerSortAscending;
-        }
-        else
-        {
-            currentPlayerSortColumn = column;
-            isPlayerSortAscending = false;
-        }
-    }
-
-    private IEnumerable<MatchupStats> GetSortedMatchupStats()
-    {
-        IEnumerable<MatchupStats> query = matchupStats;
-        switch (currentSortColumn)
-        {
-            case MatchupSortColumn.OpponentDeck:
-                query = isAscending ? query.OrderBy(m => m.OpponentDeck) : query.OrderByDescending(m => m.OpponentDeck);
-                break;
-            case MatchupSortColumn.Plays:
-                query = isAscending ? query.OrderBy(m => m.Plays) : query.OrderByDescending(m => m.Plays);
-                break;
-            case MatchupSortColumn.Wins:
-                query = isAscending ? query.OrderBy(m => m.Wins) : query.OrderByDescending(m => m.Wins);
-                break;
-            case MatchupSortColumn.Losses:
-                query = isAscending ? query.OrderBy(m => m.Losses) : query.OrderByDescending(m => m.Losses);
-                break;
-            case MatchupSortColumn.WinRate:
-                query = isAscending ? query.OrderBy(m => m.WinRate) : query.OrderByDescending(m => m.WinRate);
-                break;
-        }
-        return query;
-    }
-
-    private IEnumerable<PlayerStats> GetSortedPlayerStats()
-    {
-        IEnumerable<PlayerStats> query = playerStats;
-        switch (currentPlayerSortColumn)
-        {
-            case PlayerSortColumn.Player:
-                query = isPlayerSortAscending ? query.OrderBy(p => p.PlayerName) : query.OrderByDescending(p => p.PlayerName);
-                break;
-            case PlayerSortColumn.Plays:
-                query = isPlayerSortAscending ? query.OrderBy(p => p.Plays) : query.OrderByDescending(p => p.Plays);
-                break;
-            case PlayerSortColumn.Wins:
-                query = isPlayerSortAscending ? query.OrderBy(p => p.Wins) : query.OrderByDescending(p => p.Wins);
-                break;
-            case PlayerSortColumn.Losses:
-                query = isPlayerSortAscending ? query.OrderBy(p => p.Losses) : query.OrderByDescending(p => p.Losses);
-                break;
-            case PlayerSortColumn.WinRate:
-                query = isPlayerSortAscending ? query.OrderBy(p => p.WinRate) : query.OrderByDescending(p => p.WinRate);
-                break;
-            case PlayerSortColumn.Duration:
-                query = isPlayerSortAscending ? query.OrderBy(p => p.AverageDuration) : query.OrderByDescending(p => p.AverageDuration);
-                break;
-        }
-        return query;
-    }
-
-    protected override async Task OnParametersSetAsync()
+    private async Task LoadDeckData()
     {
         try
         {
@@ -522,7 +448,7 @@
             // URL decode the deck name to handle special characters
             var deckName = HttpUtility.UrlDecode(urlDeckName);
 
-            var plays = await BGStatsService.GetMagicPlaysAsync();
+            var plays = await BGStatsService.GetMagicPlaysAsync(GlobalFilterService.SelectedVariants);
             deckPlays = plays.Where(p => p.PlayerScores.Any(ps => ps.Deck == deckName)).ToList();
             if (!deckPlays.Any())
             {
@@ -728,6 +654,107 @@
 
         var leastSuccessful = playerStats.OrderBy(p => p.WinRate).First();
         return $"{leastSuccessful.PlayerName} ({leastSuccessful.WinRate:P1})";
+    }
+
+    private enum MatchupSortColumn
+    {
+        OpponentDeck,
+        Plays,
+        Wins,
+        Losses,
+        WinRate
+    }
+
+    private enum PlayerSortColumn
+    {
+        Player,
+        Plays,
+        Wins,
+        Losses,
+        WinRate,
+        Duration
+    }
+
+    private void SortBy(MatchupSortColumn column)
+    {
+        if (column == currentSortColumn)
+        {
+            isAscending = !isAscending;
+        }
+        else
+        {
+            currentSortColumn = column;
+            isAscending = false;
+        }
+    }
+
+    private void SortByPlayer(PlayerSortColumn column)
+    {
+        if (column == currentPlayerSortColumn)
+        {
+            isPlayerSortAscending = !isPlayerSortAscending;
+        }
+        else
+        {
+            currentPlayerSortColumn = column;
+            isPlayerSortAscending = false;
+        }
+    }
+
+    private IEnumerable<MatchupStats> GetSortedMatchupStats()
+    {
+        IEnumerable<MatchupStats> query = matchupStats;
+        switch (currentSortColumn)
+        {
+            case MatchupSortColumn.OpponentDeck:
+                query = isAscending ? query.OrderBy(m => m.OpponentDeck) : query.OrderByDescending(m => m.OpponentDeck);
+                break;
+            case MatchupSortColumn.Plays:
+                query = isAscending ? query.OrderBy(m => m.Plays) : query.OrderByDescending(m => m.Plays);
+                break;
+            case MatchupSortColumn.Wins:
+                query = isAscending ? query.OrderBy(m => m.Wins) : query.OrderByDescending(m => m.Wins);
+                break;
+            case MatchupSortColumn.Losses:
+                query = isAscending ? query.OrderBy(m => m.Losses) : query.OrderByDescending(m => m.Losses);
+                break;
+            case MatchupSortColumn.WinRate:
+                query = isAscending ? query.OrderBy(m => m.WinRate) : query.OrderByDescending(m => m.WinRate);
+                break;
+        }
+        return query;
+    }
+
+    private IEnumerable<PlayerStats> GetSortedPlayerStats()
+    {
+        IEnumerable<PlayerStats> query = playerStats;
+        switch (currentPlayerSortColumn)
+        {
+            case PlayerSortColumn.Player:
+                query = isPlayerSortAscending ? query.OrderBy(p => p.PlayerName) : query.OrderByDescending(p => p.PlayerName);
+                break;
+            case PlayerSortColumn.Plays:
+                query = isPlayerSortAscending ? query.OrderBy(p => p.Plays) : query.OrderByDescending(p => p.Plays);
+                break;
+            case PlayerSortColumn.Wins:
+                query = isPlayerSortAscending ? query.OrderBy(p => p.Wins) : query.OrderByDescending(p => p.Wins);
+                break;
+            case PlayerSortColumn.Losses:
+                query = isPlayerSortAscending ? query.OrderBy(p => p.Losses) : query.OrderByDescending(p => p.Losses);
+                break;
+            case PlayerSortColumn.WinRate:
+                query = isPlayerSortAscending ? query.OrderBy(p => p.WinRate) : query.OrderByDescending(p => p.WinRate);
+                break;
+            case PlayerSortColumn.Duration:
+                query = isPlayerSortAscending ? query.OrderBy(p => p.AverageDuration) : query.OrderByDescending(p => p.AverageDuration);
+                break;
+        }
+        return query;
+    }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        await LoadDeckData();
     }
 
     private class DeckStats
