@@ -169,26 +169,11 @@
                                         }
                                     </button>
                                 </th>
-                                <th class="text-center">
-                                    <button class="btn btn-link text-decoration-none p-0 fw-bold" @onclick="() => SortBy(SortColumn.WinRate)">
-                                        Win Rate
-                                        @if (currentSortColumn == SortColumn.WinRate)
-                                        {
-                                            <i class="bi @(isAscending ? "bi-sort-up" : "bi-sort-down")"></i>
-                                        }
-                                        else
-                                        {
-                                            <i class="bi bi-sort text-muted"></i>
-                                        }
-                                    </button>
-                                </th>
                             </tr>
                         </thead>
                         <tbody>
                             @foreach (var deck in GetSortedDeckStats())
                             {
-                                var winRatePercentage = deck.TotalPlays > 0 ? (double)deck.Wins / deck.TotalPlays * 100 : 0;
-                                var winRateColor = Utilities.GetWinRateColorForDeck(winRatePercentage);
                                 var durationColor = deck.AverageDuration >= 120 ? "text-danger" :
                                 deck.AverageDuration >= 90 ? "text-warning" : "text-success";
 
@@ -197,7 +182,7 @@
                                         <NavLink class="deck-link" href="@Utilities.GetDeckUrl(deck.DeckName)">@deck.DeckName</NavLink>
                                     </td>
                                     <td class="text-center">
-                                        <span class="fw-bold">@(deck.AverageDuration.ToString("F1"))</span>
+                                        <span class="fw-bold @durationColor">@(deck.AverageDuration.ToString("F1"))</span>
                                     </td>
                                     <td class="text-center">
                                         <span>@deck.TotalPlays</span>
@@ -228,9 +213,6 @@
                                             <span class="text-muted">-</span>
                                         }
                                     </td>
-                                    <td class="text-center">
-                                        <span class="@winRateColor">@(winRatePercentage.ToString("F1"))%</span>
-                                    </td>
                                 </tr>
                             }
                         </tbody>
@@ -256,6 +238,125 @@
                 </ApexChart>
             </div>
         </div>
+
+        <div class="card mt-4">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="bi bi-people me-2"></i>Player Duration
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-striped table-hover">
+                        <thead>
+                            <tr>
+                                <th>
+                                    <button class="btn btn-link text-decoration-none p-0 fw-bold" @onclick="() => SortPlayerStatsBy(PlayerSortColumn.PlayerName)">
+                                        Player
+                                        @if (currentPlayerSortColumn == PlayerSortColumn.PlayerName)
+                                        {
+                                            <i class="bi @(isPlayerSortAscending ? "bi-sort-up" : "bi-sort-down")"></i>
+                                        }
+                                        else
+                                        {
+                                            <i class="bi bi-sort text-muted"></i>
+                                        }
+                                    </button>
+                                </th>
+                                <th class="text-center">
+                                    <button class="btn btn-link text-decoration-none p-0 fw-bold" @onclick="() => SortPlayerStatsBy(PlayerSortColumn.TotalGames)">
+                                        Total Games
+                                        @if (currentPlayerSortColumn == PlayerSortColumn.TotalGames)
+                                        {
+                                            <i class="bi @(isPlayerSortAscending ? "bi-sort-up" : "bi-sort-down")"></i>
+                                        }
+                                        else
+                                        {
+                                            <i class="bi bi-sort text-muted"></i>
+                                        }
+                                    </button>
+                                </th>
+                                <th class="text-center">
+                                    <button class="btn btn-link text-decoration-none p-0 fw-bold" @onclick="() => SortPlayerStatsBy(PlayerSortColumn.AverageDuration)">
+                                        Avg Duration (min)
+                                        @if (currentPlayerSortColumn == PlayerSortColumn.AverageDuration)
+                                        {
+                                            <i class="bi @(isPlayerSortAscending ? "bi-sort-up" : "bi-sort-down")"></i>
+                                        }
+                                        else
+                                        {
+                                            <i class="bi bi-sort text-muted"></i>
+                                        }
+                                    </button>
+                                </th>
+                                <th class="text-center">
+                                    <button class="btn btn-link text-decoration-none p-0 fw-bold" @onclick="() => SortPlayerStatsBy(PlayerSortColumn.WinDuration)">
+                                        Win Duration (min)
+                                        @if (currentPlayerSortColumn == PlayerSortColumn.WinDuration)
+                                        {
+                                            <i class="bi @(isPlayerSortAscending ? "bi-sort-up" : "bi-sort-down")"></i>
+                                        }
+                                        else
+                                        {
+                                            <i class="bi bi-sort text-muted"></i>
+                                        }
+                                    </button>
+                                </th>
+                                <th class="text-center">
+                                    <button class="btn btn-link text-decoration-none p-0 fw-bold" @onclick="() => SortPlayerStatsBy(PlayerSortColumn.LossDuration)">
+                                        Loss Duration (min)
+                                        @if (currentPlayerSortColumn == PlayerSortColumn.LossDuration)
+                                        {
+                                            <i class="bi @(isPlayerSortAscending ? "bi-sort-up" : "bi-sort-down")"></i>
+                                        }
+                                        else
+                                        {
+                                            <i class="bi bi-sort text-muted"></i>
+                                        }
+                                    </button>
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var player in GetSortedPlayerStats())
+                            {
+                                <tr>
+                                    <td>
+                                        <NavLink class="deck-link" href="@Utilities.GetPlayerUrl(player.PlayerId)">@player.PlayerName</NavLink>
+                                    </td>
+                                    <td class="text-center">
+                                        <span>@player.TotalGames</span>
+                                    </td>
+                                    <td class="text-center">
+                                        <span class="fw-bold @GetDurationColor(player.AverageDuration)">@(player.AverageDuration.ToString("F1"))</span>
+                                    </td>
+                                    <td class="text-center">
+                                        @if (player.Wins > 0)
+                                        {
+                                            <span class="fw-bold @GetDurationColor(player.WinDuration)">@(player.WinDuration.ToString("F1"))</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted">-</span>
+                                        }
+                                    </td>
+                                    <td class="text-center">
+                                        @if (player.Losses > 0)
+                                        {
+                                            <span class="fw-bold @GetDurationColor(player.LossDuration)">@(player.LossDuration.ToString("F1"))</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted">-</span>
+                                        }
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
     }
 </div>
 
@@ -263,8 +364,11 @@
     private bool isLoading = true;
     private string? errorMessage;
     private List<DeckStats> deckStats = new();
+    private List<PlayerStats> playerStats = new();
     private SortColumn currentSortColumn = SortColumn.Duration;
     private bool isAscending = true;
+    private PlayerSortColumn currentPlayerSortColumn = PlayerSortColumn.AverageDuration;
+    private bool isPlayerSortAscending = true;
 
     protected override async Task OnInitializedAsync()
     {
@@ -285,6 +389,26 @@
             {
                 DeckName = g.Key,
                 TotalPlays = g.Count(),
+                Wins = g.Count(x => x.PlayerScore.IsWinner),
+                Losses = g.Count(x => !x.PlayerScore.IsWinner),
+                AverageDuration = g.Average(x => x.Play.DurationInMinutes),
+                WinDuration = g.Where(x => x.PlayerScore.IsWinner).Any() ? 
+                             g.Where(x => x.PlayerScore.IsWinner).Average(x => x.Play.DurationInMinutes) : 0,
+                LossDuration = g.Where(x => !x.PlayerScore.IsWinner).Any() ? 
+                             g.Where(x => !x.PlayerScore.IsWinner).Average(x => x.Play.DurationInMinutes) : 0
+            }).ToList();
+
+            // Calculate player statistics with duration
+            var playerGroups = plays
+                .SelectMany(p => p.PlayerScores.Select(ps => new { Play = p, PlayerScore = ps }))
+                .GroupBy(x => new { x.PlayerScore.PlayerRefId, x.PlayerScore.PlayerName })
+                .Where(g => !string.IsNullOrWhiteSpace(g.Key.PlayerName));
+
+            playerStats = playerGroups.Select(g => new PlayerStats
+            {
+                PlayerId = g.Key.PlayerRefId,
+                PlayerName = g.Key.PlayerName,
+                TotalGames = g.Count(),
                 Wins = g.Count(x => x.PlayerScore.IsWinner),
                 Losses = g.Count(x => !x.PlayerScore.IsWinner),
                 AverageDuration = g.Average(x => x.Play.DurationInMinutes),
@@ -328,13 +452,48 @@
             SortColumn.Plays => isAscending ? query.OrderBy(d => d.TotalPlays) : query.OrderByDescending(d => d.TotalPlays),
             SortColumn.Wins => isAscending ? query.OrderBy(d => d.Wins) : query.OrderByDescending(d => d.Wins),
             SortColumn.Losses => isAscending ? query.OrderBy(d => d.Losses) : query.OrderByDescending(d => d.Losses),
-            SortColumn.WinRate => isAscending ? query.OrderBy(d => d.WinRate) : query.OrderByDescending(d => d.WinRate),
             SortColumn.WinDuration => isAscending ? query.OrderBy(d => d.WinDuration) : query.OrderByDescending(d => d.WinDuration),
             SortColumn.LossDuration => isAscending ? query.OrderBy(d => d.LossDuration) : query.OrderByDescending(d => d.LossDuration),
             _ => query.OrderBy(d => d.AverageDuration)
         };
 
         return sortedDeckStats.ToList();
+    }
+
+    private void SortPlayerStatsBy(PlayerSortColumn column)
+    {
+        if (column == currentPlayerSortColumn)
+        {
+            isPlayerSortAscending = !isPlayerSortAscending;
+        }
+        else
+        {
+            currentPlayerSortColumn = column;
+            isPlayerSortAscending = true;
+        }
+    }
+
+    private List<PlayerStats> GetSortedPlayerStats()
+    {
+        var query = playerStats.AsQueryable();
+
+        var sortedPlayerStats = currentPlayerSortColumn switch
+        {
+            PlayerSortColumn.PlayerName => isPlayerSortAscending ? query.OrderBy(p => p.PlayerName) : query.OrderByDescending(p => p.PlayerName),
+            PlayerSortColumn.TotalGames => isPlayerSortAscending ? query.OrderBy(p => p.TotalGames) : query.OrderByDescending(p => p.TotalGames),
+            PlayerSortColumn.AverageDuration => isPlayerSortAscending ? query.OrderBy(p => p.AverageDuration) : query.OrderByDescending(p => p.AverageDuration),
+            PlayerSortColumn.WinDuration => isPlayerSortAscending ? query.OrderBy(p => p.WinDuration) : query.OrderByDescending(p => p.WinDuration),
+            PlayerSortColumn.LossDuration => isPlayerSortAscending ? query.OrderBy(p => p.LossDuration) : query.OrderByDescending(p => p.LossDuration),
+            _ => query.OrderBy(p => p.PlayerName)
+        };
+
+        return sortedPlayerStats.ToList();
+    }
+
+    private string GetDurationColor(double duration)
+    {
+        return duration <= 15 ? "text-success" :
+               duration <= 20 ? "text-warning" : "text-danger";
     }
 
     private enum SortColumn
@@ -344,7 +503,15 @@
         Plays,
         Wins,
         Losses,
-        WinRate,
+        WinDuration,
+        LossDuration
+    }
+
+    private enum PlayerSortColumn
+    {
+        PlayerName,
+        TotalGames,
+        AverageDuration,
         WinDuration,
         LossDuration
     }
@@ -360,5 +527,19 @@
         public double LossDuration { get; set; }
 
         public double WinRate => TotalPlays > 0 ? (double)Wins / TotalPlays : 0;
+    }
+
+    private class PlayerStats
+    {
+        public int PlayerId { get; set; }
+        public string PlayerName { get; set; } = string.Empty;
+        public int TotalGames { get; set; }
+        public int Wins { get; set; }
+        public int Losses { get; set; }
+        public double AverageDuration { get; set; }
+        public double WinDuration { get; set; }
+        public double LossDuration { get; set; }
+
+        public double WinRate => TotalGames > 0 ? (double)Wins / TotalGames : 0;
     }
 }
