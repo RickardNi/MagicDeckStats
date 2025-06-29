@@ -17,19 +17,19 @@
     @if (isLoading)
     {
         <div class="alert alert-info">
-            <i class="bi bi-arrow-clockwise spin"></i> Loading plays...
+            <i class="bi bi-arrow-clockwise spin"></i>Loading plays...
         </div>
     }
     else if (errorMessage != null)
     {
         <div class="alert alert-danger">
-            <i class="bi bi-exclamation-triangle"></i> @errorMessage
+            <i class="bi bi-exclamation-triangle"></i>@errorMessage
         </div>
     }
     else if (!plays.Any())
     {
         <div class="alert alert-warning">
-            <i class="bi bi-exclamation-triangle"></i> No plays found.
+            <i class="bi bi-exclamation-triangle"></i>No plays found.
         </div>
     }
     else
@@ -126,12 +126,9 @@
         try
         {
             isLoading = true;
-            
-            // Get all Magic plays
+
             plays = await BGStatsService.GetMagicPlaysAsync();
-            
-            // Sort plays by date (newest first)
-            plays = plays.OrderByDescending(p => DateTime.Parse(p.Date)).ToList();
+            plays = plays.OrderByDescending(p => p.Date).ToList();
             
             totalPlays = plays.Count;
             totalPages = (int)Math.Ceiling((double)totalPlays / pageSize);

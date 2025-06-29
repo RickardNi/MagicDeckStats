@@ -13,19 +13,19 @@
     @if (isLoading)
     {
         <div class="alert alert-info">
-            <i class="bi bi-arrow-clockwise spin"></i> Loading player details...
+            <i class="bi bi-arrow-clockwise spin"></i>Loading player details...
         </div>
     }
     else if (errorMessage != null)
     {
         <div class="alert alert-danger">
-            <i class="bi bi-exclamation-triangle"></i> @errorMessage
+            <i class="bi bi-exclamation-triangle"></i>@errorMessage
         </div>
     }
     else if (playerStats == null)
     {
         <div class="alert alert-warning">
-            <i class="bi bi-exclamation-triangle"></i> Player not found.
+            <i class="bi bi-exclamation-triangle"></i>Player not found.
         </div>
     }
     else
@@ -450,7 +450,6 @@
             // Sort the deck stats based on the current sort criteria
             sortedDeckStats = GetSortedDeckStats(deckStats, currentSort, sortAscending);
 
-            // Calculate head-to-head statistics
             CalculateHeadToHeadStats();
             sortedHeadToHeadStats = GetSortedHeadToHeadStats(headToHeadStats, currentHeadToHeadSort, headToHeadSortAscending);
         }

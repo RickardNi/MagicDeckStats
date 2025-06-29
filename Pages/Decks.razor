@@ -16,19 +16,19 @@
     @if (isLoading)
     {
         <div class="alert alert-info">
-            <i class="bi bi-arrow-clockwise spin"></i> Loading deck statistics...
+            <i class="bi bi-arrow-clockwise spin"></i>Loading deck statistics...
         </div>
     }
     else if (errorMessage != null)
     {
         <div class="alert alert-danger">
-            <i class="bi bi-exclamation-triangle"></i> @errorMessage
+            <i class="bi bi-exclamation-triangle"></i>@errorMessage
         </div>
     }
     else if (!deckStats.Any())
     {
         <div class="alert alert-warning">
-            <i class="bi bi-exclamation-triangle"></i> No decks found.
+            <i class="bi bi-exclamation-triangle"></i>No decks found.
         </div>
     }
     else
@@ -244,11 +244,9 @@
         try
         {
             isLoading = true;
-            
-            // Get all Magic plays
+
             var plays = await BGStatsService.GetMagicPlaysAsync();
-            
-            // Calculate deck statistics
+
             var deckGroups = plays
                 .SelectMany(p => p.PlayerScores)
                 .GroupBy(ps => ps.Deck)

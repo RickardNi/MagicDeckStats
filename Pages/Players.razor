@@ -16,19 +16,19 @@
     @if (isLoading)
     {
         <div class="alert alert-info">
-            <i class="bi bi-arrow-clockwise spin"></i> Loading players...
+            <i class="bi bi-arrow-clockwise spin"></i>Loading players...
         </div>
     }
     else if (errorMessage != null)
     {
         <div class="alert alert-danger">
-            <i class="bi bi-exclamation-triangle"></i> @errorMessage
+            <i class="bi bi-exclamation-triangle"></i>@errorMessage
         </div>
     }
     else if (!playerStats.Any())
     {
         <div class="alert alert-warning">
-            <i class="bi bi-exclamation-triangle"></i> No players found.
+            <i class="bi bi-exclamation-triangle"></i>No players found.
         </div>
     }
     else
@@ -226,32 +226,22 @@
                                         <span class="fw-bold @winRateColor">@player.WinRate.ToString("F1")%</span>
                                     </td>
                                     <td class="text-center">
-                                        @if (player.FirstPlayerWinRate > 0)
-                                        {
+                                        @{
                                             var firstPlayerColor = Utilities.GetWinRateColorForPlayer(player.FirstPlayerWinRate);
                                             <span class="fw-bold @firstPlayerColor">@player.FirstPlayerWinRate.ToString("F1")%</span>
                                         }
-                                        else
-                                        {
-                                            <span class="text-muted">-</span>
-                                        }
                                     </td>
                                     <td class="text-center">
-                                        @if (player.SecondPlayerWinRate > 0)
-                                        {
+                                        @{
                                             var secondPlayerColor = Utilities.GetWinRateColorForPlayer(player.SecondPlayerWinRate);
                                             <span class="fw-bold @secondPlayerColor">@player.SecondPlayerWinRate.ToString("F1")%</span>
-                                        }
-                                        else
-                                        {
-                                            <span class="text-muted">-</span>
                                         }
                                     </td>
                                     <td class="text-center">
                                         <span class="fw-bold">@player.FirstPlayer.ToString("F1")%</span>
                                     </td>
                                     <td>
-                                        <NavLink class="deck-link" href="@Utilities.GetDeckUrl(player.FavouriteDeck)">@player.FavouriteDeck</NavLink> (@player.FavouriteDeckPlays)
+                                        <NavLink class="deck-link" href="@Utilities.GetDeckUrl(player.MostPlayedDeck)">@player.MostPlayedDeck</NavLink> (@player.MostPlayedDeckPlays)
                                     </td>
                                 </tr>
                             }
@@ -355,8 +345,8 @@
         public int Losses { get; set; }
         public double WinRate { get; set; }
         public int UniqueDecks { get; set; }
-        public string FavouriteDeck { get; set; } = string.Empty;
-        public int FavouriteDeckPlays { get; set; }
+        public string MostPlayedDeck { get; set; } = string.Empty;
+        public int MostPlayedDeckPlays { get; set; }
         public double FirstPlayerWinRate { get; set; }
         public double SecondPlayerWinRate { get; set; }
         public double FirstPlayer { get; set; }
@@ -406,11 +396,7 @@
 
     private void CalculatePlayerStats()
     {
-        var allPlayerScores = new List<PlayerScore>();
-        foreach (var play in plays)
-        {
-            allPlayerScores.AddRange(play.PlayerScores);
-        }
+        var allPlayerScores = plays.SelectMany(p => p.PlayerScores).ToList();
 
         var playerGroups = allPlayerScores
             .GroupBy(ps => ps.PlayerName)
@@ -427,10 +413,10 @@
                 Losses = g.Count(ps => !ps.IsWinner),
                 WinRate = g.Count(ps => ps.IsWinner) * 100.0 / g.Count(),
                 UniqueDecks = g.Select(ps => ps.Deck).Distinct().Count(),
-                FavouriteDeck = g.GroupBy(ps => ps.Deck)
+                MostPlayedDeck = g.GroupBy(ps => ps.Deck)
                                  .OrderByDescending(dg => dg.Count())
                                  .First().Key,
-                FavouriteDeckPlays = g.Count(ps => ps.Deck == g.GroupBy(ps => ps.Deck)
+                MostPlayedDeckPlays = g.Count(ps => ps.Deck == g.GroupBy(ps => ps.Deck)
                                  .OrderByDescending(dg => dg.Count())
                                  .First().Key),
                 FirstPlayerWinRate = g.Count(ps => ps.IsFirstPlayer) > 0 
@@ -444,12 +430,6 @@
             .OrderByDescending(p => p.GamesPlayed)
             .ThenByDescending(p => p.WinRate)
             .ToList();
-
-        // Update ranks after sorting
-        for (int i = 0; i < playerStats.Count; i++)
-        {
-            playerStats[i].Rank = i + 1;
-        }
     }
 
     private void UpdateCurrentPagePlayerStats()
@@ -501,7 +481,7 @@
         }
         else if (currentSortColumn == SortColumn.FavouriteDeck)
         {
-            sortedStats = isAscending ? sortedStats.OrderBy(p => p.FavouriteDeck).ToList() : sortedStats.OrderByDescending(p => p.FavouriteDeck).ToList();
+            sortedStats = isAscending ? sortedStats.OrderBy(p => p.MostPlayedDeck).ToList() : sortedStats.OrderByDescending(p => p.MostPlayedDeck).ToList();
         }
         else if (currentSortColumn == SortColumn.FirstPlayerWinRate)
         {

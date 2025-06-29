@@ -12,13 +12,13 @@
     @if (isLoading)
     {
         <div class="alert alert-info">
-            <i class="bi bi-arrow-clockwise spin"></i> Loading Magic: The Gathering data...
+            <i class="bi bi-arrow-clockwise spin"></i>Loading Magic: The Gathering data...
         </div>
     }
     else if (errorMessage != null)
     {
         <div class="alert alert-danger">
-            <i class="bi bi-exclamation-triangle"></i> @errorMessage
+            <i class="bi bi-exclamation-triangle"></i>@errorMessage
         </div>
     }
     else
