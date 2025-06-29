@@ -183,6 +183,114 @@
                 </div>
             </div>
         </div>
+
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="card-title mb-0">
+                            <i class="bi bi-arrow-left-right"></i>Head-to-Head
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        @if (headToHeadStats.Any())
+                        {
+                            <div class="table-responsive">
+                                <table class="table table-striped table-hover">
+                                    <thead>
+                                        <tr>
+                                            <th>
+                                                <button class="btn btn-link text-decoration-none p-0 fw-bold" @onclick="@(() => SortByHeadToHead("Opponent"))">
+                                                    Opponent
+                                                    @if (currentHeadToHeadSort == "Opponent")
+                                                    {
+                                                        <i class="bi @(headToHeadSortAscending ? "bi-sort-up" : "bi-sort-down")"></i>
+                                                    }
+                                                    else
+                                                    {
+                                                        <i class="bi bi-sort text-muted"></i>
+                                                    }
+                                                </button>
+                                            </th>
+                                            <th class="text-center">
+                                                <button class="btn btn-link text-decoration-none p-0 fw-bold" @onclick="@(() => SortByHeadToHead("Plays"))">
+                                                    Games
+                                                    @if (currentHeadToHeadSort == "Plays")
+                                                    {
+                                                        <i class="bi @(headToHeadSortAscending ? "bi-sort-up" : "bi-sort-down")"></i>
+                                                    }
+                                                    else
+                                                    {
+                                                        <i class="bi bi-sort text-muted"></i>
+                                                    }
+                                                </button>
+                                            </th>
+                                            <th class="text-center">
+                                                <button class="btn btn-link text-decoration-none p-0 fw-bold" @onclick="@(() => SortByHeadToHead("Wins"))">
+                                                    Wins
+                                                    @if (currentHeadToHeadSort == "Wins")
+                                                    {
+                                                        <i class="bi @(headToHeadSortAscending ? "bi-sort-up" : "bi-sort-down")"></i>
+                                                    }
+                                                    else
+                                                    {
+                                                        <i class="bi bi-sort text-muted"></i>
+                                                    }
+                                                </button>
+                                            </th>
+                                            <th class="text-center">
+                                                <button class="btn btn-link text-decoration-none p-0 fw-bold" @onclick="@(() => SortByHeadToHead("Losses"))">
+                                                    Losses
+                                                    @if (currentHeadToHeadSort == "Losses")
+                                                    {
+                                                        <i class="bi @(headToHeadSortAscending ? "bi-sort-up" : "bi-sort-down")"></i>
+                                                    }
+                                                    else
+                                                    {
+                                                        <i class="bi bi-sort text-muted"></i>
+                                                    }
+                                                </button>
+                                            </th>
+                                            <th class="text-center">
+                                                <button class="btn btn-link text-decoration-none p-0 fw-bold" @onclick="@(() => SortByHeadToHead("WinRate"))">
+                                                    Win Rate
+                                                    @if (currentHeadToHeadSort == "WinRate")
+                                                    {
+                                                        <i class="bi @(headToHeadSortAscending ? "bi-sort-up" : "bi-sort-down")"></i>
+                                                    }
+                                                    else
+                                                    {
+                                                        <i class="bi bi-sort text-muted"></i>
+                                                    }
+                                                </button>
+                                            </th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @foreach (var opponent in sortedHeadToHeadStats)
+                                        {
+                                            <tr>
+                                                <td>
+                                                    <NavLink class="player-link" href="@($"/player/{opponent.OpponentPlayerId}")">@opponent.OpponentName</NavLink>
+                                                </td>
+                                                <td class="text-center">@opponent.TotalGames</td>
+                                                <td class="text-center text-success">@opponent.Wins</td>
+                                                <td class="text-center text-danger">@opponent.Losses</td>
+                                                <td class="text-center @(Utilities.GetWinRateColorForPlayer(opponent.WinRate * 100))">@(opponent.WinRate.ToString("P1"))</td>
+                                            </tr>
+                                        }
+                                    </tbody>
+                                </table>
+                            </div>
+                        }
+                        else
+                        {
+                            <p class="text-muted mb-0">No head-to-head data available.</p>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
     }
 </div>
 
@@ -210,6 +318,10 @@
     private string currentSort = "Plays";
     private bool sortAscending = false;
     private List<DeckStats> sortedDeckStats = new();
+    private List<HeadToHeadStats> headToHeadStats = new();
+    private string currentHeadToHeadSort = "Plays";
+    private bool headToHeadSortAscending = false;
+    private List<HeadToHeadStats> sortedHeadToHeadStats = new();
 
     protected override async Task OnParametersSetAsync()
     {
@@ -232,6 +344,7 @@
             mostPlayedDeckPlays = 0;
             mostSuccessfulDeckWinRate = 0;
             deckStats.Clear();
+            headToHeadStats.Clear();
 
             var plays = await BGStatsService.GetMagicPlaysAsync();
             playerPlays = plays.Where(p => p.PlayerScores.Any(ps => ps.PlayerRefId == playerId)).ToList();
@@ -331,6 +444,10 @@
 
             // Sort the deck stats based on the current sort criteria
             sortedDeckStats = GetSortedDeckStats(deckStats, currentSort, sortAscending);
+
+            // Calculate head-to-head statistics
+            CalculateHeadToHeadStats();
+            sortedHeadToHeadStats = GetSortedHeadToHeadStats(headToHeadStats, currentHeadToHeadSort, headToHeadSortAscending);
         }
         catch (Exception ex)
         {
@@ -374,6 +491,81 @@
         return sorted;
     }
 
+    private void SortByHeadToHead(string column)
+    {
+        if (column == currentHeadToHeadSort)
+        {
+            headToHeadSortAscending = !headToHeadSortAscending;
+        }
+        else
+        {
+            currentHeadToHeadSort = column;
+            headToHeadSortAscending = false;
+        }
+
+        // Sort the head-to-head stats based on the new sort criteria
+        sortedHeadToHeadStats = GetSortedHeadToHeadStats(headToHeadStats, currentHeadToHeadSort, headToHeadSortAscending);
+    }
+
+    private List<HeadToHeadStats> GetSortedHeadToHeadStats(List<HeadToHeadStats> headToHeadStats, string column, bool sortAscending)
+    {
+        var sorted = column switch
+        {
+            "Opponent" => sortAscending ? headToHeadStats.OrderBy(h => h.OpponentName).ToList() : headToHeadStats.OrderByDescending(h => h.OpponentName).ToList(),
+            "Plays" => sortAscending ? headToHeadStats.OrderBy(h => h.TotalGames).ToList() : headToHeadStats.OrderByDescending(h => h.TotalGames).ToList(),
+            "Wins" => sortAscending ? headToHeadStats.OrderBy(h => h.Wins).ToList() : headToHeadStats.OrderByDescending(h => h.Wins).ToList(),
+            "Losses" => sortAscending ? headToHeadStats.OrderBy(h => h.Losses).ToList() : headToHeadStats.OrderByDescending(h => h.Losses).ToList(),
+            "WinRate" => sortAscending ? headToHeadStats.OrderBy(h => h.WinRate).ToList() : headToHeadStats.OrderByDescending(h => h.WinRate).ToList(),
+            _ => headToHeadStats.OrderBy(h => h.OpponentName).ToList()
+        };
+
+        return sorted;
+    }
+
+    private void CalculateHeadToHeadStats()
+    {
+        headToHeadStats.Clear();
+        
+        // Get all unique opponents from the player's games
+        var opponentIds = playerPlays
+            .SelectMany(p => p.PlayerScores)
+            .Where(ps => ps.PlayerRefId != playerId)
+            .Select(ps => ps.PlayerRefId)
+            .Distinct()
+            .ToList();
+
+        foreach (var opponentId in opponentIds)
+        {
+            // Get all games where this player played against the opponent
+            var gamesAgainstOpponent = playerPlays
+                .Where(p => p.PlayerScores.Any(ps => ps.PlayerRefId == playerId) && 
+                           p.PlayerScores.Any(ps => ps.PlayerRefId == opponentId))
+                .ToList();
+
+            var totalGames = gamesAgainstOpponent.Count;
+            var wins = gamesAgainstOpponent.Count(p => 
+                p.PlayerScores.Any(ps => ps.PlayerRefId == playerId && ps.IsWinner));
+            var losses = totalGames - wins;
+            var winRate = totalGames > 0 ? (double)wins / totalGames : 0;
+
+            // Get opponent name
+            var opponentName = gamesAgainstOpponent
+                .SelectMany(p => p.PlayerScores)
+                .FirstOrDefault(ps => ps.PlayerRefId == opponentId)?.PlayerName ?? $"Player {opponentId}";
+
+            headToHeadStats.Add(new HeadToHeadStats
+            {
+                PlayerId = playerId,
+                OpponentPlayerId = opponentId,
+                OpponentName = opponentName,
+                TotalGames = totalGames,
+                Wins = wins,
+                Losses = losses,
+                WinRate = winRate
+            });
+        }
+    }
+
     private class PlayerStats
     {
         public string PlayerName { get; set; } = string.Empty;
@@ -391,5 +583,16 @@
         public int Losses { get; set; }
         public double WinRate { get; set; }
         public DateTime? LastPlayed { get; set; }
+    }
+
+    private class HeadToHeadStats
+    {
+        public int PlayerId { get; set; }
+        public int OpponentPlayerId { get; set; }
+        public string OpponentName { get; set; } = string.Empty;
+        public int TotalGames { get; set; }
+        public int Wins { get; set; }
+        public int Losses { get; set; }
+        public double WinRate { get; set; }
     }
 } 
