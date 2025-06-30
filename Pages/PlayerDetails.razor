@@ -59,9 +59,29 @@
                         <hr class="my-3" />
                         <dl class="row mb-0">
                             <dt class="col-sm-5">Most Played Deck</dt>
-                            <dd class="col-sm-7">@(mostPlayedDeck != null ? $"{mostPlayedDeck} ({mostPlayedDeckPlays} plays)" : "-")</dd>
+                            <dd class="col-sm-7">
+                                @if (mostPlayedDeck != null)
+                                {
+                                    <NavLink class="deck-link" href="@Utilities.GetDeckUrl(mostPlayedDeck)">@mostPlayedDeck</NavLink>
+                                    <span> (@mostPlayedDeckPlays plays)</span>
+                                }
+                                else
+                                {
+                                    <span>-</span>
+                                }
+                            </dd>
                             <dt class="col-sm-5">Most Successful Deck</dt>
-                            <dd class="col-sm-7">@(mostSuccessfulDeck != null ? $"{mostSuccessfulDeck} ({mostSuccessfulDeckWinRate.ToString("P1")})" : "-")</dd>
+                            <dd class="col-sm-7">
+                                @if (mostSuccessfulDeck != null)
+                                {
+                                    <NavLink class="deck-link" href="@Utilities.GetDeckUrl(mostSuccessfulDeck)">@mostSuccessfulDeck</NavLink>
+                                    <span> (@mostSuccessfulDeckWinRate.ToString("P1"))</span>
+                                }
+                                else
+                                {
+                                    <span>-</span>
+                                }
+                            </dd>
                         </dl>
                     </div>
                 </div>
