@@ -34,6 +34,44 @@
     }
     else
     {
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="bi bi-funnel me-2"></i>Filters</h5>
+            </div>
+            <div class="card-body">
+                <div class="row align-items-center">
+                    <div class="col-md-12">
+                        <label for="minGamesFilter" class="form-label fw-bold">
+                            Minimum Games Played: @minGamesFilter
+                        </label>
+                        <input type="range" 
+                               class="form-range" 
+                               id="minGamesFilter" 
+                               value="@minGamesFilter"
+                               @oninput="@((ChangeEventArgs e) => { minGamesFilter = int.Parse(e.Value?.ToString() ?? "20"); OnMinGamesFilterChanged(); })"
+                               @onchange="@((ChangeEventArgs e) => { minGamesFilter = int.Parse(e.Value?.ToString() ?? "20"); OnMinGamesFilterChanged(); })"
+                               min="1" 
+                               max="100" 
+                               step="1" />
+                    </div>
+                </div>
+                <div class="row mt-3">
+                    <div class="col-md-2">
+                        <button class="btn btn-secondary w-100" 
+                                @onclick="ClearMinGamesFilter" 
+                                disabled="@(minGamesFilter == 20)">
+                            <i class="bi bi-arrow-clockwise me-1"></i> Reset
+                        </button>
+                    </div>
+                    <div class="col-md-10 d-flex align-items-center">
+                        <span class="text-muted">
+                            Showing @totalPlayers out of @playerStats.Count players (@(playerStats.Count - totalPlayers) hidden)
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <div class="card">
             <div class="card-body">
                 <div class="table-responsive">
@@ -325,6 +363,8 @@
     private int totalPages = 0;
     private SortColumn currentSortColumn = SortColumn.GamesPlayed;
     private bool isAscending = false;
+    private int minGamesFilter = 20;
+    private int maxGamesPlayed = 100;
 
     public class PlayerStats
     {
@@ -388,9 +428,7 @@
             // Calculate player statistics
             CalculatePlayerStats();
             
-            totalPlayers = playerStats.Count;
-            totalPages = (int)Math.Ceiling((double)totalPlayers / pageSize);
-            
+            // Update current page stats (this will apply the filter)
             UpdateCurrentPagePlayerStats();
         }
         catch (Exception ex)
@@ -448,8 +486,26 @@
 
     private void UpdateCurrentPagePlayerStats()
     {
+        // Apply minimum games filter
+        var filteredStats = playerStats.Where(p => p.GamesPlayed >= minGamesFilter).ToList();
+        
+        // Update total counts for pagination
+        totalPlayers = filteredStats.Count;
+        totalPages = (int)Math.Ceiling((double)totalPlayers / pageSize);
+        
+        // Ensure current page is valid after filtering
+        if (currentPage > totalPages && totalPages > 0)
+        {
+            currentPage = totalPages;
+        }
+        else if (totalPages == 0)
+        {
+            currentPage = 1;
+        }
+        
+        // Apply pagination
         var skip = (currentPage - 1) * pageSize;
-        currentPagePlayerStats = playerStats.Skip(skip).Take(pageSize).ToList();
+        currentPagePlayerStats = filteredStats.Skip(skip).Take(pageSize).ToList();
     }
 
     private void GoToPage(int page)
@@ -541,6 +597,17 @@
             isAscending = false;
         }
 
+        UpdateCurrentPagePlayerStats();
+    }
+
+    private void ClearMinGamesFilter()
+    {
+        minGamesFilter = 20;
+        UpdateCurrentPagePlayerStats();
+    }
+
+    private void OnMinGamesFilterChanged()
+    {
         UpdateCurrentPagePlayerStats();
     }
 } 
