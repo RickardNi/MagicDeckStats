@@ -114,7 +114,7 @@
 }
 
 html, body {
-    font-family: 'Roboto Condensed', 'Roboto', 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
+    font-family: 'Roboto', 'Roboto Condensed', 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
 }
 
 h1:focus {
@@ -336,6 +336,9 @@ code {
 
 /* Custom styles for mobile table optimization */
 @media (max-width: 767.98px) {
+    html, body {
+        font-family: 'Roboto Condensed', 'Roboto', 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
+    }
     .table thead th {
         font-size: 0.7rem !important;
         padding-top: 0.3rem !important;
