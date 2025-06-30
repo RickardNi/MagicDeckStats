@@ -41,17 +41,7 @@
                         <thead>
                             <tr>
                                 <th>
-                                    <button class="btn btn-link text-decoration-none p-0 fw-bold" @onclick="() => SortBy(SortColumn.Rank)">
-                                        Rank
-                                        @if (currentSortColumn == SortColumn.Rank)
-                                        {
-                                            <i class="bi @(isAscending ? "bi-sort-up" : "bi-sort-down")"></i>
-                                        }
-                                        else
-                                        {
-                                            <i class="bi bi-sort text-muted"></i>
-                                        }
-                                    </button>
+                                    Rank
                                 </th>
                                 <th>
                                     <button class="btn btn-link text-decoration-none p-0 fw-bold" @onclick="() => SortBy(SortColumn.PlayerName)">
@@ -333,8 +323,8 @@
     private int pageSize = 50;
     private int totalPlayers = 0;
     private int totalPages = 0;
-    private SortColumn currentSortColumn = SortColumn.Rank;
-    private bool isAscending = true;
+    private SortColumn currentSortColumn = SortColumn.GamesPlayed;
+    private bool isAscending = false;
 
     public class PlayerStats
     {
@@ -427,9 +417,8 @@
             .ToList();
 
         playerStats = playerGroups
-            .Select((g, index) => new PlayerStats
+            .Select(g => new PlayerStats
             {
-                Rank = index + 1,
                 PlayerName = g.Key,
                 PlayerRefId = g.First().PlayerRefId,
                 GamesPlayed = g.Count(),
@@ -453,6 +442,7 @@
             })
             .OrderByDescending(p => p.GamesPlayed)
             .ThenByDescending(p => p.WinRate)
+            .Select((p, index) => { p.Rank = index + 1; return p; })
             .ToList();
     }
 
@@ -475,11 +465,7 @@
     {
         var sortedStats = currentPagePlayerStats;
 
-        if (currentSortColumn == SortColumn.Rank)
-        {
-            sortedStats = isAscending ? sortedStats.OrderBy(p => p.Rank).ToList() : sortedStats.OrderByDescending(p => p.Rank).ToList();
-        }
-        else if (currentSortColumn == SortColumn.PlayerName)
+        if (currentSortColumn == SortColumn.PlayerName)
         {
             sortedStats = isAscending ? sortedStats.OrderBy(p => p.PlayerName).ToList() : sortedStats.OrderByDescending(p => p.PlayerName).ToList();
         }
@@ -520,7 +506,27 @@
             sortedStats = isAscending ? sortedStats.OrderBy(p => p.FirstPlayer).ToList() : sortedStats.OrderByDescending(p => p.FirstPlayer).ToList();
         }
 
-        return sortedStats;
+        // Recalculate ranks based on current sort order and direction
+        // For ascending sorts, we need to invert the rank logic for most columns
+        if (currentSortColumn == SortColumn.PlayerName || currentSortColumn == SortColumn.FavouriteDeck)
+        {
+            // For these columns, rank follows the display order
+            return sortedStats.Select((p, index) => { p.Rank = index + 1; return p; }).ToList();
+        }
+        else
+        {
+            // For numeric columns, rank should reflect the "best" value regardless of sort direction
+            if (isAscending)
+            {
+                // Ascending sort: best values are at the bottom, so invert the rank
+                return sortedStats.Select((p, index) => { p.Rank = sortedStats.Count - index; return p; }).ToList();
+            }
+            else
+            {
+                // Descending sort: best values are at the top, so rank follows display order
+                return sortedStats.Select((p, index) => { p.Rank = index + 1; return p; }).ToList();
+            }
+        }
     }
 
     private void SortBy(SortColumn column)
@@ -532,7 +538,7 @@
         else
         {
             currentSortColumn = column;
-            isAscending = true;
+            isAscending = false;
         }
 
         UpdateCurrentPagePlayerStats();
