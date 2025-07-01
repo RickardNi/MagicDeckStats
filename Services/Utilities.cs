@@ -33,18 +33,26 @@ namespace MagicDeckStats.Services
             return $"player/{playerId}";
         }
 
+        public static string FormatWinRate(double winRate)
+        {
+            if (winRate == 0 || winRate == 1)
+                return winRate.ToString("P0");
+            else
+                return winRate.ToString("P1");
+        }
+
         public static string GetWinRateColorForDeck(double winRate) => winRate switch
         {
-            > 60 => "text-success-dark",
-            >= 45 => "text-success",
-            >= 35 => "text-warning",
+            > 0.6 => "text-success-dark",
+            >= 0.45 => "text-success",
+            >= 0.35 => "text-warning",
             _ => "text-danger"
         };
 
         public static string GetWinRateColorForPlayer(double winRate) => winRate switch
         {
-            > 50 => "text-success",
-            >= 35 => "text-warning",
+            > 0.5 => "text-success",
+            >= 0.35 => "text-warning",
             _ => "text-danger"
         };
 

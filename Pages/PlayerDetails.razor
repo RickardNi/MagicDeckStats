@@ -46,11 +46,11 @@
                             <dt class="col-sm-5">Decks played</dt>
                             <dd class="col-sm-7">@uniqueDecksCount</dd>
                             <dt class="col-sm-5">Win Rate</dt>
-                            <dd class="col-sm-7 @(Utilities.GetWinRateColorForPlayer(playerStats.WinRate * 100))">@(playerStats.WinRate.ToString("P1"))</dd>
+                            <dd class="col-sm-7 @(Utilities.GetWinRateColorForPlayer(playerStats.WinRate))">@Utilities.FormatWinRate(playerStats.WinRate)</dd>
                             <dt class="col-sm-5">First Player Win Rate</dt>
-                            <dd class="col-sm-7 @(Utilities.GetWinRateColorForPlayer(playsAsFirstPlayer > 0 ? (double)winsAsFirstPlayer / playsAsFirstPlayer * 100 : 0))">@((playsAsFirstPlayer > 0 ? (double)winsAsFirstPlayer / playsAsFirstPlayer : 0).ToString("P1"))</dd>
+                            <dd class="col-sm-7 @(Utilities.GetWinRateColorForPlayer(playsAsFirstPlayer > 0 ? (double)winsAsFirstPlayer / playsAsFirstPlayer : 0))">@Utilities.FormatWinRate(playsAsFirstPlayer > 0 ? (double)winsAsFirstPlayer / playsAsFirstPlayer : 0)</dd>
                             <dt class="col-sm-5">Win Rate When Going Second</dt>
-                            <dd class="col-sm-7 @(Utilities.GetWinRateColorForPlayer(playsAsNonFirstPlayer > 0 ? (double)winsAsNonFirstPlayer / playsAsNonFirstPlayer * 100 : 0))">@((playsAsNonFirstPlayer > 0 ? (double)winsAsNonFirstPlayer / playsAsNonFirstPlayer : 0).ToString("P1"))</dd>
+                            <dd class="col-sm-7 @(Utilities.GetWinRateColorForPlayer(playsAsNonFirstPlayer > 0 ? (double)winsAsNonFirstPlayer / playsAsNonFirstPlayer : 0))">@Utilities.FormatWinRate(playsAsNonFirstPlayer > 0 ? (double)winsAsNonFirstPlayer / playsAsNonFirstPlayer : 0)</dd>
                             <dt class="col-sm-5">Average Duration</dt>
                             <dd class="col-sm-7">@((averageDuration > 0 ? $"{averageDuration:F1} min" : "-") )</dd>
                             <dt class="col-sm-5">First Player</dt>
@@ -75,7 +75,7 @@
                                 @if (mostSuccessfulDeck != null)
                                 {
                                     <NavLink class="deck-link" href="@Utilities.GetDeckUrl(mostSuccessfulDeck)">@mostSuccessfulDeck</NavLink>
-                                    <span> (@mostSuccessfulDeckWinRate.ToString("P1"))</span>
+                                    <span> (@Utilities.FormatWinRate(mostSuccessfulDeckWinRate))</span>
                                 }
                                 else
                                 {
@@ -191,7 +191,7 @@
                                                     <NavLink class="deck-link" href="@Utilities.GetDeckUrl(deck.DeckName)">@deck.DeckName</NavLink>
                                                 </td>
                                                 <td class="text-center">@deck.Plays</td>
-                                                <td class="text-center @(Utilities.GetWinRateColorForPlayer(deck.WinRate * 100))">@(deck.WinRate.ToString("P1"))</td>
+                                                <td class="text-center @(Utilities.GetWinRateColorForPlayer(deck.WinRate))">@Utilities.FormatWinRate(deck.WinRate)</td>
                                                 <td class="text-center text-success">@deck.Wins</td>
                                                 <td class="text-center text-danger">@deck.Losses</td>
                                                 <td>@(deck.LastPlayed?.ToString("yyyy-MM-dd") ?? "-")</td>
@@ -302,7 +302,7 @@
                                                 <td class="text-center">@opponent.TotalGames</td>
                                                 <td class="text-center text-success">@opponent.Wins</td>
                                                 <td class="text-center text-danger">@opponent.Losses</td>
-                                                <td class="text-center @(Utilities.GetWinRateColorForPlayer(opponent.WinRate * 100))">@(opponent.WinRate.ToString("P1"))</td>
+                                                <td class="text-center @(Utilities.GetWinRateColorForPlayer(opponent.WinRate))">@Utilities.FormatWinRate(opponent.WinRate)</td>
                                             </tr>
                                         }
                                     </tbody>

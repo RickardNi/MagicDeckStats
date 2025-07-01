@@ -149,8 +149,7 @@
                         <tbody>
                             @foreach (var deck in GetSortedDeckStats())
                             {
-                                var winRatePercentage = deck.TotalPlays > 0 ? (double)deck.Wins / deck.TotalPlays * 100 : 0;
-                                var winRateColor = Utilities.GetWinRateColorForDeck(winRatePercentage);
+                                var winRateColor = Utilities.GetWinRateColorForDeck(deck.WinRate);
                                 
                                 <tr>
                                     <td>
@@ -163,7 +162,7 @@
                                         @deck.TotalPlays
                                     </td>
                                     <td class="text-center">
-                                        <span class="fw-bold @winRateColor">@(winRatePercentage.ToString("F1"))%</span>
+                                        <span class="fw-bold @winRateColor">@Utilities.FormatWinRate(deck.WinRate)</span>
                                     </td>
                                     <td class="text-center">
                                         <span class="text-success fw-bold">@deck.Wins</span>
@@ -174,9 +173,8 @@
                                     <td class="text-center">
                                         @if (deck.FirstPlayerPlays > 0)
                                         {
-                                            var firstPlayerWinRate = deck.FirstPlayerWinRate * 100;
-                                            var firstPlayerColor = Utilities.GetWinRateColorForDeck(firstPlayerWinRate);
-                                            <span class="fw-bold @firstPlayerColor">@(firstPlayerWinRate.ToString("F1"))%</span>
+                                            var firstPlayerColor = Utilities.GetWinRateColorForDeck(deck.FirstPlayerWinRate);
+                                            <span class="fw-bold @firstPlayerColor">@Utilities.FormatWinRate(deck.FirstPlayerWinRate)</span>
                                         }
                                         else
                                         {
@@ -186,9 +184,8 @@
                                     <td class="text-center">
                                         @if (deck.GoingSecondPlays > 0)
                                         {
-                                            var goingSecondWinRate = deck.GoingSecondWinRate * 100;
-                                            var goingSecondColor = Utilities.GetWinRateColorForDeck(goingSecondWinRate);
-                                            <span class="fw-bold @goingSecondColor">@(goingSecondWinRate.ToString("F1"))%</span>
+                                            var goingSecondColor = Utilities.GetWinRateColorForDeck(deck.GoingSecondWinRate);
+                                            <span class="fw-bold @goingSecondColor">@Utilities.FormatWinRate(deck.GoingSecondWinRate)</span>
                                         }
                                         else
                                         {

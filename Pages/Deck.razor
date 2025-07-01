@@ -50,11 +50,11 @@
                             <dt class="col-sm-5">Total Plays</dt>
                             <dd class="col-sm-7">@deckStats.TotalPlays (<span class="text-success">@deckStats.Wins W</span> / <span class="text-danger">@deckStats.Losses L</span>)</dd>
                             <dt class="col-sm-5">Win Rate</dt>
-                            <dd class="col-sm-7 @(Utilities.GetWinRateColorForDeck(deckStats.WinRate * 100))">@(deckStats.WinRate.ToString("P1"))</dd>
+                            <dd class="col-sm-7 @(Utilities.GetWinRateColorForDeck(deckStats.WinRate))">@Utilities.FormatWinRate(deckStats.WinRate)</dd>
                             <dt class="col-sm-5">First Player Win Rate</dt>
-                            <dd class="col-sm-7">@((playsAsFirstPlayer > 0 ? (double)winsAsFirstPlayer / playsAsFirstPlayer : 0).ToString("P1"))</dd>
+                            <dd class="col-sm-7">@Utilities.FormatWinRate(playsAsFirstPlayer > 0 ? (double)winsAsFirstPlayer / playsAsFirstPlayer : 0)</dd>
                             <dt class="col-sm-5">Win Rate When Going Second</dt>
-                            <dd class="col-sm-7">@((playsAsNonFirstPlayer > 0 ? (double)winsAsNonFirstPlayer / playsAsNonFirstPlayer : 0).ToString("P1"))</dd>
+                            <dd class="col-sm-7">@Utilities.FormatWinRate(playsAsNonFirstPlayer > 0 ? (double)winsAsNonFirstPlayer / playsAsNonFirstPlayer : 0)</dd>
                             <dt class="col-sm-5">Average Duration</dt>
                             <dd class="col-sm-7">@((averageDuration > 0 ? $"{averageDuration:F1} min" : "-") )</dd>
                         </dl>
@@ -245,7 +245,7 @@
                                         <td class="text-center">@vs.Plays</td>
                                         <td class="text-center text-success">@vs.Wins</td>
                                         <td class="text-center text-danger">@vs.Losses</td>
-                                        <td class="text-center fw-bold @(Utilities.GetWinRateColorForDeck(vs.WinRate * 100))">@(vs.WinRate.ToString("P1"))</td>
+                                        <td class="text-center fw-bold @(Utilities.GetWinRateColorForDeck(vs.WinRate))">@Utilities.FormatWinRate(vs.WinRate)</td>
                                     </tr>
                                 }
                             </tbody>
@@ -360,7 +360,7 @@
                                         <td class="text-center">@ps.Plays</td>
                                         <td class="text-center text-success">@ps.Wins</td>
                                         <td class="text-center text-danger">@ps.Losses</td>
-                                        <td class="text-center fw-bold @(Utilities.GetWinRateColorForPlayer(ps.WinRate * 100))">@(ps.WinRate.ToString("P1"))</td>
+                                        <td class="text-center fw-bold @(Utilities.GetWinRateColorForPlayer(ps.WinRate))">@Utilities.FormatWinRate(ps.WinRate)</td>
                                         <td class="text-center">@(ps.AverageDuration > 0 ? $"{ps.AverageDuration:F1} min" : "-")</td>
                                     </tr>
                                 }
@@ -644,7 +644,7 @@
             return "-";
 
         var mostSuccessful = playerStats.OrderByDescending(p => p.WinRate).First();
-        return $"{mostSuccessful.PlayerName} ({mostSuccessful.WinRate:P1})";
+        return $"{mostSuccessful.PlayerName} ({Utilities.FormatWinRate(mostSuccessful.WinRate)})";
     }
 
     private string GetLeastSuccessfulPlayer()
@@ -653,7 +653,7 @@
             return "-";
 
         var leastSuccessful = playerStats.OrderBy(p => p.WinRate).First();
-        return $"{leastSuccessful.PlayerName} ({leastSuccessful.WinRate:P1})";
+        return $"{leastSuccessful.PlayerName} ({Utilities.FormatWinRate(leastSuccessful.WinRate)})";
     }
 
     private enum MatchupSortColumn

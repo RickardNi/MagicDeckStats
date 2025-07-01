@@ -252,22 +252,22 @@
                                         @{
                                             var winRateColor = Utilities.GetWinRateColorForPlayer(player.WinRate);
                                         }
-                                        <span class="fw-bold @winRateColor">@player.WinRate.ToString("F1")%</span>
+                                        <span class="fw-bold @winRateColor">@Utilities.FormatWinRate(player.WinRate)</span>
                                     </td>
                                     <td class="text-center">
                                         @{
                                             var firstPlayerColor = Utilities.GetWinRateColorForPlayer(player.FirstPlayerWinRate);
-                                            <span class="fw-bold @firstPlayerColor">@player.FirstPlayerWinRate.ToString("F1")%</span>
+                                            <span class="fw-bold @firstPlayerColor">@Utilities.FormatWinRate(player.FirstPlayerWinRate)</span>
                                         }
                                     </td>
                                     <td class="text-center">
                                         @{
                                             var secondPlayerColor = Utilities.GetWinRateColorForPlayer(player.SecondPlayerWinRate);
-                                            <span class="fw-bold @secondPlayerColor">@player.SecondPlayerWinRate.ToString("F1")%</span>
+                                            <span class="fw-bold @secondPlayerColor">@Utilities.FormatWinRate(player.SecondPlayerWinRate)</span>
                                         }
                                     </td>
                                     <td class="text-center">
-                                        <span class="fw-bold">@player.FirstPlayer.ToString("F1")%</span>
+                                        <span class="fw-bold">@Utilities.FormatWinRate(player.FirstPlayer)</span>
                                     </td>
                                     <td>
                                         <NavLink class="deck-link" href="@Utilities.GetDeckUrl(player.MostPlayedDeck)">@player.MostPlayedDeck</NavLink> (@player.MostPlayedDeckPlays)
@@ -461,7 +461,7 @@
                 GamesPlayed = g.Count(),
                 Wins = g.Count(ps => ps.IsWinner),
                 Losses = g.Count(ps => !ps.IsWinner),
-                WinRate = g.Count(ps => ps.IsWinner) * 100.0 / g.Count(),
+                WinRate = g.Count(ps => ps.IsWinner) / (double)g.Count(),
                 UniqueDecks = g.Select(ps => ps.Deck).Distinct().Count(),
                 MostPlayedDeck = g.GroupBy(ps => ps.Deck)
                                  .OrderByDescending(dg => dg.Count())
@@ -470,12 +470,12 @@
                                  .OrderByDescending(dg => dg.Count())
                                  .First().Key),
                 FirstPlayerWinRate = g.Count(ps => ps.IsFirstPlayer) > 0 
-                    ? g.Count(ps => ps.IsWinner && ps.IsFirstPlayer) * 100.0 / g.Count(ps => ps.IsFirstPlayer)
+                    ? g.Count(ps => ps.IsWinner && ps.IsFirstPlayer) / (double)g.Count(ps => ps.IsFirstPlayer)
                     : 0,
                 SecondPlayerWinRate = g.Count(ps => !ps.IsFirstPlayer) > 0 
-                    ? g.Count(ps => ps.IsWinner && !ps.IsFirstPlayer) * 100.0 / g.Count(ps => !ps.IsFirstPlayer)
+                    ? g.Count(ps => ps.IsWinner && !ps.IsFirstPlayer) / (double)g.Count(ps => !ps.IsFirstPlayer)
                     : 0,
-                FirstPlayer = g.Count(ps => ps.IsFirstPlayer) * 100.0 / g.Count()
+                FirstPlayer = g.Count(ps => ps.IsFirstPlayer) / (double)g.Count()
             })
             .OrderByDescending(p => p.GamesPlayed)
             .ThenByDescending(p => p.WinRate)

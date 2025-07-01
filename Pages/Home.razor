@@ -224,7 +224,7 @@
                                             PlayerRefId = g.Key.PlayerRefId,
                                             GamesPlayed = g.Count(),
                                             Wins = g.Count(ps => ps.IsWinner),
-                                            WinRate = g.Count(ps => ps.IsWinner) * 100.0 / g.Count(),
+                                            WinRate = g.Count(ps => ps.IsWinner) / (double)g.Count(),
                                             UniqueDecks = g.Select(ps => ps.Deck).Distinct().Count(),
                                             FavouriteDeck = g.GroupBy(ps => ps.Deck)
                                                              .OrderByDescending(dg => dg.Count())
@@ -268,7 +268,7 @@
                                             <td>@player.UniqueDecks</td>
                                             <td>@player.Wins</td>
                                             <td>
-                                                <span class="fw-bold @Utilities.GetWinRateColorForPlayer(player.WinRate)">@player.WinRate.ToString("F1")%</span>
+                                                <span class="fw-bold @Utilities.GetWinRateColorForPlayer(player.WinRate)">@Utilities.FormatWinRate(player.WinRate)</span>
                                             </td>
                                             <td>
                                                 <NavLink class="deck-link" href="@Utilities.GetDeckUrl(player.FavouriteDeck)">@player.FavouriteDeck</NavLink> (@player.FavouriteDeckPlays)
