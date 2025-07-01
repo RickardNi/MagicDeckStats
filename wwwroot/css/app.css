@@ -371,6 +371,10 @@ code {
     color: #0d5a2c !important;
 }
 
+.text-mediocre {
+    color: #fd7e14 !important;
+}
+
 /* Global textarea styling to match ImportExport page */
 textarea.form-control {
     font-family: 'Roboto Mono', 'Courier New', monospace;
