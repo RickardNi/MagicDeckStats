@@ -217,13 +217,14 @@
                 </h5>
             </div>
             <div class="card-body">
-                <ApexChart TItem="DeckStats">
+                <ApexChart TItem="DeckStats" Options="@winRateChartOptions">
                     <ApexPointSeries TItem="DeckStats"
                                      Items="GetSortedDeckStats()"
                                      Name="Win Rate"
                                      SeriesType="SeriesType.Bar"
                                      XValue="e => e.DeckName"
-                                     YValue="e => (decimal)(e.TotalPlays > 0 ? (int)((double)e.Wins / e.TotalPlays * 100) : 0)" />
+                                     YValue="e => (decimal)(e.TotalPlays > 0 ? (int)((double)e.Wins / e.TotalPlays * 100) : 0)"
+                                     PointColor="deck => GetBarColor(deck)" />
                 </ApexChart>
             </div>
         </div>
@@ -236,6 +237,7 @@
     private List<DeckStats> deckStats = new();
     private SortColumn currentSortColumn = SortColumn.WinRate;
     private bool isAscending = false;
+    private ApexChartOptions<DeckStats> winRateChartOptions = new();
 
     protected override void OnInitialized()
     {
@@ -295,6 +297,7 @@
     protected override async Task OnInitializedAsync()
     {
         await LoadData();
+        ConfigureWinRateChartOptions();
     }
 
     private void SortBy(SortColumn column)
@@ -339,6 +342,33 @@
         };
 
         return sortedDeckStats.ToList();
+    }
+
+    private void ConfigureWinRateChartOptions()
+    {
+        winRateChartOptions = new ApexChartOptions<DeckStats>
+        {
+            Tooltip = new Tooltip
+            {
+                Y = new TooltipY
+                {
+                    Formatter = @"function(val) { return (val).toFixed(1) + '%'; }"
+                }
+            }
+        };
+    }
+
+    private string GetBarColor(DeckStats deck)
+    {
+        var winRate = deck.TotalPlays > 0 ? (double)deck.Wins / deck.TotalPlays * 100 : 0;
+        if (winRate >= 80) return "#3d0a91";
+        else if (winRate >= 70) return "#0a58ca";
+        else if (winRate >= 60) return "#0f5132";
+        else if (winRate >= 50) return "#146c43";
+        else if (winRate >= 40) return "#ffc107";
+        else if (winRate >= 30) return "#fd7e14";
+        else if (winRate >= 20) return "#b02a37";
+        else return "#842029";
     }
 
     private enum SortColumn
