@@ -34,6 +34,44 @@
     }
     else
     {
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="bi bi-funnel me-2"></i>Filters</h5>
+            </div>
+            <div class="card-body">
+                <div class="row align-items-center">
+                    <div class="col-md-12">
+                        <label for="minGamesFilter" class="form-label fw-bold">
+                            Minimum Games Played: @minGamesFilter
+                        </label>
+                        <input type="range"
+                               class="form-range"
+                               id="minGamesFilter"
+                               value="@minGamesFilter"
+                               @oninput="@((ChangeEventArgs e) => { minGamesFilter = int.Parse(e.Value?.ToString() ?? DEFAULT_MIN_GAMES_FILTER.ToString()); OnMinGamesFilterChanged(); })"
+                               @onchange="@((ChangeEventArgs e) => { minGamesFilter = int.Parse(e.Value?.ToString() ?? DEFAULT_MIN_GAMES_FILTER.ToString()); OnMinGamesFilterChanged(); })"
+                               min="1"
+                               max="50"
+                               step="1" />
+                    </div>
+                </div>
+                <div class="row mt-3">
+                    <div class="col-md-2">
+                        <button class="btn btn-secondary w-100"
+                                @onclick="ClearMinGamesFilter"
+                                disabled="@(minGamesFilter == DEFAULT_MIN_GAMES_FILTER)">
+                            <i class="bi bi-arrow-clockwise me-1"></i> Reset
+                        </button>
+                    </div>
+                    <div class="col-md-10 d-flex align-items-center">
+                        <span class="text-muted">
+                            Showing @FilteredDeckStats.Count out of @deckStats.Count decks (@(deckStats.Count - FilteredDeckStats.Count) hidden)
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <div class="card">
             <div class="card-body">
                 <div class="table-responsive">
@@ -232,12 +270,16 @@
 </div>
 
 @code {
+    private const int DEFAULT_MIN_GAMES_FILTER = 15;
+    
     private bool isLoading = true;
     private string? errorMessage;
     private List<DeckStats> deckStats = new();
     private SortColumn currentSortColumn = SortColumn.WinRate;
     private bool isAscending = false;
     private ApexChartOptions<DeckStats> winRateChartOptions = new();
+    private int minGamesFilter = DEFAULT_MIN_GAMES_FILTER;
+    private List<DeckStats> FilteredDeckStats => deckStats.Where(d => d.TotalPlays >= minGamesFilter).ToList();
 
     protected override void OnInitialized()
     {
@@ -317,15 +359,15 @@
     {
         var query = currentSortColumn switch
         {
-            SortColumn.DeckName => deckStats.AsQueryable(),
-            SortColumn.Plays => deckStats.AsQueryable(),
-            SortColumn.Wins => deckStats.AsQueryable(),
-            SortColumn.Losses => deckStats.AsQueryable(),
-            SortColumn.WinRate => deckStats.AsQueryable(),
-            SortColumn.FirstPlayerWinRate => deckStats.AsQueryable(),
-            SortColumn.GoingSecondWinRate => deckStats.AsQueryable(),
-            SortColumn.LastPlayed => deckStats.AsQueryable(),
-            _ => deckStats.AsQueryable()
+            SortColumn.DeckName => FilteredDeckStats.AsQueryable(),
+            SortColumn.Plays => FilteredDeckStats.AsQueryable(),
+            SortColumn.Wins => FilteredDeckStats.AsQueryable(),
+            SortColumn.Losses => FilteredDeckStats.AsQueryable(),
+            SortColumn.WinRate => FilteredDeckStats.AsQueryable(),
+            SortColumn.FirstPlayerWinRate => FilteredDeckStats.AsQueryable(),
+            SortColumn.GoingSecondWinRate => FilteredDeckStats.AsQueryable(),
+            SortColumn.LastPlayed => FilteredDeckStats.AsQueryable(),
+            _ => FilteredDeckStats.AsQueryable()
         };
 
         var sortedDeckStats = currentSortColumn switch
@@ -369,6 +411,17 @@
         else if (winRate >= 30) return "#fd7e14";
         else if (winRate >= 20) return "#b02a37";
         else return "#842029";
+    }
+
+    private void OnMinGamesFilterChanged()
+    {
+        StateHasChanged();
+    }
+
+    private void ClearMinGamesFilter()
+    {
+        minGamesFilter = DEFAULT_MIN_GAMES_FILTER;
+        StateHasChanged();
     }
 
     private enum SortColumn
