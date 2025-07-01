@@ -49,17 +49,46 @@
                                id="minGamesFilter"
                                value="@minGamesFilter"
                                @oninput="@((ChangeEventArgs e) => { minGamesFilter = int.Parse(e.Value?.ToString() ?? DEFAULT_MIN_GAMES_FILTER.ToString()); OnMinGamesFilterChanged(); })"
-                               @onchange="@((ChangeEventArgs e) => { minGamesFilter = int.Parse(e.Value?.ToString() ?? DEFAULT_MIN_GAMES_FILTER.ToString()); OnMinGamesFilterChanged(); })"
                                min="1"
                                max="50"
                                step="1" />
                     </div>
                 </div>
                 <div class="row mt-3">
+                    <div class="col-md-12">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="includeNotOwned" @bind="includeNotOwnedDecks" />
+                            <label class="form-check-label" for="includeNotOwned">
+                                Include not owned decks
+                            </label>
+                        </div>
+                    </div>
+                </div>
+                <div class="row mt-2">
+                    <div class="col-md-12">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="includeArchived" @bind="includeArchivedDecks" />
+                            <label class="form-check-label" for="includeArchived">
+                                Include archived decks
+                            </label>
+                        </div>
+                    </div>
+                </div>
+                <div class="row mt-2">
+                    <div class="col-md-12">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="hideLabels" @bind="hideLabels" />
+                            <label class="form-check-label" for="hideLabels">
+                                Hide labels
+                            </label>
+                        </div>
+                    </div>
+                </div>
+                <div class="row mt-3">
                     <div class="col-md-2">
                         <button class="btn btn-secondary w-100"
                                 @onclick="ClearMinGamesFilter"
-                                disabled="@(minGamesFilter == DEFAULT_MIN_GAMES_FILTER)">
+                                disabled="@(minGamesFilter == DEFAULT_MIN_GAMES_FILTER && !includeNotOwnedDecks && !includeArchivedDecks)">
                             <i class="bi bi-arrow-clockwise me-1"></i> Reset
                         </button>
                     </div>
@@ -170,7 +199,7 @@
                                     </button>
                                 </th>
                                 <th class="text-center">
-                                    <button class="btn btn-link text-decoration-none p-0 fw-bold" @onclick="() => SortBy(SortColumn.LastPlayed)">
+                                    <button class="btn btn-link text-decoration-none p-0 fw-bold" @onclick="() => SortBy(SortColumn.LastPlayed)" style="white-space: nowrap;">
                                         Last Played
                                         @if (currentSortColumn == SortColumn.LastPlayed)
                                         {
@@ -193,7 +222,10 @@
                                     <td>
                                         <div class="d-flex align-items-center">
                                             <NavLink class="deck-link" href="@Utilities.GetDeckUrl(deck.DeckName)">@deck.DeckName</NavLink>
-                                            <TagBadges Tags="@Utilities.GetDeckTags(deck.DeckName)" ContainerClass="ms-2" />
+                                            @if (!hideLabels)
+                                            {
+                                                <TagBadges Tags="@Utilities.GetDeckTags(deck.DeckName)" ContainerClass="ms-2" />
+                                            }
                                         </div>
                                     </td>
                                     <td class="text-center">
@@ -279,7 +311,12 @@
     private bool isAscending = false;
     private ApexChartOptions<DeckStats> winRateChartOptions = new();
     private int minGamesFilter = DEFAULT_MIN_GAMES_FILTER;
-    private List<DeckStats> FilteredDeckStats => deckStats.Where(d => d.TotalPlays >= minGamesFilter).ToList();
+    private bool includeNotOwnedDecks = false;
+    private bool includeArchivedDecks = false;
+    private bool hideLabels = false;
+    private List<DeckStats> FilteredDeckStats => deckStats.Where(d => 
+        d.TotalPlays >= minGamesFilter && 
+        ShouldIncludeDeck(d.DeckName)).ToList();
 
     protected override void OnInitialized()
     {
@@ -421,7 +458,20 @@
     private void ClearMinGamesFilter()
     {
         minGamesFilter = DEFAULT_MIN_GAMES_FILTER;
+        includeNotOwnedDecks = false;
+        includeArchivedDecks = false;
+        hideLabels = false;
         StateHasChanged();
+    }
+
+    private bool ShouldIncludeDeck(string deckName)
+    {
+        var tags = Utilities.GetDeckTags(deckName);
+        
+        if (tags.Contains("Not Owned") && !includeNotOwnedDecks) return false;
+        if (tags.Contains("Archived") && !includeArchivedDecks) return false;
+        
+        return true;
     }
 
     private enum SortColumn
