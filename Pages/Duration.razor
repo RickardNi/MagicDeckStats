@@ -175,15 +175,12 @@
                         <tbody>
                             @foreach (var deck in GetSortedDeckStats())
                             {
-                                var durationColor = deck.AverageDuration >= 120 ? "text-danger" :
-                                deck.AverageDuration >= 90 ? "text-warning" : "text-success";
-
                                 <tr>
                                     <td>
                                         <NavLink class="deck-link" href="@Utilities.GetDeckUrl(deck.DeckName)">@deck.DeckName</NavLink>
                                     </td>
                                     <td class="text-center">
-                                        <span class="fw-bold @durationColor">@(deck.AverageDuration.ToString("F1"))</span>
+                                        <span class="fw-bold @GetDurationColor(deck.AverageDuration)">@(deck.AverageDuration.ToString("F1"))</span>
                                     </td>
                                     <td class="text-center">
                                         <span>@deck.TotalPlays</span>
