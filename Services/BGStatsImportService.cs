@@ -110,11 +110,17 @@ public class BGStatsImportService(HttpClient httpClient, ILogger<BGStatsImportSe
         if (string.IsNullOrWhiteSpace(deckName))
             return deckName;
 
-        const string battleDeckPrefix = "[Battle Deck]";
+        const string battleDeckPrefix = "[Battle Deck] ";
+        const string battleDeckPrefixWithAsterisk = "[Battle Deck]* ";
 
+        if (deckName.StartsWith(battleDeckPrefixWithAsterisk, StringComparison.OrdinalIgnoreCase))
+        {
+            var cleanedName = deckName[battleDeckPrefixWithAsterisk.Length..];
+            return string.IsNullOrWhiteSpace(cleanedName) ? deckName : cleanedName;
+        }
         if (deckName.StartsWith(battleDeckPrefix, StringComparison.OrdinalIgnoreCase))
         {
-            var cleanedName = deckName[battleDeckPrefix.Length..].Trim();
+            var cleanedName = deckName[battleDeckPrefix.Length..];
             return string.IsNullOrWhiteSpace(cleanedName) ? deckName : cleanedName;
         }
 
