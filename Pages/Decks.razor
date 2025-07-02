@@ -282,20 +282,52 @@
 
         <div class="card mt-4">
             <div class="card-header">
-                <h5 class="card-title mb-0">
-                    <i class="bi bi-bar-chart me-2"></i>Win Rate Chart
-                </h5>
+                <div class="d-flex justify-content-between align-items-center">
+                    <h5 class="card-title mb-0">
+                        <i class="bi bi-bar-chart me-2"></i>Win Rate Chart
+                    </h5>
+                    <div class="btn-group" role="group">
+                        <button type="button" 
+                                class="btn @(chartOrientation == ChartOrientation.Horizontal ? "btn-primary" : "btn-outline-primary") btn-sm"
+                                @onclick="@(() => SetChartOrientation(ChartOrientation.Horizontal))">
+                            Horizontal
+                        </button>
+                        
+                        <button type="button" 
+                                class="btn @(chartOrientation == ChartOrientation.Vertical ? "btn-primary" : "btn-outline-primary") btn-sm"
+                                @onclick="@(() => SetChartOrientation(ChartOrientation.Vertical))">
+                            Vertical
+                        </button>
+                        
+
+                    </div>
+                </div>
             </div>
             <div class="card-body">
-                <ApexChart TItem="DeckStats" Options="@winRateChartOptions">
-                    <ApexPointSeries TItem="DeckStats"
-                                     Items="GetSortedDeckStats()"
-                                     Name="Win Rate"
-                                     SeriesType="SeriesType.Bar"
-                                     XValue="e => e.DeckName"
-                                     YValue="e => (decimal)(e.TotalPlays > 0 ? (int)((double)e.Wins / e.TotalPlays * 100) : 0)"
-                                     PointColor="deck => GetBarColor(deck)" />
-                </ApexChart>
+                @if (chartOrientation == ChartOrientation.Horizontal)
+                {
+                    <ApexChart TItem="DeckStats" Options="@winRateChartOptions">
+                        <ApexPointSeries TItem="DeckStats"
+                                         Items="GetSortedDeckStats()"
+                                         Name="Win Rate"
+                                         SeriesType="SeriesType.Bar"
+                                         XValue="e => e.DeckName"
+                                         YValue="e => (decimal)(e.TotalPlays > 0 ? (int)((double)e.Wins / e.TotalPlays * 100) : 0)"
+                                         PointColor="deck => GetBarColor(deck)" />
+                    </ApexChart>
+                }
+                else
+                {
+                    <ApexChart TItem="DeckStats" Options="@verticalChartOptions">
+                        <ApexPointSeries TItem="DeckStats"
+                                         Items="GetSortedDeckStats()"
+                                         Name="Win Rate"
+                                         SeriesType="SeriesType.Bar"
+                                         XValue="e => e.DeckName"
+                                         YValue="e => (decimal)(e.TotalPlays > 0 ? (int)((double)e.Wins / e.TotalPlays * 100) : 0)"
+                                         PointColor="deck => GetBarColor(deck)" />
+                    </ApexChart>
+                }
             </div>
         </div>
     }
@@ -310,10 +342,12 @@
     private SortColumn currentSortColumn = SortColumn.WinRate;
     private bool isAscending = false;
     private ApexChartOptions<DeckStats> winRateChartOptions = new();
+    private ApexChartOptions<DeckStats> verticalChartOptions = new();
     private int minGamesFilter = DEFAULT_MIN_GAMES_FILTER;
     private bool includeNotOwnedDecks = false;
     private bool includeArchivedDecks = false;
     private bool hideLabels = false;
+    private ChartOrientation chartOrientation = ChartOrientation.Horizontal;
     private List<DeckStats> FilteredDeckStats => deckStats.Where(d => 
         d.TotalPlays >= minGamesFilter && 
         ShouldIncludeDeck(d.DeckName)).ToList();
@@ -377,6 +411,7 @@
     {
         await LoadData();
         ConfigureWinRateChartOptions();
+        ConfigureVerticalChartOptions();
     }
 
     private void SortBy(SortColumn column)
@@ -427,6 +462,34 @@
     {
         winRateChartOptions = new ApexChartOptions<DeckStats>
         {
+            PlotOptions = new PlotOptions
+            {
+                Bar = new PlotOptionsBar
+                {
+                    Horizontal = true
+                }
+            },
+            Tooltip = new Tooltip
+            {
+                Y = new TooltipY
+                {
+                    Formatter = @"function(val) { return (val).toFixed(1) + '%'; }"
+                }
+            }
+        };
+    }
+
+    private void ConfigureVerticalChartOptions()
+    {
+        verticalChartOptions = new ApexChartOptions<DeckStats>
+        {
+            PlotOptions = new PlotOptions
+            {
+                Bar = new PlotOptionsBar
+                {
+                    Horizontal = false
+                }
+            },
             Tooltip = new Tooltip
             {
                 Y = new TooltipY
@@ -472,6 +535,20 @@
         if (tags.Contains("Archived") && !includeArchivedDecks) return false;
         
         return true;
+    }
+
+    private void SetChartOrientation(ChartOrientation orientation)
+    {
+        chartOrientation = orientation;
+        ConfigureWinRateChartOptions();
+        ConfigureVerticalChartOptions();
+        StateHasChanged();
+    }
+
+    private enum ChartOrientation
+    {
+        Horizontal,
+        Vertical
     }
 
     private enum SortColumn
