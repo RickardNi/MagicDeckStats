@@ -217,7 +217,7 @@
                             @foreach (var deck in GetSortedDeckStats())
                             {
                                 var winRateColor = Utilities.GetWinRateColorForDeck(deck.WinRate);
-                                
+
                                 <tr>
                                     <td>
                                         <div class="d-flex align-items-center">
@@ -287,18 +287,18 @@
                         <i class="bi bi-bar-chart me-2"></i>Win Rate Chart
                     </h5>
                     <div class="btn-group" role="group">
-                        <button type="button" 
+                        <button type="button"
                                 class="btn @(chartOrientation == ChartOrientation.Horizontal ? "btn-primary" : "btn-outline-primary") btn-sm"
                                 @onclick="@(() => SetChartOrientation(ChartOrientation.Horizontal))">
                             Horizontal
                         </button>
-                        
-                        <button type="button" 
+
+                        <button type="button"
                                 class="btn @(chartOrientation == ChartOrientation.Vertical ? "btn-primary" : "btn-outline-primary") btn-sm"
                                 @onclick="@(() => SetChartOrientation(ChartOrientation.Vertical))">
                             Vertical
                         </button>
-                        
+
 
                     </div>
                 </div>
@@ -330,12 +330,40 @@
                 }
             </div>
         </div>
+
+        <div class="card mt-4">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="bi bi-bar-chart me-2"></i>Played Games
+                </h5>
+            </div>
+            <div class="card-body">
+                <ApexChart TItem="DeckStats" Options="@playedGamesChartOptions">
+                    <ApexPointSeries TItem="DeckStats"
+                                     Items="GetSortedByPlayedGamesDeckStats()"
+                                     Name="Wins"
+                                     SeriesType="SeriesType.Bar"
+                                     XValue="e => e.DeckName"
+                                     YValue="e => e.Wins"
+                                     PointColor="@(deck => "#198754")"
+                                     ShowDataLabels />
+                    <ApexPointSeries TItem="DeckStats"
+                                     Items="GetSortedByPlayedGamesDeckStats()"
+                                     Name="Losses"
+                                     SeriesType="SeriesType.Bar"
+                                     XValue="e => e.DeckName"
+                                     YValue="e => e.Losses"
+                                     PointColor="@(deck => "#dc3545")"
+                                     ShowDataLabels />
+                </ApexChart>
+            </div>
+        </div>
     }
 </div>
 
 @code {
     private const int DEFAULT_MIN_GAMES_FILTER = 15;
-    
+
     private bool isLoading = true;
     private string? errorMessage;
     private List<DeckStats> deckStats = new();
@@ -348,9 +376,10 @@
     private bool includeArchivedDecks = false;
     private bool hideLabels = false;
     private ChartOrientation chartOrientation = ChartOrientation.Horizontal;
-    private List<DeckStats> FilteredDeckStats => deckStats.Where(d => 
-        d.TotalPlays >= minGamesFilter && 
+    private List<DeckStats> FilteredDeckStats => deckStats.Where(d =>
+        d.TotalPlays >= minGamesFilter &&
         ShouldIncludeDeck(d.DeckName)).ToList();
+    private ApexChartOptions<DeckStats> playedGamesChartOptions = new();
 
     protected override void OnInitialized()
     {
@@ -412,6 +441,7 @@
         await LoadData();
         ConfigureHorizontalChartOptions();
         ConfigureVerticalChartOptions();
+        ConfigurePlayedGamesChartOptions();
     }
 
     private void SortBy(SortColumn column)
@@ -462,6 +492,7 @@
     {
         horizontalChartOptions = new ApexChartOptions<DeckStats>
         {
+            Chart = new Chart { FontFamily = "Roboto Condensed" },
             PlotOptions = new PlotOptions
             {
                 Bar = new PlotOptionsBar
@@ -478,16 +509,40 @@
                 {
                     Formatter = @"function(val) { return (val).toFixed(1) + '%'; }"
                 }
-            }
-        };
-
-        horizontalChartOptions.Grid = new Grid
-        {
-            Xaxis = new GridXAxis
+            },
+            Grid = new Grid
             {
-                Lines = new Lines()
+                Xaxis = new GridXAxis
                 {
-                    Show = true,
+                    Lines = new Lines()
+                    {
+                        Show = true,
+                    },
+                }
+            },
+            Xaxis = new XAxis
+            {
+                Labels = new XAxisLabels
+                {
+                    Style = new AxisLabelStyle
+                    {
+                        FontSize = "16px"
+                    }
+                }
+            },
+            Yaxis = new List<YAxis>()
+            {
+                new YAxis
+                {
+                    
+                    Labels = new YAxisLabels
+                    {
+                        MaxWidth = 400,
+                        Style = new AxisLabelStyle
+                        {
+                            FontSize = "16px"
+                        }
+                    }
                 }
             }
         };
@@ -497,6 +552,7 @@
     {
         verticalChartOptions = new ApexChartOptions<DeckStats>
         {
+            Chart = new Chart { FontFamily = "Roboto Condensed" },
             PlotOptions = new PlotOptions
             {
                 Bar = new PlotOptionsBar
@@ -511,6 +567,87 @@
                 Y = new TooltipY
                 {
                     Formatter = @"function(val) { return (val).toFixed(1) + '%'; }"
+                }
+            },
+            Xaxis = new XAxis
+            {
+                Labels = new XAxisLabels
+                {
+                    Style = new AxisLabelStyle
+                    {
+                        FontSize = "16px"
+                    }
+                }
+            },
+            Yaxis = new List<YAxis>()
+            {
+                new YAxis
+                {
+                    Labels = new YAxisLabels
+                    {
+                        MaxWidth = 400,
+                        Style = new AxisLabelStyle
+                        {
+                            FontSize = "16px"
+                        }
+                    }
+                }
+            }
+        };
+    }
+
+    private void ConfigurePlayedGamesChartOptions()
+    {
+        playedGamesChartOptions = new ApexChartOptions<DeckStats>
+        {
+            Chart = new Chart { Stacked = true, FontFamily = "Roboto Condensed" },
+            Legend = new Legend { Show = false },
+            PlotOptions = new PlotOptions
+            {
+                Bar = new PlotOptionsBar
+                {
+                    Horizontal = true,
+                    BarHeight = "70%",
+
+                    DataLabels = new PlotOptionsBarDataLabels
+                    {
+                        Position = BarDataLabelPosition.Center,
+                        Total = new BarTotalDataLabels
+                        {
+                            OffsetX = 5
+                        }
+                    }
+                }
+            },
+            Tooltip = new Tooltip
+            {
+                Y = new TooltipY
+                {
+                    Formatter = @"function(val) { return val; }"
+                }
+            },
+            Xaxis = new XAxis
+            {
+                Labels = new XAxisLabels
+                {
+                    Style = new AxisLabelStyle
+                    {
+                        FontSize = "16px"
+                    }
+                }
+            },
+            Yaxis = new List<YAxis>()
+            {
+                new YAxis
+                {
+                    Labels = new YAxisLabels
+                    {
+                        MaxWidth = 400,
+                        Style = new AxisLabelStyle
+                        {
+                            FontSize = "16px"
+                        }
+                    }
                 }
             }
         };
@@ -546,10 +683,10 @@
     private bool ShouldIncludeDeck(string deckName)
     {
         var tags = Utilities.GetDeckTags(deckName);
-        
+
         if (tags.Contains("Not Owned") && !includeNotOwnedDecks) return false;
         if (tags.Contains("Archived") && !includeArchivedDecks) return false;
-        
+
         return true;
     }
 
@@ -558,6 +695,7 @@
         chartOrientation = orientation;
         ConfigureHorizontalChartOptions();
         ConfigureVerticalChartOptions();
+        ConfigurePlayedGamesChartOptions();
         StateHasChanged();
     }
 
@@ -579,6 +717,11 @@
         LastPlayed
     }
 
+    private List<DeckStats> GetSortedByPlayedGamesDeckStats()
+    {
+        return FilteredDeckStats.OrderByDescending(d => d.Wins + d.Losses).ToList();
+    }
+
     private class DeckStats
     {
         public string DeckName { get; set; } = string.Empty;
@@ -590,9 +733,9 @@
         public int GoingSecondPlays { get; set; }
         public int GoingSecondWins { get; set; }
         public DateTime? LastPlayed { get; set; }
-        
+
         public double WinRate => TotalPlays > 0 ? (double)Wins / TotalPlays : 0;
         public double FirstPlayerWinRate => FirstPlayerPlays > 0 ? (double)FirstPlayerWins / FirstPlayerPlays : 0;
         public double GoingSecondWinRate => GoingSecondPlays > 0 ? (double)GoingSecondWins / GoingSecondPlays : 0;
     }
-} 
+}
