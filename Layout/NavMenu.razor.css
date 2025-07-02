@@ -31,7 +31,7 @@
     }
 
     .nav-item ::deep a {
-        color: silver;
+        color: #9fa6bc;
         border-radius: 4px;
         height: 3rem;
         display: flex;
@@ -41,7 +41,11 @@
 
 .nav-item ::deep a.active {
     background-color: rgba(255,255,255,0.37);
-    color: silver;
+    color: white;
+}
+
+.nav-item ::deep a.active .bi {
+    color: white;
 }
 
 .nav-item ::deep a:hover {
@@ -54,7 +58,7 @@
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    color: silver;
+    color: #9fa6bc;
 }
 
 @media (min-width: 641px) {

@@ -1,5 +1,18 @@
-/* Local Font Declarations */
-/* Roboto Condensed */
+@font-face {
+    font-family: 'Nunito Sans';
+    src: url('/fonts/nunito-sans/NunitoSans-VariableFont_YTLC,opsz,wdth,wght.ttf') format('truetype');
+    font-weight: 300 800;
+    font-style: normal;
+    font-display: swap;
+}
+@font-face {
+    font-family: 'Nunito Sans';
+    src: url('/fonts/nunito-sans/NunitoSans-Italic-VariableFont_YTLC,opsz,wdth,wght.ttf') format('truetype');
+    font-weight: 300 800;
+    font-style: italic;
+    font-display: swap;
+}
+
 @font-face {
     font-family: 'Roboto Condensed';
     src: url('../fonts/roboto-condensed/RobotoCondensed-Light.ttf') format('truetype');
@@ -56,65 +69,8 @@
     font-display: swap;
 }
 
-/* Roboto */
-@font-face {
-    font-family: 'Roboto';
-    src: url('../fonts/roboto/Roboto-Light.ttf') format('truetype');
-    font-weight: 300;
-    font-style: normal;
-    font-display: swap;
-}
-
-@font-face {
-    font-family: 'Roboto';
-    src: url('../fonts/roboto/Roboto-Regular.ttf') format('truetype');
-    font-weight: 400;
-    font-style: normal;
-    font-display: swap;
-}
-
-@font-face {
-    font-family: 'Roboto';
-    src: url('../fonts/roboto/Roboto-Medium.ttf') format('truetype');
-    font-weight: 500;
-    font-style: normal;
-    font-display: swap;
-}
-
-@font-face {
-    font-family: 'Roboto';
-    src: url('../fonts/roboto/Roboto-SemiBold.ttf') format('truetype');
-    font-weight: 600;
-    font-style: normal;
-    font-display: swap;
-}
-
-@font-face {
-    font-family: 'Roboto';
-    src: url('../fonts/roboto/Roboto-Bold.ttf') format('truetype');
-    font-weight: 700;
-    font-style: normal;
-    font-display: swap;
-}
-
-@font-face {
-    font-family: 'Roboto';
-    src: url('../fonts/roboto/Roboto-ExtraBold.ttf') format('truetype');
-    font-weight: 800;
-    font-style: normal;
-    font-display: swap;
-}
-
-@font-face {
-    font-family: 'Roboto';
-    src: url('../fonts/roboto/Roboto-Italic.ttf') format('truetype');
-    font-weight: 400;
-    font-style: italic;
-    font-display: swap;
-}
-
 html, body {
-    font-family: 'Roboto', 'Roboto Condensed', 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
+    font-family: 'Nunito Sans', 'Roboto','Segoe UI', 'Helvetica Neue', Arial, sans-serif;
 }
 
 h1:focus {
@@ -260,7 +216,7 @@ code {
 
 .table th {
     border-top: none;
-    font-weight: 600;
+    font-weight: 800;
     color: #495057;
 }
 
@@ -339,7 +295,7 @@ code {
 /* Custom styles for mobile table optimization */
 @media (max-width: 767.98px) {
     html, body {
-        font-family: 'Roboto Condensed', 'Roboto', 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
+        font-family: 'Roboto Condensed', 'Nunito Sans', 'Roboto', 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
     }
     .table thead th {
         font-size: 0.7rem !important;
@@ -384,7 +340,7 @@ textarea.form-control {
 
 /* Matches result styling */
 .matches-result {
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    font-family: 'Nunito Sans', 'Roboto', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     font-size: 0.95rem;
     line-height: 1.6;
     color: #495057;
