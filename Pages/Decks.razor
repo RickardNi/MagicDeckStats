@@ -306,7 +306,7 @@
             <div class="card-body">
                 @if (chartOrientation == ChartOrientation.Horizontal)
                 {
-                    <ApexChart TItem="DeckStats" Options="@winRateChartOptions">
+                    <ApexChart TItem="DeckStats" Options="@horizontalChartOptions">
                         <ApexPointSeries TItem="DeckStats"
                                          Items="GetSortedDeckStats()"
                                          Name="Win Rate"
@@ -341,7 +341,7 @@
     private List<DeckStats> deckStats = new();
     private SortColumn currentSortColumn = SortColumn.WinRate;
     private bool isAscending = false;
-    private ApexChartOptions<DeckStats> winRateChartOptions = new();
+    private ApexChartOptions<DeckStats> horizontalChartOptions = new();
     private ApexChartOptions<DeckStats> verticalChartOptions = new();
     private int minGamesFilter = DEFAULT_MIN_GAMES_FILTER;
     private bool includeNotOwnedDecks = false;
@@ -410,7 +410,7 @@
     protected override async Task OnInitializedAsync()
     {
         await LoadData();
-        ConfigureWinRateChartOptions();
+        ConfigureHorizontalChartOptions();
         ConfigureVerticalChartOptions();
     }
 
@@ -458,9 +458,9 @@
         return sortedDeckStats.ToList();
     }
 
-    private void ConfigureWinRateChartOptions()
+    private void ConfigureHorizontalChartOptions()
     {
-        winRateChartOptions = new ApexChartOptions<DeckStats>
+        horizontalChartOptions = new ApexChartOptions<DeckStats>
         {
             PlotOptions = new PlotOptions
             {
@@ -474,6 +474,17 @@
                 Y = new TooltipY
                 {
                     Formatter = @"function(val) { return (val).toFixed(1) + '%'; }"
+                }
+            }
+        };
+
+        horizontalChartOptions.Grid = new Grid
+        {
+            Xaxis = new GridXAxis
+            {
+                Lines = new Lines()
+                {
+                    Show = true,
                 }
             }
         };
@@ -540,7 +551,7 @@
     private void SetChartOrientation(ChartOrientation orientation)
     {
         chartOrientation = orientation;
-        ConfigureWinRateChartOptions();
+        ConfigureHorizontalChartOptions();
         ConfigureVerticalChartOptions();
         StateHasChanged();
     }
