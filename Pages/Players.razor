@@ -280,70 +280,7 @@
 
                 @if (totalPages > 1)
                 {
-                    <nav aria-label="Players pagination">
-                        <ul class="pagination justify-content-center">
-                            <li class="page-item @(currentPage == 1 ? "disabled" : "")">
-                                <button class="page-link" @onclick="() => GoToPage(1)" disabled="@(currentPage == 1)">
-                                    <i class="bi bi-chevron-double-left"></i>
-                                </button>
-                            </li>
-                            <li class="page-item @(currentPage == 1 ? "disabled" : "")">
-                                <button class="page-link" @onclick="() => GoToPage(currentPage - 1)" disabled="@(currentPage == 1)">
-                                    <i class="bi bi-chevron-left"></i>
-                                </button>
-                            </li>
-
-                            @{
-                                var startPage = Math.Max(1, currentPage - 2);
-                                var endPage = Math.Min(totalPages, currentPage + 2);
-
-                                if (startPage > 1)
-                                {
-                                    <li class="page-item">
-                                        <button class="page-link" @onclick="() => GoToPage(1)">1</button>
-                                    </li>
-                                    if (startPage > 2)
-                                    {
-                                        <li class="page-item disabled">
-                                            <span class="page-link">...</span>
-                                        </li>
-                                    }
-                                }
-
-                                for (int i = startPage; i <= endPage; i++)
-                                {
-                                    var pageNumber = i;
-                                    <li class="page-item @(pageNumber == currentPage ? "active" : "")">
-                                        <button class="page-link" @onclick="() => GoToPage(pageNumber)">@pageNumber</button>
-                                    </li>
-                                }
-
-                                if (endPage < totalPages)
-                                {
-                                    if (endPage < totalPages - 1)
-                                    {
-                                        <li class="page-item disabled">
-                                            <span class="page-link">...</span>
-                                        </li>
-                                    }
-                                    <li class="page-item">
-                                        <button class="page-link" @onclick="() => GoToPage(totalPages)">@totalPages</button>
-                                    </li>
-                                }
-                            }
-
-                            <li class="page-item @(currentPage == totalPages ? "disabled" : "")">
-                                <button class="page-link" @onclick="() => GoToPage(currentPage + 1)" disabled="@(currentPage == totalPages)">
-                                    <i class="bi bi-chevron-right"></i>
-                                </button>
-                            </li>
-                            <li class="page-item @(currentPage == totalPages ? "disabled" : "")">
-                                <button class="page-link" @onclick="() => GoToPage(totalPages)" disabled="@(currentPage == totalPages)">
-                                    <i class="bi bi-chevron-double-right"></i>
-                                </button>
-                            </li>
-                        </ul>
-                    </nav>
+                    <Pagination CurrentPage="@currentPage" TotalPages="@totalPages" OnPageChanged="HandlePageChanged" />
                 }
             </div>
         </div>
@@ -608,5 +545,12 @@
     private void OnMinGamesFilterChanged()
     {
         UpdateCurrentPagePlayerStats();
+    }
+
+    private Task HandlePageChanged(int page)
+    {
+        currentPage = page;
+        UpdateCurrentPagePlayerStats();
+        return Task.CompletedTask;
     }
 } 

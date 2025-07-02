@@ -319,6 +319,7 @@ code {
     .card-body .table-responsive {
         margin: -1rem;
         padding: 0rem !important;
+        padding-bottom: 12px !important;
     }
 }
 
@@ -380,4 +381,87 @@ textarea.form-control {
 
 .matches-table td:nth-child(4) {
     width: auto;
+}
+
+/* Visually hidden utility for accessibility */
+.visually-hidden {
+    position: absolute !important;
+    width: 1px !important;
+    height: 1px !important;
+    padding: 0 !important;
+    margin: -1px !important;
+    overflow: hidden !important;
+    clip: rect(0, 0, 0, 0) !important;
+    white-space: nowrap !important;
+    border: 0 !important;
+}
+
+/* Pagination component - final tweaks */
+nav[aria-label="Pagination"] {
+    margin-top: 1rem;
+    margin-bottom: 0;
+    padding: 0;
+}
+.pagination {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    gap: 2px;
+    background: none;
+    box-shadow: none;
+}
+.pagination .page-item {
+    margin: 0 1px;
+}
+.pagination .page-link {
+    background: none !important;
+    border: none;
+    color: #212529;
+    font-size: 0.75rem;
+    font-weight: 700;
+    min-width: 2rem;
+    min-height: 2rem;
+    height: 2rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    text-align: center;
+    transition: background 0.2s, color 0.2s;
+    box-shadow: none;
+    outline: none;
+}
+.pagination .page-link:focus,
+.pagination .page-link:active {
+    outline: none !important;
+    box-shadow: none !important;
+}
+.pagination .page-item.active .page-link {
+    background: #0d6efd !important;
+    color: #fff !important;
+    font-weight: 600;
+    border-radius: 0.4rem;
+}
+.pagination .page-link[disabled], .pagination .page-link:disabled {
+    color: #bdbdbd;
+    background: #f3f3f3;
+    cursor: not-allowed;
+}
+
+.pagination .page-link .bi {
+    font-size: 1em;
+    font-weight: bold;
+    vertical-align: middle;
+    text-shadow: 0 0 1px #212529, 0 0 1px #212529;
+}
+
+.pagination .page-link[disabled] .bi,
+.pagination .page-link:disabled .bi {
+    color: #bfc4ca !important;
+    opacity: 0.5;
+}
+
+.table {
+    margin-bottom: 0 !important;
 }
