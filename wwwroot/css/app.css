@@ -354,10 +354,7 @@ a, .btn-link {
     .apexcharts-yaxis-label tspan {
         font-size:8px !important;
     }
-}
-
-/* Override Bootstrap container max-width for mobile to use full screen width */
-@media (min-width: 576px) {
+    /* Override Bootstrap container max-width for mobile to use full screen width */
     .container, .container-sm {
         max-width: none !important;
     }
