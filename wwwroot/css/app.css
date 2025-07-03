@@ -532,3 +532,34 @@ nav[aria-label="Pagination"] {
 .settings-dropdown-toggle::after {
     display: none; /* Hide the default dropdown arrow */
 }
+
+/* Variant filter styling in dropdown */
+.settings-dropdown-menu .dropdown-header {
+    color: rgba(255, 255, 255, 0.9) !important;
+    font-weight: 600;
+    font-size: 0.8rem;
+    padding: 0.5rem 1.25rem;
+}
+
+.settings-dropdown-menu .form-check {
+    margin-bottom: 0.25rem;
+}
+
+.settings-dropdown-menu .form-check-label {
+    color: rgba(255, 255, 255, 0.7) !important;
+    font-size: 0.8rem;
+}
+
+.settings-dropdown-menu .form-check-input:checked {
+    background-color: orange;
+    border-color: orange;
+}
+
+.settings-dropdown-menu .form-check-input:focus {
+    border-color: orange;
+    box-shadow: 0 0 0 0.25rem rgba(255, 165, 0, 0.25);
+}
+
+.settings-dropdown-menu .dropdown-divider {
+    border-color: rgba(255, 255, 255, 0.15) !important;
+}
