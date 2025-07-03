@@ -349,6 +349,11 @@ a, .btn-link {
         padding: 0rem !important;
         padding-bottom: 12px !important;
     }
+
+    .apexcharts-yaxis-label,
+    .apexcharts-yaxis-label tspan {
+        font-size:8px !important;
+    }
 }
 
 /* =============================================================================
