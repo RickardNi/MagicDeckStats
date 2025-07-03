@@ -306,9 +306,9 @@
             <div class="card-body">
                 @if (chartOrientation == ChartOrientation.Horizontal)
                 {
-                    <ApexChart TItem="DeckStats" Options="@horizontalChartOptions">
+                    <ApexChart TItem="DeckStats" Options="@horizontalChartOptions" @key="chartRenderKey">
                         <ApexPointSeries TItem="DeckStats"
-                                         Items="GetSortedDeckStats()"
+                                         Items="@chartDeckStats"
                                          Name="Win Rate"
                                          SeriesType="SeriesType.Bar"
                                          XValue="e => e.DeckName"
@@ -318,9 +318,9 @@
                 }
                 else
                 {
-                    <ApexChart TItem="DeckStats" Options="@verticalChartOptions">
+                    <ApexChart TItem="DeckStats" Options="@verticalChartOptions" @key="chartRenderKey">
                         <ApexPointSeries TItem="DeckStats"
-                                         Items="GetSortedDeckStats()"
+                                         Items="@chartDeckStats"
                                          Name="Win Rate"
                                          SeriesType="SeriesType.Bar"
                                          XValue="e => e.DeckName"
@@ -338,9 +338,9 @@
                 </h5>
             </div>
             <div class="card-body">
-                <ApexChart TItem="DeckStats" Options="@playedGamesChartOptions">
+                <ApexChart TItem="DeckStats" Options="@playedGamesChartOptions" @key="chartRenderKey">
                     <ApexPointSeries TItem="DeckStats"
-                                     Items="GetSortedByPlayedGamesDeckStats()"
+                                     Items="@chartPlayedGamesDeckStats"
                                      Name="Wins"
                                      SeriesType="SeriesType.Bar"
                                      XValue="e => e.DeckName"
@@ -348,7 +348,7 @@
                                      PointColor="@(deck => "#198754")"
                                      ShowDataLabels />
                     <ApexPointSeries TItem="DeckStats"
-                                     Items="GetSortedByPlayedGamesDeckStats()"
+                                     Items="@chartPlayedGamesDeckStats"
                                      Name="Losses"
                                      SeriesType="SeriesType.Bar"
                                      XValue="e => e.DeckName"
@@ -372,14 +372,53 @@
     private ApexChartOptions<DeckStats> horizontalChartOptions = new();
     private ApexChartOptions<DeckStats> verticalChartOptions = new();
     private int minGamesFilter = DEFAULT_MIN_GAMES_FILTER;
-    private bool includeNotOwnedDecks = false;
-    private bool includeArchivedDecks = false;
-    private bool hideLabels = false;
+    private bool _includeNotOwnedDecks;
+    private bool includeNotOwnedDecks
+    {
+        get => _includeNotOwnedDecks;
+        set
+        {
+            if (_includeNotOwnedDecks != value)
+            {
+                _includeNotOwnedDecks = value;
+                OnMinGamesFilterChanged();
+            }
+        }
+    }
+    private bool _includeArchivedDecks;
+    private bool includeArchivedDecks
+    {
+        get => _includeArchivedDecks;
+        set
+        {
+            if (_includeArchivedDecks != value)
+            {
+                _includeArchivedDecks = value;
+                OnMinGamesFilterChanged();
+            }
+        }
+    }
+    private bool _hideLabels;
+    private bool hideLabels
+    {
+        get => _hideLabels;
+        set
+        {
+            if (_hideLabels != value)
+            {
+                _hideLabels = value;
+                OnMinGamesFilterChanged();
+            }
+        }
+    }
     private ChartOrientation chartOrientation = ChartOrientation.Horizontal;
     private List<DeckStats> FilteredDeckStats => deckStats.Where(d =>
         d.TotalPlays >= minGamesFilter &&
         ShouldIncludeDeck(d.DeckName)).ToList();
     private ApexChartOptions<DeckStats> playedGamesChartOptions = new();
+    private List<DeckStats> chartDeckStats = new();
+    private List<DeckStats> chartPlayedGamesDeckStats = new();
+    private int chartRenderKey = 0;
 
     protected override void OnInitialized()
     {
@@ -396,6 +435,7 @@
         await InvokeAsync(async () =>
         {
             await LoadData();
+            UpdateChartData();
             StateHasChanged();
         });
     }
@@ -439,6 +479,7 @@
     protected override async Task OnInitializedAsync()
     {
         await LoadData();
+        UpdateChartData();
         ConfigureHorizontalChartOptions();
         ConfigureVerticalChartOptions();
         ConfigurePlayedGamesChartOptions();
@@ -668,6 +709,7 @@
 
     private void OnMinGamesFilterChanged()
     {
+        UpdateChartData();
         StateHasChanged();
     }
 
@@ -677,6 +719,7 @@
         includeNotOwnedDecks = false;
         includeArchivedDecks = false;
         hideLabels = false;
+        UpdateChartData();
         StateHasChanged();
     }
 
@@ -696,6 +739,7 @@
         ConfigureHorizontalChartOptions();
         ConfigureVerticalChartOptions();
         ConfigurePlayedGamesChartOptions();
+        UpdateChartData();
         StateHasChanged();
     }
 
@@ -720,6 +764,13 @@
     private List<DeckStats> GetSortedByPlayedGamesDeckStats()
     {
         return FilteredDeckStats.OrderByDescending(d => d.Wins + d.Losses).ToList();
+    }
+
+    private void UpdateChartData()
+    {
+        chartDeckStats = GetSortedDeckStats();
+        chartPlayedGamesDeckStats = GetSortedByPlayedGamesDeckStats();
+        chartRenderKey++;
     }
 
     private class DeckStats
