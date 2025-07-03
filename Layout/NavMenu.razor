@@ -2,7 +2,7 @@
 @inject IBGStatsImportService BGStatsService
 @inject IGlobalFilterService GlobalFilterService
 
-<nav class="nav-bar-links">
+<nav class="nav-bar-links d-flex align-items-center w-100">
     <NavLink class="nav-link" href="" Match="NavLinkMatch.All" title="Dashboard">
         <span class="bi bi-bar-chart-fill" aria-hidden="true"></span><span class="nav-text">Dashboard</span>
     </NavLink>
@@ -18,10 +18,21 @@
     <NavLink class="nav-link" href="duration" title="Duration">
         <span class="bi bi-clock" aria-hidden="true"></span><span class="nav-text">Duration</span>
     </NavLink>
-    <NavLink class="nav-link" href="import-export" title="Import / Export">
-        <span class="bi bi-arrow-left-right" aria-hidden="true"></span><span class="nav-text">Import / Export</span>
-    </NavLink>
-    <NavLink class="nav-link" href="tools" title="Tools">
-        <span class="bi bi-tools" aria-hidden="true"></span><span class="nav-text">Tools</span>
-    </NavLink>
+    <div class="dropdown ms-auto">
+        <button class="btn btn-link nav-link dropdown-toggle d-flex align-items-center settings-dropdown-toggle" type="button" id="settingsDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+            <span class="bi bi-gear" aria-hidden="true"></span>
+        </button>
+        <ul class="dropdown-menu dropdown-menu-end settings-dropdown-menu" aria-labelledby="settingsDropdown">
+            <li>
+                <NavLink class="dropdown-item d-flex align-items-center" href="import-export">
+                    <span class="bi bi-arrow-left-right me-2" aria-hidden="true"></span>Import / Export
+                </NavLink>
+            </li>
+            <li>
+                <NavLink class="dropdown-item d-flex align-items-center" href="tools">
+                    <span class="bi bi-tools me-2" aria-hidden="true"></span>Tools
+                </NavLink>
+            </li>
+        </ul>
+    </div>
 </nav>

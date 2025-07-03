@@ -103,3 +103,49 @@
         color: orange !important;
     }
 }
+
+/* Settings Dropdown Customization */
+.settings-dropdown-menu {
+    background-color: var(--main-bg-color) !important;
+    border-radius: 0.5rem;
+    min-width: 12rem;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.12);
+    border: none;
+    padding: 0.25rem 0;
+}
+.settings-dropdown-menu .dropdown-item {
+    color: var(--bs-nav-link-color) !important;
+    font-size: 1rem;
+    transition: background 0.15s;
+}
+.settings-dropdown-menu .dropdown-item:hover, .settings-dropdown-menu .dropdown-item:focus {
+    background-color: var(--hover-bg) !important;
+    color: var(--bs-nav-link-hover-color) !important;
+}
+.settings-dropdown-menu .dropdown-item .bi {
+    color: var(--icon-color);
+    font-size: 1.1em;
+}
+
+.settings-dropdown-toggle {
+    border: none !important;
+    box-shadow: none !important;
+    padding-right: 0 !important;
+    margin-right: 0 !important;
+}
+.settings-dropdown-toggle:focus, .settings-dropdown-toggle:active, .settings-dropdown-toggle:focus-visible {
+    border: none !important;
+    box-shadow: none !important;
+    outline: none !important;
+}
+.settings-dropdown-toggle::after {
+    display: none !important;
+}
+
+.settings-dropdown-toggle .bi {
+    margin-right: 0 !important;
+}
+
+.dropdown.ms-auto {
+    margin-right: 0 !important;
+}
