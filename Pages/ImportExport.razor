@@ -6,6 +6,7 @@
 @inject IBGStatsImportService BGStatsService
 @inject ILogger<ImportExport> Logger
 @inject IJSRuntime JS
+@implements IAsyncDisposable
 
 <PageTitle>Magic Deck Stats - Import / Export</PageTitle>
 
@@ -25,9 +26,8 @@
                     <div class="mb-3">
                         <label for="fileInput" class="form-label">Upload BGStats JSON Export</label>
                         <div class="drop-zone @(isDragOver ? "drag-over" : "")"
-                             @ondragover="HandleDragOver"
-                             @ondragleave="HandleDragLeave"
-                             @ondrop="HandleDrop">
+                             @ref="dropZoneElement"
+                             @ondragover="HandleDragOver">
                             <div class="drop-zone-content">
                                 <span class="bi bi-cloud-upload fs-1 text-muted"></span>
                                 <p class="mt-2 mb-0">Drag and drop your BGStats JSON file here</p>
@@ -189,29 +189,136 @@
     private bool copySuccess = false;
     private string nameModificationOption = "none";
     private string excludePlayerIds = "2, 3, 7, 10, 44, 47, 71, 169";
+    private ElementReference dropZoneElement;
+    private DotNetObjectReference<ImportExport>? dotNetObjectReference;
 
     protected override async Task OnInitializedAsync()
     {
         await RefreshExportData();
     }
 
-    private void HandleDragOver(DragEventArgs e)
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            dotNetObjectReference = DotNetObjectReference.Create(this);
+            await JS.InvokeVoidAsync("DragDropHelper.initializeDragDrop", dropZoneElement, dotNetObjectReference);
+        }
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        if (dotNetObjectReference != null)
+        {
+            await JS.InvokeVoidAsync("DragDropHelper.disposeDragDrop", dropZoneElement);
+            dotNetObjectReference.Dispose();
+        }
+    }
+
+    [JSInvokable]
+    public async Task OnDragEnter()
     {
         isDragOver = true;
+        await InvokeAsync(StateHasChanged);
     }
 
-    private void HandleDragLeave(DragEventArgs e)
+    [JSInvokable]
+    public async Task OnDragLeave()
     {
         isDragOver = false;
+        await InvokeAsync(StateHasChanged);
     }
 
-    private void HandleDrop(DragEventArgs e)
+    [JSInvokable]
+    public async Task OnFileDropped(object fileInfo)
     {
         isDragOver = false;
-        // Note: Drag and drop file handling is complex in Blazor WebAssembly
-        // For now, we'll rely on the file input below
+        
+        if (fileInfo is JsonElement jsonElement)
+        {
+            var name = jsonElement.GetProperty("name").GetString() ?? "";
+            var size = jsonElement.GetProperty("size").GetInt64();
+            var content = jsonElement.GetProperty("content").GetString() ?? "";
+
+            await ProcessDroppedFile(name, size, content);
+        }
+        
+        await InvokeAsync(StateHasChanged);
     }
 
+    [JSInvokable]
+    public async Task OnInvalidFileType()
+    {
+        isDragOver = false;
+        importStatus = "Please select a JSON file.";
+        importSuccess = false;
+        await InvokeAsync(StateHasChanged);
+    }
+
+    [JSInvokable]
+    public async Task OnFileReadError()
+    {
+        isDragOver = false;
+        importStatus = "Error reading the dropped file.";
+        importSuccess = false;
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private async Task ProcessDroppedFile(string fileName, long fileSize, string content)
+    {
+        try
+        {
+            importStatus = "Processing dropped file...";
+            importSuccess = false;
+
+            // Check file size (10MB limit)
+            if (fileSize > 10 * 1024 * 1024)
+            {
+                importStatus = "File is too large. Maximum size is 10MB.";
+                importSuccess = false;
+                return;
+            }
+
+            // Import the data using the service
+            var importResult = await BGStatsService.ImportDataAsync(content);
+
+            if (!importResult)
+            {
+                importStatus = "Failed to import data. Please ensure it's a valid BGStats export.";
+                importSuccess = false;
+                return;
+            }
+
+            // Get the imported data for display
+            importedData = await BGStatsService.GetCurrentDataAsync();
+
+            if (importedData == null)
+            {
+                importStatus = "Data imported but failed to retrieve for display.";
+                importSuccess = false;
+                return;
+            }
+
+            importStatus = $"Successfully imported {fileName} with {importedData.Games.Count} games, {importedData.Plays.Count} plays, and {importedData.Players.Count} players.";
+            importSuccess = true;
+
+            // Refresh export data to include the newly imported data
+            await RefreshExportData();
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Error processing dropped file: {FileName}", fileName);
+            importStatus = $"Error processing file: {ex.Message}";
+            importSuccess = false;
+        }
+    }
+
+    private void HandleDragOver(DragEventArgs e)
+    {
+        // Prevent default to allow drop - the actual handling is done via JS interop
+        e.DataTransfer.DropEffect = "copy";
+    }
+    
     private async Task HandleFileSelect(InputFileChangeEventArgs e)
     {
         if (e.FileCount > 0)
