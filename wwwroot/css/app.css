@@ -69,6 +69,17 @@
     font-display: swap;
 }
 
+:root {
+    /* Theme Colors */
+    --main-bg-color: #1F2937;
+    --icon-color: #BCBFC3;
+    --hover-bg: rgba(255,255,255,0.08);
+    
+    /* Bootstrap Overrides */
+    --bs-nav-link-color: #BCBFC3;
+    --bs-link-color: #BCBFC3;
+}
+
 html, body {
     font-family: 'Nunito Sans', 'Roboto','Segoe UI', 'Helvetica Neue', Arial, sans-serif;
 }
@@ -81,8 +92,8 @@ h1 {
     margin-bottom: 2rem;
 }
 
-a, .btn-link {
-    color: #0071c1;
+code {
+    color: #c02d76;
 }
 
 .btn-primary {
@@ -92,11 +103,18 @@ a, .btn-link {
 }
 
 .btn:focus, .btn:active:focus, .btn-link.nav-link:focus, .form-control:focus, .form-check-input:focus {
-  box-shadow: 0 0 0 0.1rem white, 0 0 0 0.25rem #258cfb;
+    box-shadow: 0 0 0 0.1rem white, 0 0 0 0.25rem #258cfb;
 }
 
-.content {
-    padding-top: 1.1rem;
+.form-floating > .form-control-plaintext::placeholder, 
+.form-floating > .form-control::placeholder {
+    color: var(--bs-secondary-color);
+    text-align: end;
+}
+
+.form-floating > .form-control-plaintext:focus::placeholder, 
+.form-floating > .form-control:focus::placeholder {
+    text-align: start;
 }
 
 .valid.modified:not([type=checkbox]) {
@@ -109,6 +127,13 @@ a, .btn-link {
 
 .validation-message {
     color: red;
+}
+
+/* Global textarea styling */
+textarea.form-control {
+    font-family: 'Roboto Mono', 'Courier New', monospace;
+    font-size: 0.875rem;
+    font-weight: 500;
 }
 
 #blazor-error-ui {
@@ -177,31 +202,12 @@ a, .btn-link {
         display: none; /* Hide the percentage text */
     }
 
-code {
-    color: #c02d76;
+a, .btn-link {
+    color: #0071c1;
 }
 
-.form-floating > .form-control-plaintext::placeholder, .form-floating > .form-control::placeholder {
-    color: var(--bs-secondary-color);
-    text-align: end;
-}
-
-.form-floating > .form-control-plaintext:focus::placeholder, .form-floating > .form-control:focus::placeholder {
-    text-align: start;
-}
-
-/* Custom styles for Magic Deck Stats */
-.spin {
-    animation: spin 1s linear infinite;
-}
-
-@keyframes spin {
-    from {
-        transform: rotate(0deg);
-    }
-    to {
-        transform: rotate(360deg);
-    }
+.content {
+    padding-top: 1.1rem;
 }
 
 .card {
@@ -214,10 +220,24 @@ code {
     border-bottom: 1px solid rgba(0, 0, 0, 0.125);
 }
 
+.card-title .bi {
+    margin-right: 0.75rem !important;
+}
+
+.table {
+    margin-bottom: 0 !important;
+}
+
 .table th {
     border-top: none;
     font-weight: 800;
     color: #495057;
+}
+
+.flag-icon-column {
+    width: 20px;
+    padding-left: 0.25rem !important;
+    padding-right: 0rem !important;
 }
 
 .badge {
@@ -240,90 +260,33 @@ code {
     color: #721c24;
 }
 
-/* Flag icon column styling for tighter spacing */
-.flag-icon-column {
-    width: 20px;
-    padding-left: 0.25rem !important;
-    padding-right: 0rem !important;
-}
+/* =============================================================================
+   CUSTOM LINK STYLES
+   ============================================================================= */
 
-/* Add spacing between icons and text in card titles */
-.card-title .bi {
-    margin-right: 0.75rem !important;
-}
-
-.deck-link {
+.deck-link, .player-link {
     color: #212529 !important;
     text-decoration: none;
 }
 
-.deck-link:hover,
-.deck-link.text-success:hover,
-.deck-link.text-danger:hover {
+.deck-link:hover, .player-link:hover,
+.deck-link.text-success:hover, .player-link.text-success:hover,
+.deck-link.text-danger:hover, .player-link.text-danger:hover {
     color: #0071c1 !important;
 }
 
-/* Allow color classes to override the default black color */
-.deck-link.text-success {
+.deck-link.text-success, .player-link.text-success {
     color: #198754 !important;
 }
 
-.deck-link.text-danger {
+.deck-link.text-danger, .player-link.text-danger {
     color: #dc3545 !important;
 }
 
-.player-link {
-    color: #212529 !important;
-    text-decoration: none;
-}
+/* =============================================================================
+   CUSTOM COLOR UTILITIES
+   ============================================================================= */
 
-.player-link:hover,
-.player-link.text-success:hover,
-.player-link.text-danger:hover {
-    color: #0071c1 !important;
-}
-
-/* Allow color classes to override the default black color for player links */
-.player-link.text-success {
-    color: #198754 !important;
-}
-
-.player-link.text-danger {
-    color: #dc3545 !important;
-}
-
-/* Custom styles for mobile table optimization */
-@media (max-width: 767.98px) {
-    html, body {
-        font-family: 'Roboto Condensed', 'Nunito Sans', 'Roboto', 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
-    }
-    .table thead th {
-        font-size: 0.7rem !important;
-        padding-top: 0.3rem !important;
-        padding-bottom: 0.3rem !important;
-    }
-    
-    .table thead th .btn {
-        font-size: 0.7rem !important;
-        padding-top: 0.3rem !important;
-        padding-bottom: 0.3rem !important;
-    }
-    
-    .table tbody td {
-        font-size: 0.7rem !important;
-        padding-top: 0.2rem !important;
-        padding-bottom: 0.2rem !important;
-    }
-    
-    /* Only remove padding from card bodies that contain tables */
-    .card-body .table-responsive {
-        margin: -1rem;
-        padding: 0rem !important;
-        padding-bottom: 12px !important;
-    }
-}
-
-/* Custom win rate colors */
 .text-success-dark {
     color: #0d5a2c !important;
 }
@@ -332,12 +295,65 @@ code {
     color: #fd7e14 !important;
 }
 
-/* Global textarea styling to match ImportExport page */
-textarea.form-control {
-    font-family: 'Roboto Mono', 'Courier New', monospace;
-    font-size: 0.875rem;
-    font-weight: 500;
+/* =============================================================================
+   ANIMATIONS & UTILITIES
+   ============================================================================= */
+
+.spin {
+    animation: spin 1s linear infinite;
 }
+
+@keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+.visually-hidden {
+    position: absolute !important;
+    width: 1px !important;
+    height: 1px !important;
+    padding: 0 !important;
+    margin: -1px !important;
+    overflow: hidden !important;
+    clip: rect(0, 0, 0, 0) !important;
+    white-space: nowrap !important;
+    border: 0 !important;
+}
+
+/* =============================================================================
+   RESPONSIVE DESIGN
+   ============================================================================= */
+
+@media (max-width: 767.98px) {
+    html, body {
+        font-family: 'Roboto Condensed', 'Nunito Sans', 'Roboto', 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
+    }
+    
+    .table thead th {
+        font-size: 0.7rem !important;
+        padding: 0.3rem !important;
+    }
+    
+    .table thead th .btn {
+        font-size: 0.7rem !important;
+        padding: 0.3rem !important;
+    }
+    
+    .table tbody td {
+        font-size: 0.7rem !important;
+        padding: 0.2rem !important;
+    }
+    
+    .card-body .table-responsive {
+        margin: -1rem;
+        padding: 0rem !important;
+        padding-bottom: 12px !important;
+    }
+}
+
+/* =============================================================================
+   COMPONENT-SPECIFIC STYLES
+   ============================================================================= */
 
 /* Matches result styling */
 .matches-result {
@@ -375,33 +391,13 @@ textarea.form-control {
     font-weight: 500;
 }
 
-.matches-table td:nth-child(2) {
-    width: auto;
-}
-
-.matches-table td:nth-child(4) {
-    width: auto;
-}
-
-/* Visually hidden utility for accessibility */
-.visually-hidden {
-    position: absolute !important;
-    width: 1px !important;
-    height: 1px !important;
-    padding: 0 !important;
-    margin: -1px !important;
-    overflow: hidden !important;
-    clip: rect(0, 0, 0, 0) !important;
-    white-space: nowrap !important;
-    border: 0 !important;
-}
-
-/* Pagination component - final tweaks */
+/* Pagination component */
 nav[aria-label="Pagination"] {
     margin-top: 1rem;
     margin-bottom: 0;
     padding: 0;
 }
+
 .pagination {
     list-style: none;
     margin: 0;
@@ -411,9 +407,11 @@ nav[aria-label="Pagination"] {
     background: none;
     box-shadow: none;
 }
+
 .pagination .page-item {
     margin: 0 1px;
 }
+
 .pagination .page-link {
     background: none !important;
     border: none;
@@ -432,18 +430,22 @@ nav[aria-label="Pagination"] {
     box-shadow: none;
     outline: none;
 }
+
 .pagination .page-link:focus,
 .pagination .page-link:active {
     outline: none !important;
     box-shadow: none !important;
 }
+
 .pagination .page-item.active .page-link {
     background: #0d6efd !important;
     color: #fff !important;
     font-weight: 600;
     border-radius: 0.4rem;
 }
-.pagination .page-link[disabled], .pagination .page-link:disabled {
+
+.pagination .page-link[disabled], 
+.pagination .page-link:disabled {
     color: #bdbdbd;
     background: #f3f3f3;
     cursor: not-allowed;
@@ -460,8 +462,4 @@ nav[aria-label="Pagination"] {
 .pagination .page-link:disabled .bi {
     color: #bfc4ca !important;
     opacity: 0.5;
-}
-
-.table {
-    margin-bottom: 0 !important;
 }

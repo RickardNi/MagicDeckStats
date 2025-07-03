@@ -1,180 +1,20 @@
-/* Mobile Navbar Styles */
-.mobile-navbar {
-    position: fixed;
+/* Tabler-style Top Navbar Container */
+.top-navbar {
+    position: sticky;
     top: 0;
     left: 0;
     right: 0;
-    background-color: #222834;
-    z-index: 1000;
-    padding: 0.5rem 0;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-}
-
-.mobile-nav-container {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    gap: 1.5rem;
-    padding: 0;
     width: 100%;
-    max-width: 400px;
-}
-
-.mobile-nav-link {
+    background-color: var(--main-bg-color);
+    z-index: 1000;
+    box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
     display: flex;
     align-items: center;
-    justify-content: center;
-    width: 3.5rem;
-    height: 3.5rem;
-    color: orange;
-    text-decoration: none !important;
-    border-radius: 12px;
-    transition: all 0.3s ease;
-    flex-shrink: 0;
-    position: relative;
-}
-
-.mobile-nav-link:hover {
-    background-color: rgba(255,255,255,0.1);
-    color: orange;
-    text-decoration: none !important;
-    transform: translateY(-1px);
-}
-
-.mobile-nav-link.active {
-    color: orange;
-    text-decoration: none !important;
-}
-
-.mobile-nav-link .bi {
-    font-size: 1.5rem;
-    margin: 0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: #9fa6bc;
-}
-
-/* Override any default NavLink styling for mobile */
-.mobile-navbar ::deep a {
-    text-decoration: none !important;
-}
-
-.mobile-navbar ::deep a:hover {
-    text-decoration: none !important;
-}
-
-/* Ensure active state works for mobile NavLinks */
-.mobile-navbar ::deep a.active {
-    color: orange !important;
-    text-decoration: none !important;
-}
-
-.mobile-navbar ::deep a.active .bi {
-    color: orange !important;
-}
-
-.page {
-    position: relative;
-    display: flex;
-    flex-direction: column;
-}
-
-main {
-    flex: 1;
-}
-
-.sidebar {
-    background-color: #222834;
-}
-
-.top-row {
-    background-color: #f7f7f7;
-    border-bottom: 1px solid #d6d5d5;
-    justify-content: flex-end;
-    height: 3.5rem;
-    display: flex;
-    align-items: center;
-}
-
-    .top-row ::deep a, .top-row ::deep .btn-link {
-        white-space: nowrap;
-        margin-left: 1.5rem;
-        text-decoration: none;
-    }
-
-    .top-row ::deep a:hover, .top-row ::deep .btn-link:hover {
-        text-decoration: underline;
-    }
-
-    .top-row ::deep a:first-child {
-        overflow: hidden;
-        text-overflow: ellipsis;
-    }
-
-@media (max-width: 640.98px) {
-    .top-row {
-        justify-content: space-between;
-    }
-
-    .top-row ::deep a, .top-row ::deep .btn-link {
-        margin-left: 0;
-    }
-}
-
-@media (min-width: 641px) {
-    .page {
-        flex-direction: row;
-    }
-
-    .sidebar {
-        width: 250px;
-        min-width: 250px;
-        max-width: 250px;
-        height: 100vh;
-        position: sticky;
-        top: 0;
-        flex-shrink: 0;
-    }
-
-    .top-row {
-        position: sticky;
-        top: 0;
-        z-index: 1;
-    }
-
-    .top-row.auth ::deep a:first-child {
-        flex: 1;
-        text-align: right;
-        width: 0;
-    }
-
-    .top-row, article {
-        padding-left: 2rem !important;
-        padding-right: 1.5rem !important;
-    }
-}
-
-/* Mobile layout adjustments */
-@media (max-width: 991.98px) {
-    .page {
-        margin-top: 3rem;
-    }
+    min-height: 3.5rem;
     
-    .sidebar {
-        display: none;
-    }
-}
-
-/* Ensure sidebar stays fixed on all desktop sizes */
-@media (min-width: 992px) {
-    .sidebar {
-        width: 250px;
-        min-width: 250px;
-        max-width: 250px;
-        flex-shrink: 0;
-    }
+    /* Override Bootstrap nav variables specifically in our navbar */
+    --bs-nav-link-color: rgba(255, 255, 255, 0.7);
+    --bs-nav-link-hover-color: rgba(255, 255, 255, 0.9);
+    --bs-navbar-color: rgba(255, 255, 255, 0.7);
+    --bs-navbar-hover-color: rgba(255, 255, 255, 0.9);
 }
