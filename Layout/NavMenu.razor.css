@@ -57,30 +57,11 @@
     color: orange !important;
 }
 
-@media (max-width: 991.98px) {
-    .nav-bar-links {
-        gap: 1rem;
-    }
-    
-    .nav-bar-links .nav-link {
-        padding: 0.5rem 0.75rem;
-        font-size: 0.75rem;
-        flex-direction: row;
-        flex-wrap: nowrap;
-        white-space: nowrap;
-    }
-    
-    .nav-bar-links .nav-link .bi {
-        font-size: 1rem;
-        margin-right: 0.25rem;
-        flex-shrink: 0;
-    }
-}
-
 @media (max-width: 767.98px) {
     .nav-bar-links {
         gap: 1.5rem;
         justify-content: center !important;
+        position: relative;
     }
     
     .nav-bar-links .nav-link {
@@ -90,6 +71,13 @@
     .nav-bar-links .nav-link .bi {
         font-size: 1.5rem;
         margin-right: 0 !important;
+    }
+
+    /* Settings dropdown positioning - keep to the right */
+    .nav-bar-links .dropdown {
+        position: absolute;
+        right: 0;
+        margin-left: auto;
     }
     
     /* Hide text on mobile, show only icons */
@@ -102,50 +90,4 @@
     .nav-bar-links .nav-link[aria-current="page"] .bi {
         color: orange !important;
     }
-}
-
-/* Settings Dropdown Customization */
-.settings-dropdown-menu {
-    background-color: var(--main-bg-color) !important;
-    border-radius: 0.5rem;
-    min-width: 12rem;
-    box-shadow: 0 4px 16px rgba(0,0,0,0.12);
-    border: none;
-    padding: 0.25rem 0;
-}
-.settings-dropdown-menu .dropdown-item {
-    color: var(--bs-nav-link-color) !important;
-    font-size: 1rem;
-    transition: background 0.15s;
-}
-.settings-dropdown-menu .dropdown-item:hover, .settings-dropdown-menu .dropdown-item:focus {
-    background-color: var(--hover-bg) !important;
-    color: var(--bs-nav-link-hover-color) !important;
-}
-.settings-dropdown-menu .dropdown-item .bi {
-    color: var(--icon-color);
-    font-size: 1.1em;
-}
-
-.settings-dropdown-toggle {
-    border: none !important;
-    box-shadow: none !important;
-    padding-right: 0 !important;
-    margin-right: 0 !important;
-}
-.settings-dropdown-toggle:focus, .settings-dropdown-toggle:active, .settings-dropdown-toggle:focus-visible {
-    border: none !important;
-    box-shadow: none !important;
-    outline: none !important;
-}
-.settings-dropdown-toggle::after {
-    display: none !important;
-}
-
-.settings-dropdown-toggle .bi {
-    margin-right: 0 !important;
-}
-
-.dropdown.ms-auto {
-    margin-right: 0 !important;
 }

@@ -463,3 +463,72 @@ nav[aria-label="Pagination"] {
     color: #bfc4ca !important;
     opacity: 0.5;
 }
+
+/* =============================================================================
+   NAVIGATION DROPDOWN STYLES - MUST BE GLOBAL
+   ============================================================================= 
+   These styles must be in global CSS (app.css) because Bootstrap dropdown menus
+   are rendered outside the component DOM hierarchy (typically appended to body)
+   and cannot be reached by component-scoped CSS files like NavMenu.razor.css
+   ============================================================================= */
+
+/* Settings dropdown menu styling to match navbar */
+.settings-dropdown-menu {
+    background-color: var(--main-bg-color) !important;
+    border: 1px solid rgba(255, 255, 255, 0.15) !important;
+    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.25) !important;
+    min-width: 200px;
+}
+
+/* Dropdown items to match nav-link styling */
+.settings-dropdown-menu .dropdown-item {
+    color: rgba(255, 255, 255, 0.7) !important;
+    background-color: transparent !important;
+    font-size: 0.875rem;
+    font-weight: 500;
+    padding: 0.75rem 1.25rem;
+    transition: all 0.15s ease;
+    border: none;
+    text-decoration: none;
+}
+
+.settings-dropdown-menu .dropdown-item:hover,
+.settings-dropdown-menu .dropdown-item:focus {
+    color: rgba(255, 255, 255, 0.9) !important;
+    background-color: transparent !important;
+    text-decoration: none;
+}
+
+.settings-dropdown-menu .dropdown-item.active,
+.settings-dropdown-menu .dropdown-item:active {
+    color: orange !important;
+    background-color: transparent !important;
+}
+
+.settings-dropdown-menu .dropdown-item.active *,
+.settings-dropdown-menu .dropdown-item:active * {
+    color: orange !important;
+}
+
+/* Settings dropdown toggle button */
+.settings-dropdown-toggle {
+    color: rgba(255, 255, 255, 0.7) !important;
+    border: none !important;
+    background: transparent !important;
+    padding: 0.75rem 1.25rem;
+    font-size: 1.125rem;
+    transition: all 0.15s ease;
+}
+
+.settings-dropdown-toggle:hover,
+.settings-dropdown-toggle:focus,
+.settings-dropdown-toggle.show {
+    color: rgba(255, 255, 255, 0.9) !important;
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+}
+
+.settings-dropdown-toggle::after {
+    display: none; /* Hide the default dropdown arrow */
+}
