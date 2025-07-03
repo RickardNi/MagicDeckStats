@@ -168,7 +168,7 @@
                                                     }
                                                 </button>
                                             </th>
-                                            <th>
+                                            <th class="text-nowrap">
                                                 <button class="btn btn-link text-decoration-none p-0 fw-bold" @onclick="@(() => SortBy("LastPlayed"))">
                                                     Last Played
                                                     @if (currentSort == "LastPlayed")
@@ -194,7 +194,7 @@
                                                 <td class="text-center @(Utilities.GetWinRateColorForPlayer(deck.WinRate))">@Utilities.FormatWinRate(deck.WinRate)</td>
                                                 <td class="text-center text-success">@deck.Wins</td>
                                                 <td class="text-center text-danger">@deck.Losses</td>
-                                                <td>@(deck.LastPlayed?.ToString("yyyy-MM-dd") ?? "-")</td>
+                                                <td class="text-nowrap">@(deck.LastPlayed?.ToString("yyyy-MM-dd") ?? "-")</td>
                                             </tr>
                                         }
                                     </tbody>
@@ -398,7 +398,7 @@
                                                     }
                                                 </button>
                                             </th>
-                                            <th>
+                                            <th class="text-nowrap">
                                                 <button class="btn btn-link text-decoration-none p-0 fw-bold" @onclick="@(() => SortByOpponentDeck("LastPlayed"))">
                                                     Last Faced
                                                     @if (currentOpponentDeckSort == "LastPlayed")
@@ -424,7 +424,7 @@
                                                 <td class="text-center @(Utilities.GetWinRateColorForPlayer(deck.WinRate))">@Utilities.FormatWinRate(deck.WinRate)</td>
                                                 <td class="text-center text-success">@deck.Wins</td>
                                                 <td class="text-center text-danger">@deck.Losses</td>
-                                                <td>@(deck.LastPlayed?.ToString("yyyy-MM-dd") ?? "-")</td>
+                                                <td class="text-nowrap">@(deck.LastPlayed?.ToString("yyyy-MM-dd") ?? "-")</td>
                                             </tr>
                                         }
                                     </tbody>
