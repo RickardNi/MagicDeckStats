@@ -356,6 +356,13 @@ a, .btn-link {
     }
 }
 
+/* Override Bootstrap container max-width for mobile to use full screen width */
+@media (min-width: 576px) {
+    .container, .container-sm {
+        max-width: none !important;
+    }
+}
+
 /* =============================================================================
    COMPONENT-SPECIFIC STYLES
    ============================================================================= */
