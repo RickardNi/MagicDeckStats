@@ -61,30 +61,30 @@ namespace MagicDeckStats.Services
 
         public static List<string> GetDeckTags(string deckName)
         {
-            return deckName switch
+            List<string> tags = deckName switch
             {
                 "Aura Overload v*"         => ["Not Owned", "Arena", "Custom"],
                 "Blue Steal v1"            => ["Not Owned", "M"],
                 "Cascadia v1"              => ["Not Owned", "M"],   
                 "Consuming Mutation v1"    => ["Not Owned", "M"],
-                "Elvish Ingenuity v1"      => ["Not Owned", "Arena"],
-                "Extremely Toxic v1"       => ["Not Owned", "Arena"],
+                "Elvish Ingenuity v1"      => ["Not Owned"],
+                "Extremely Toxic v1"       => ["Not Owned"],
                 "Fun Guys! v1"             => ["Not Owned", "Finalist"],
                 "Genesis Rampage v1"       => ["Not Owned", "M"],
-                "Goblin Gang v2"           => ["Not Owned", "Arena", "M"],
-                "Heat Wave v1"             => ["Not Owned", "Arena"],
+                "Goblin Gang v2"           => ["Not Owned", "M"],
+                "Heat Wave v1"             => ["Not Owned"],
                 "High Rollers v1"          => ["Not Owned", "M", "B"],
                 "Land Masses v5"           => ["Not Owned", "Archived"],
                 "Licence to Mill v1"       => ["Archived"],
                 "Licence to Mill v2.1"     => ["Archived", "Custom"],
                 "Licence to Mill v2.2"     => ["Archived", "Custom"],
-                "Life Hack v1"             => ["Not Owned", "Arena", "B"],
-                "Night & Day v1"           => ["Not Owned", "Arena"],
+                "Life Hack v1"             => ["Not Owned", "B"],
+                "Night & Day v1"           => ["Not Owned"],
                 "Power Cycling v1"         => ["Not Owned", "M"],
                 "Pyramid Scheme v1"        => ["Archived"],
-                "Scrap Heap v1"            => ["Not Owned", "Arena"],
+                "Scrap Heap v1"            => ["Not Owned"],
                 "Sinister Shrines v1"      => ["Not Owned", "M"],
-                "Snack Attack v1"          => ["Not Owned", "M", "Arena"],
+                "Snack Attack v1"          => ["Not Owned", "M"],
                 "Steadfast & Furious v1"   => ["Not Owned", "Tour Winner"],
 
                 "Adventure Time v1"          => ["Tour Winner"],
@@ -92,19 +92,19 @@ namespace MagicDeckStats.Services
                 "Blue Skies v1"              => [],
                 "Chimera Flash v2"           => [],
                 "Converging Domains v6"      => ["Finalist"],
-                "Counter Culture v1"         => ["Arena"],
+                "Counter Culture v1"         => [],
                 "Day Breaker v1"             => ["Tour Winner"],
-                "Dino Might v1"              => ["Arena", "B"],
+                "Dino Might v1"              => ["B"],
                 "Domain Event v1"            => [],
                 "Dragon Horde v8"            => ["Tour Winner"],
                 "Eternal Harvest v1"         => ["Tour Winner"],
-                "Fightin' Fish v2"           => ["Finalist", "Arena"],
+                "Fightin' Fish v2"           => ["Finalist"],
                 "Firing Squad v1"            => [],
                 "Gray Matter v1"             => ["Finalist"],
                 "Green Giants v1"            => [],
                 "Imperious Elves v4"         => ["Tour Winner"],
                 "Karmageddon v3"             => ["Finalist"],
-                "Knight Time v1"             => ["Tour Winner", "Arena"],
+                "Knight Time v1"             => ["Tour Winner"],
                 "Land Masses v1"             => ["Tour Winner"],
                 "Lust for Life v2"           => [],
                 "New Blood v1"               => [],
@@ -124,6 +124,11 @@ namespace MagicDeckStats.Services
                 "Zombie Apocalypse v11"      => ["Tour Winner"],
                 _                            => []
             };
+
+            if (GetAllArenaDecks().Contains(deckName))
+                tags.Add("Arena");
+
+            return tags;
         }
 
         public static List<string> GetAllArenaDecks()
@@ -178,6 +183,7 @@ namespace MagicDeckStats.Services
                 "Dino Might V19",
                 "Dino Might V20",
                 "Domain Event v2",
+                "Elvish Ingenuity v1", // Added manually
                 "Extremely Toxic v1",
                 "Fightin' Fish v2",
                 "Fightin' Fish v3",
