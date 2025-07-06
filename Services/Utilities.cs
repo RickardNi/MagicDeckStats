@@ -77,7 +77,7 @@ namespace MagicDeckStats.Services
                 "Land Masses v5"           => ["Not Owned", "Archived"],
                 "Licence to Mill v1"       => ["Archived"],
                 "Licence to Mill v2.1"     => ["Archived", "Custom"],
-                "Licence to Mill v2.2"     => ["Custom"],
+                "Licence to Mill v2.2"     => ["Archived", "Custom"],
                 "Life Hack v1"             => ["Not Owned", "Arena", "B"],
                 "Night & Day v1"           => ["Not Owned", "Arena"],
                 "Power Cycling v1"         => ["Not Owned", "M"],
