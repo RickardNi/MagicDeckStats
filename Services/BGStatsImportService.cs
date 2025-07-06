@@ -286,6 +286,16 @@ public class BGStatsImportService(HttpClient httpClient, ILogger<BGStatsImportSe
                 originalPlayCount - _cachedData.Plays.Count, _cachedData.Plays.Count);
         }
 
+        // Filter out ignored plays
+        var playCountBeforeIgnoredFilter = _cachedData.Plays.Count;
+        _cachedData.Plays = [.. _cachedData.Plays.Where(p => !p.Ignored)];
+
+        if (playCountBeforeIgnoredFilter - _cachedData.Plays.Count > 0)
+        {
+            _logger.LogInformation("Removed {RemovedPlayCount} ignored plays, kept {KeptPlayCount} non-ignored plays",
+                playCountBeforeIgnoredFilter - _cachedData.Plays.Count, _cachedData.Plays.Count);
+        }
+
         // Temporary filter: only include Battle Decks variants
         _cachedData.Plays = [.. _cachedData.Plays.Where(p => p.Variant.Contains("Battle Decks") && !p.Variant.Contains("Two-Headed Giant"))];
 

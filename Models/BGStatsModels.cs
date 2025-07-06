@@ -25,6 +25,8 @@ public class Game
 
 public class Play
 {
+    [JsonPropertyName("ignored")]
+    public bool Ignored { get; set; } = false;
     [JsonPropertyName("playDate")]
     public string Date { get; set; } = string.Empty;
 
