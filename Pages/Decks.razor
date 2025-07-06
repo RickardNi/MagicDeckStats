@@ -496,6 +496,9 @@
             currentSortColumn = column;
             isAscending = false;
         }
+        
+        UpdateChartData();
+        StateHasChanged();
     }
 
     private List<DeckStats> GetSortedDeckStats()
