@@ -1,0 +1,41 @@
+@page "/arena"
+@using MagicDeckStats.Services
+@using MagicDeckStats.Models
+@using Microsoft.AspNetCore.Components
+@inject IBGStatsImportService BGStatsService
+
+<PageTitle>Magic Deck Stats - MTG Arena</PageTitle>
+
+<div class="container mt-2 mt-md-4">
+    <h1><i class="bi bi-laptop me-4 d-none d-md-inline"></i>MTG Arena</h1>
+    
+    <div class="card">
+        <div class="card-header">
+            <h5 class="card-title mb-0">
+                <i class="bi bi-stack"></i>Buildable Battle Decks
+            </h5>
+        </div>
+        <div class="card-body">
+            <div class="alert alert-info mb-3">
+                <i class="bi bi-info-circle me-2"></i>
+                The following Battle Decks can be built in MTG Arena
+            </div>
+            <ul class="list-unstyled">
+                @foreach (var deck in arenaDecks)
+                {
+                    <li>@deck</li>
+                }
+            </ul>
+        </div>
+    </div>
+</div>
+
+@code {
+    private List<string> arenaDecks = [];
+
+    protected override async Task OnInitializedAsync()
+    {
+        arenaDecks = Utilities.GetAllArenaDecks();
+        await Task.CompletedTask;
+    }
+} 
