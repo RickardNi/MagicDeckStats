@@ -375,6 +375,22 @@
             </div>
         </div>
     }
+
+    @if (moxfieldId != null)
+    {
+        <!-- Moxfield Deck Embed -->
+        <div class="row mt-4">
+            <div class="col-12 text-center">
+                <iframe 
+                    src="https://moxfield.com/embed/@moxfieldId" 
+                    frameBorder="0"
+                    id="moxfield-frame-1"
+                    style="width: 100%; height: 900px; border-radius: 8px;"
+                    onload="moxfieldOnLoad(event)">
+                </iframe>
+            </div>
+        </div>
+    }
 </div>
 
 @code
@@ -405,6 +421,71 @@
 
     private PlayerSortColumn currentPlayerSortColumn = PlayerSortColumn.Plays;
     private bool isPlayerSortAscending = false;
+    
+    private string? moxfieldId;
+    
+    // Hard-coded mapping of deck names to Moxfield IDs
+    private static readonly Dictionary<string, string> DeckToMoxfieldMapping = new()
+    {
+        { "Adventure Time v1",      "" },
+        { "Aether Flux v11",        "" },
+        { "Aura Overload v*",       "" },
+        { "Blue Skies v1",          "M0SU4nyUYU2qijMeb3UgbQ" },
+        { "Blue Steal v1",          "" },
+        { "Cascadia v1",            "" },
+        { "Chimera Flash v2",       "" },
+        { "Consuming Mutation v1",  "" },
+        { "Converging Domains v6",  "" },
+        { "Counter Culture v1",     "" },
+        { "Day Breaker v1",         "" },
+        { "Dino Might v1",          "bE8iXHeqTkWP5ojDiv0_rw" },
+        { "Domain Event v1",        "" },
+        { "Dragon Horde v8",        "" },
+        { "Elvish Ingenuity v1",    "" },
+        { "Eternal Harvest v1",     "" },
+        { "Extremely Toxic v1",     "" },
+        { "Fightin' Fish v2",       "" },
+        { "Firing Squad v1",        "FmkFHjr22EWJk74jnDEaJQ" },
+        { "Fun Guys! v1",           "" },
+        { "Genesis Rampage v1",     "" },
+        { "Goblin Gang v2",         "" },
+        { "Gray Matter v1",         "" },
+        { "Green Giants v1",        "" },
+        { "Heat Wave v1",           "" },
+        { "High Rollers v1",        "" },
+        { "Imperious Elves v4",     "" },
+        { "Karmageddon v3",         "" },
+        { "Knight Time v1",         "" },
+        { "Land Masses v1",         "" },
+        { "Land Masses v5",         "" },
+        { "Licence to Mill v1",     "" },
+        { "Licence to Mill v2.1",   "CzF0dH9cbEKsB1ABEqrCcg" },
+        { "Licence to Mill v2.2",   "7PQUxOdNT0eivvubRvy3Eg" },
+        { "Life Hack v1",           "" },
+        { "Lust for Life v2",       "" },
+        { "New Blood v1",           "" },
+        { "Night & Day v1",         "" },
+        { "Out of Hand v1",         "" },
+        { "Pilot Program v1",       "" },
+        { "Power Cycling v1",       "" },
+        { "Power Tools v1",         "Uplj7kjQRU2mPtMXaI-Yqg" },
+        { "Pyramid Scheme v1",      "qPNcuL1-dkuNr0LUQmH58g" },
+        { "Pyramid Scheme v1.2",    "noAHdVOh9kSQ6pr9kPuyyQ" },
+        { "Reanimaniacs v1",        "" },
+        { "Red Menace v8",          "" },
+        { "Rune Nation v1",         "" },
+        { "Scrap Heap v1",          "" },
+        { "Second Wind v4",         "" },
+        { "Self Defense v1",        "" },
+        { "Shock Troupes v6",       "" },
+        { "Sinister Shrines v1",    "" },
+        { "Snack Attack v1",        "" },
+        { "Sphinx Control v3",      "" },
+        { "Steadfast & Furious v1", "" },
+        { "Target Practice v2",     "" },
+        { "Underworld Schemes v3",  "" },
+        { "Zombie Apocalypse v11",  "" }
+    };
 
     protected override void OnInitialized()
     {
@@ -447,6 +528,9 @@
 
             // URL decode the deck name to handle special characters
             var deckName = HttpUtility.UrlDecode(urlDeckName);
+            
+            // Check if this deck has a Moxfield mapping with a valid ID
+            moxfieldId = DeckToMoxfieldMapping.TryGetValue(deckName, out var id) && !string.IsNullOrEmpty(id) ? id : null;
 
             var plays = await BGStatsService.GetMagicPlaysAsync(GlobalFilterService.SelectedVariants);
             deckPlays = plays.Where(p => p.PlayerScores.Any(ps => ps.Deck == deckName)).ToList();
@@ -625,6 +709,8 @@
             isLoading = false;
         }
     }
+
+
 
     private string GetPointColor(FirstPlayerStats stats)
     {
