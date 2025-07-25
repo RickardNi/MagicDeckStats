@@ -1,0 +1,199 @@
+@page "/rules"
+
+<PageTitle>Magic Deck Stats - Rules</PageTitle>
+
+<div class="container mt-2 mt-md-4">
+    <h1><i class="bi bi-journal-text me-4 d-none d-md-inline"></i>Rules</h1>
+    <div class="card mt-4">
+        <div class="card-header">
+            <h5 class="card-title mb-0">
+                Scale the Heights without valid targets
+            </h5>
+        </div>
+        <div class="card-body">
+            <div class="row align-items-center mb-3">
+                <div class="col-md-4 text-center text-md-start">
+                    <a href="https://scryfall.com/card/znr/202/scale-the-heights" target="_blank" rel="noopener">
+                        <img src="https://api.scryfall.com/cards/named?exact=Scale%20the%20Heights&set=znr&format=image" alt="Scale the Heights" class="img-fluid rounded shadow" style="max-width: 320px;" />
+                    </a>
+                </div>
+                <div class="col-md-8">
+                    <p class="fs-5">
+                        When casting, you choose target(s) for the spell. If it doesn't have any targets when casting, the spell will resolve if not responded to.
+                    </p>
+                    <p class="fs-5">
+                        But if it has at least 1 target when cast, it must have at least 1 valid target when resolving, otherwise the whole spell will fizzle and you won't get life, won't get to play another land this turn, and won't draw a card.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="card mt-4">
+        <div class="card-header">
+            <h5 class="card-title mb-0">
+                Yavimaya Elder, order of triggers
+            </h5>
+        </div>
+        <div class="card-body">
+            <div class="row align-items-center mb-3">
+                <div class="col-md-4 text-center text-md-start">
+                    <a href="https://scryfall.com/card/dsc/208/yavimaya-elder" target="_blank" rel="noopener">
+                        <img src="https://api.scryfall.com/cards/named?exact=Yavimaya%20Elder&set=dsc&format=image" alt="Yavimaya Elder" class="img-fluid rounded shadow" style="max-width: 320px;" />
+                    </a>
+                </div>
+                <div class="col-md-8">
+                    <p class="fs-5">
+                        If you activate <strong>Yavimaya Elder</strong>'s last ability, you'll first do the search and shuffle before drawing a card.
+                    </p>
+                    <ul class="fs-5">
+                        <li>You announce the activation of the ability.</li>
+                        <li>The activated ability is put on the stack.</li>
+                        <li>You pay the cost by sacrificing Yavimaya Elder.</li>
+                        <li>The death trigger resolves, <strong>you search and shuffle</strong>.</li>
+                        <li>The death trigger is placed on the stack.</li>
+                        <li>The activated ability resolves, <strong>you draw a card</strong>.</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="card mt-4">
+        <div class="card-header">
+            <h5 class="card-title mb-0">
+                Casting Solar Blaze when Blood Baron of Vizkopa is in play
+            </h5>
+        </div>
+        <div class="card-body">
+            <div class="d-flex justify-content-center align-items-center gap-4 flex-wrap mb-3">
+                <a href="https://scryfall.com/card/war/216/solar-blaze" target="_blank" rel="noopener">
+                    <img src="https://api.scryfall.com/cards/named?exact=Solar%20Blaze&set=war&format=image" alt="Solar Blaze" class="img-fluid rounded shadow" style="max-width: 320px;" />
+                </a>
+                <a href="https://scryfall.com/card/c17/164/blood-baron-of-vizkopa" target="_blank" rel="noopener">
+                    <img src="https://api.scryfall.com/cards/named?exact=Blood%20Baron%20of%20Vizkopa&set=c17&format=image" alt="Blood Baron of Vizkopa" class="img-fluid rounded shadow" style="max-width: 320px;" />
+                </a>
+            </div>
+            <p class="mt-4">
+                <span class="fs-5">
+                    <strong>Blood Baron of Vizkopa</strong> will not be protected from <strong>Solar Blaze</strong> since Solar Blaze doesn't target it, but Blood Baron does have protection from white and black, so the damage would be prevented. Thus, no damage will be dealt and lifelink doesn't matter.
+                </span>
+            </p>
+        </div>
+    </div>
+    <div class="card mt-4">
+        <div class="card-header">
+            <h5 class="card-title mb-0">
+                Double use of decayed creatures
+            </h5>
+        </div>
+        <div class="card-body">
+            <div class="d-flex justify-content-center align-items-center gap-4 flex-wrap mb-3">
+                <a href="https://scryfall.com/card/mid/52/falcon-abomination" target="_blank" rel="noopener">
+                    <img src="https://api.scryfall.com/cards/named?exact=Falcon%20Abomination&set=mid&format=image" alt="Falcon Abomination" class="img-fluid rounded shadow" style="max-width: 320px;" />
+                </a>
+                <a href="https://scryfall.com/card/mid/214/corpse-cobble" target="_blank" rel="noopener">
+                    <img src="https://api.scryfall.com/cards/named?exact=Corpse%20Cobble&set=mid&format=image" alt="Corpse Cobble" class="img-fluid rounded shadow" style="max-width: 320px;" />
+                </a>
+            </div>
+            <p class="mt-4 fs-5">
+                You can attack with creatures with <em>decayed</em> and have them deal damage. When the end of combat step begins, the sacrifice triggers are put on the stack, and then, when you receive priority, you can cast <strong>Corpse Cobble</strong> (before the sacrifice triggers are resolved) and sacrifice them all as a cost for casting the spell.
+            </p>
+        </div>
+    </div>
+    <div class="card mt-4">
+        <div class="card-header">
+            <h5 class="card-title mb-0">
+                Multiple Upkeep triggers
+            </h5>
+        </div>
+        <div class="card-body">
+            <div class="d-flex justify-content-center align-items-center gap-4 flex-wrap mb-3">
+                <a href="https://scryfall.com/card/m19/67/patient-rebuilding" target="_blank" rel="noopener">
+                    <img src="https://api.scryfall.com/cards/named?exact=Patient%20Rebuilding&set=m19&format=image" alt="Patient Rebuilding" class="img-fluid rounded shadow" style="max-width: 320px;" />
+                </a>
+                <a href="https://scryfall.com/card/war/83/davriel-rogue-shadowmage" target="_blank" rel="noopener">
+                    <img src="https://api.scryfall.com/cards/named?exact=Davriel%2C%20Rogue%20Shadowmage&set=war&format=image" alt="Davriel, Rogue Shadowmage" class="img-fluid rounded shadow" style="max-width: 320px;" />
+                </a>
+            </div>
+            <p class="mt-4 fs-5">
+                The active player can choose the order of its own triggers, but all the AP's triggers will go on the stack first, and then the NAP's. So if you have <strong>Patient Rebuilding</strong> and your opponent has <strong>Davriel, Rogue Shadowmage</strong>, your trigger will be put on the stack first, meaning it will check for one or fewer cards in hand first, then your opponent will mill three cards.
+            </p>
+        </div>
+    </div>
+    <div class="card mt-4">
+        <div class="card-header">
+            <h5 class="card-title mb-0">
+                Blinking Sagas
+            </h5>
+        </div>
+        <div class="card-body">
+            <div class="d-flex justify-content-center align-items-center gap-4 flex-wrap mb-3">
+                <a href="https://scryfall.com/card/znc/74/the-mending-of-dominaria" target="_blank" rel="noopener">
+                    <img src="https://api.scryfall.com/cards/named?exact=The%20Mending%20of%20Dominaria&set=znc&format=image" alt="The Mending of Dominaria" class="img-fluid rounded shadow" style="max-width: 320px;" />
+                </a>
+                <a href="https://scryfall.com/card/thb/16/flicker-of-fate" target="_blank" rel="noopener">
+                    <img src="https://api.scryfall.com/cards/named?exact=Flicker%20of%20Fate&set=thb&format=image" alt="Flicker of Fate" class="img-fluid rounded shadow" style="max-width: 320px;" />
+                </a>
+            </div>
+            <p class="mt-4 fs-5">
+                When the third lore counter is added to the Saga, the chapter trigger will first resolve and then the Saga's controller sacrifices it as soon as its chapter ability has left the stack. This state-based action doesn't use the stack.
+            </p>
+            <p class="mt-4 fs-5">
+                In normal cases, this will result in <strong>The Mending of Dominaria</strong> being the only card in the graveyard afterwards.
+            </p>
+            <p class="mt-4 fs-5">
+                You can use <strong>Flicker of Fate</strong> when the chapter ability is on the stack. This would blink it, and when it comes in again, it will trigger the first chapter ability which will be resolved before the third chapter ability. After the third chapter ability has left the stack, there will be nothing to sacrifice anymore, because the old Saga doesn't exist anymore. The new Saga will remain on the battlefield with 1 lore counter on it.
+            </p>
+            <p class="mt-4 fs-5">
+                You cannot wait until the third chapter ability has been resolved to cast <strong>Flicker of Fate</strong> because the sacrifice will be made before you get priority.
+            </p>
+        </div>
+    </div>
+    <div class="card mt-4">
+        <div class="card-header">
+            <h5 class="card-title mb-0">
+                Dark Impostor
+            </h5>
+        </div>
+        <div class="card-body">
+            <div class="row align-items-center mb-3">
+                <div class="col-md-4 text-center text-md-start">
+                    <a href="https://scryfall.com/card/voc/127/dark-impostor" target="_blank" rel="noopener">
+                        <img src="https://api.scryfall.com/cards/named?exact=Dark%20Impostor&set=voc&format=image" alt="Dark Impostor" class="img-fluid rounded shadow" style="max-width: 320px;" />
+                    </a>
+                </div>
+                <div class="col-md-8">
+                    <p class="fs-5">
+                        If the target is illegal as it resolves, the whole ability will fizzle, and <strong>Dark Impostor</strong> won't get a +1/+1 counter.
+                    </p>
+                    <p class="fs-5">
+                        Regardless, it will retain its original activated ability.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="card mt-4">
+        <div class="card-header">
+            <h5 class="card-title mb-0">
+                Vizkopa Guildmage - Second ability can be activated multiple times
+            </h5>
+        </div>
+        <div class="card-body">
+            <div class="row align-items-center mb-3">
+                <div class="col-md-4 text-center text-md-start">
+                    <a href="https://scryfall.com/card/gtc/206/vizkopa-guildmage" target="_blank" rel="noopener">
+                        <img src="https://api.scryfall.com/cards/named?exact=Vizkopa%20Guildmage&set=gtc&format=image" alt="Vizkopa Guildmage" class="img-fluid rounded shadow" style="max-width: 320px;" />
+                    </a>
+                </div>
+                <div class="col-md-8">
+                    <p class="fs-5">
+                        Each time <strong>Vizkopa Guildmage</strong>’s second ability resolves, a delayed triggered ability is created. Whenever you gain life that turn, each of those abilities will trigger. For example, if you activate the second ability twice, let those abilities resolve, then gain 2 life, each opponent will lose a total of 4 life.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="text-center text-muted small mt-5 mb-2">
+        Card images courtesy of <a href="https://scryfall.com/" target="_blank" rel="noopener">Scryfall</a>
+    </div>
+</div> 
