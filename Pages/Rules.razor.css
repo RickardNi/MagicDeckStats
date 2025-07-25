@@ -1,0 +1,18 @@
+/* Fix image sizing for intermediate screen widths */
+@media (min-width: 768px) and (max-width: 991px) {
+    .card .row .img-fluid {
+        max-width: 200px !important;
+    }
+}
+
+@media (min-width: 992px) and (max-width: 1199px) {
+    .card .row .img-fluid {
+        max-width: 250px !important;
+    }
+}
+
+@media (min-width: 1200px) {
+    .card .row .img-fluid {
+        max-width: 320px !important;
+    }
+}
