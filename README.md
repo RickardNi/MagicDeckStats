@@ -37,7 +37,7 @@ On a more serious note, this was a test to see how fast I could get an app up-an
 No, this is a client-side application. All data processing happens in your browser, and no data is sent to external servers. Your data remains private and local to your device.
 
 ### **What do the labels 'Tour Winner' and 'Finalist' mean?**
-Tour Winner means the deck won a Swiss 3 round tournament with 3 - 0 (3 wins and 0 losses).
+Tour Winner means the deck won a Swiss 3 round tournament with 3 - 0 (3 wins and 0 losses). For 7 players, a bye is acceptable to be among the victories, but for less players, it requires 3 played games to be labeled Tour Winner.
 
 Finalist means the deck has otherwise reached a true final in a Swiss 3 round tournament where the finalists were both 2 - 0 at that point.
 (A tournament with 6 players, for instance, can have a "final" that is not necessarily with two undefeated players.)
