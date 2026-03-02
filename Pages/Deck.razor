@@ -61,11 +61,47 @@
                         <hr class="my-3" />
                         <dl class="row mb-0">
                             <dt class="col-sm-5">Most Played By</dt>
-                            <dd class="col-sm-7">@(GetMostPlayedByPlayer())</dd>
+                            <dd class="col-sm-7">
+                                @{
+                                    var mostPlayedByPlayer = GetMostPlayedByPlayer();
+                                }
+                                @if (mostPlayedByPlayer is null)
+                                {
+                                    <span>-</span>
+                                }
+                                else
+                                {
+                                    <NavLink class="deck-link" href="@Utilities.GetPlayerUrl(mostPlayedByPlayer.PlayerId)">@mostPlayedByPlayer.PlayerName</NavLink> <span>(@mostPlayedByPlayer.Plays plays)</span>
+                                }
+                            </dd>
                             <dt class="col-sm-5">Most Successfully Played By</dt>
-                            <dd class="col-sm-7">@(GetMostSuccessfulPlayer())</dd>
+                            <dd class="col-sm-7">
+                                @{
+                                    var mostSuccessfulPlayer = GetMostSuccessfulPlayer();
+                                }
+                                @if (mostSuccessfulPlayer is null)
+                                {
+                                    <span>-</span>
+                                }
+                                else
+                                {
+                                    <NavLink class="deck-link" href="@Utilities.GetPlayerUrl(mostSuccessfulPlayer.PlayerId)">@mostSuccessfulPlayer.PlayerName</NavLink> <span class="@(Utilities.GetWinRateColorForPlayer(mostSuccessfulPlayer.WinRate))">(@Utilities.FormatWinRate(mostSuccessfulPlayer.WinRate))</span>
+                                }
+                            </dd>
                             <dt class="col-sm-5">Least Successfully Played By</dt>
-                            <dd class="col-sm-7">@(GetLeastSuccessfulPlayer())</dd>
+                            <dd class="col-sm-7">
+                                @{
+                                    var leastSuccessfulPlayer = GetLeastSuccessfulPlayer();
+                                }
+                                @if (leastSuccessfulPlayer is null)
+                                {
+                                    <span>-</span>
+                                }
+                                else
+                                {
+                                    <NavLink class="deck-link" href="@Utilities.GetPlayerUrl(leastSuccessfulPlayer.PlayerId)">@leastSuccessfulPlayer.PlayerName</NavLink> <span class="@(Utilities.GetWinRateColorForPlayer(leastSuccessfulPlayer.WinRate))">(@Utilities.FormatWinRate(leastSuccessfulPlayer.WinRate))</span>
+                                }
+                            </dd>
                         </dl>
                     </div>
                 </div>
@@ -356,7 +392,9 @@
                                 @foreach (var ps in GetSortedPlayerStats())
                                 {
                                     <tr>
-                                        <td>@ps.PlayerName</td>
+                                        <td>
+                                            <NavLink class="deck-link" href="@Utilities.GetPlayerUrl(ps.PlayerId)">@ps.PlayerName</NavLink>
+                                        </td>
                                         <td class="text-center">@ps.Plays</td>
                                         <td class="text-center text-success">@ps.Wins</td>
                                         <td class="text-center text-danger">@ps.Losses</td>
@@ -669,7 +707,7 @@
             }).ToList();
 
             // Calculate player stats for this deck
-            var playerGroups = new Dictionary<string, (int Plays, int Wins, int Losses, List<double> Durations)>();
+            var playerGroups = new Dictionary<(int PlayerId, string PlayerName), (int Plays, int Wins, int Losses, List<double> Durations)>();
             foreach (var play in deckPlays)
             {
                 var thisDeckScores = play.PlayerScores.Where(ps => ps.Deck == deckName).ToList();
@@ -679,22 +717,25 @@
                     if (string.IsNullOrEmpty(playerName))
                         continue;
 
-                    if (!playerGroups.ContainsKey(playerName))
-                        playerGroups[playerName] = (0, 0, 0, new List<double>());
+                    var playerKey = (score.PlayerRefId, playerName);
 
-                    var numberOfPlays = playerGroups[playerName].Plays + 1;
-                    var playerWins = playerGroups[playerName].Wins + (score.IsWinner ? 1 : 0);
-                    var playerLosses = playerGroups[playerName].Losses + (score.IsWinner ? 0 : 1);
-                    var durations = playerGroups[playerName].Durations;
+                    if (!playerGroups.ContainsKey(playerKey))
+                        playerGroups[playerKey] = (0, 0, 0, new List<double>());
+
+                    var numberOfPlays = playerGroups[playerKey].Plays + 1;
+                    var playerWins = playerGroups[playerKey].Wins + (score.IsWinner ? 1 : 0);
+                    var playerLosses = playerGroups[playerKey].Losses + (score.IsWinner ? 0 : 1);
+                    var durations = playerGroups[playerKey].Durations;
                     durations.Add(play.DurationInMinutes);
                     
-                    playerGroups[playerName] = (numberOfPlays, playerWins, playerLosses, durations);
+                    playerGroups[playerKey] = (numberOfPlays, playerWins, playerLosses, durations);
                 }
             }
 
             playerStats = playerGroups.Select(kvp => new PlayerStats
             {
-                PlayerName = kvp.Key,
+                PlayerId = kvp.Key.PlayerId,
+                PlayerName = kvp.Key.PlayerName,
                 Plays = kvp.Value.Plays,
                 Wins = kvp.Value.Wins,
                 Losses = kvp.Value.Losses,
@@ -719,31 +760,28 @@
         return stats.Result == "Wins" ? "#28a745" : "#dc3545";
     }
 
-    private string GetMostPlayedByPlayer()
+    private PlayerStats? GetMostPlayedByPlayer()
     {
         if (!playerStats.Any())
-            return "-";
+            return null;
 
-        var mostPlayed = playerStats.OrderByDescending(p => p.Plays).First();
-        return $"{mostPlayed.PlayerName} ({mostPlayed.Plays} plays)";
+        return playerStats.OrderByDescending(p => p.Plays).First();
     }
 
-    private string GetMostSuccessfulPlayer()
+    private PlayerStats? GetMostSuccessfulPlayer()
     {
         if (!playerStats.Any())
-            return "-";
+            return null;
 
-        var mostSuccessful = playerStats.OrderByDescending(p => p.WinRate).First();
-        return $"{mostSuccessful.PlayerName} ({Utilities.FormatWinRate(mostSuccessful.WinRate)})";
+        return playerStats.OrderByDescending(p => p.WinRate).First();
     }
 
-    private string GetLeastSuccessfulPlayer()
+    private PlayerStats? GetLeastSuccessfulPlayer()
     {
         if (!playerStats.Any())
-            return "-";
+            return null;
 
-        var leastSuccessful = playerStats.OrderBy(p => p.WinRate).First();
-        return $"{leastSuccessful.PlayerName} ({Utilities.FormatWinRate(leastSuccessful.WinRate)})";
+        return playerStats.OrderBy(p => p.WinRate).First();
     }
 
     private enum MatchupSortColumn
@@ -873,6 +911,7 @@
 
     private class PlayerStats
     {
+        public int PlayerId { get; set; }
         public string PlayerName { get; set; } = string.Empty;
         public int Plays { get; set; }
         public int Wins { get; set; }
