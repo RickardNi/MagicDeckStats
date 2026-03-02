@@ -234,6 +234,14 @@ a, .btn-link {
     color: #495057;
 }
 
+.table th .btn.btn-link:focus,
+.table th .btn.btn-link:focus-visible,
+.table th .btn.btn-link:active {
+    outline: none !important;
+    box-shadow: none !important;
+    border-color: transparent !important;
+}
+
 .flag-icon-column {
     width: 20px;
     padding-left: 0.25rem !important;
