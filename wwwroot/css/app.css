@@ -336,7 +336,7 @@ a, .btn-link {
    RESPONSIVE DESIGN
    ============================================================================= */
 
-@media (max-width: 767.98px) {
+@media (max-width: 768px) {
     html, body {
         font-family: 'Roboto Condensed', 'Nunito Sans', 'Roboto', 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
     }

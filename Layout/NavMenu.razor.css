@@ -57,7 +57,7 @@
     color: orange !important;
 }
 
-@media (max-width: 767.98px) {
+@media (max-width: 768px) {
     .nav-bar-links {
         gap: 1.5rem;
         justify-content: center !important;
