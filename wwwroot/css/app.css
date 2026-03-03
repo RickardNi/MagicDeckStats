@@ -224,6 +224,10 @@ a, .btn-link {
     margin-right: 0.75rem !important;
 }
 
+.card-body > :last-child {
+    margin-bottom: 0;
+}
+
 .table {
     margin-bottom: 0 !important;
 }
