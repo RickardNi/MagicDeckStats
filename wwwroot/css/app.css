@@ -341,25 +341,44 @@ a, .btn-link {
         font-family: 'Roboto Condensed', 'Nunito Sans', 'Roboto', 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
     }
     
+    h1 {
+        margin-bottom: 0.5rem;
+    }
+    
     .table thead th {
         font-size: 0.7rem !important;
-        padding: 0.3rem !important;
+        padding: 0.25rem !important;
     }
     
     .table thead th .btn {
         font-size: 0.7rem !important;
-        padding: 0.3rem !important;
+        padding: 0 !important;
     }
     
     .table tbody td {
         font-size: 0.7rem !important;
-        padding: 0.2rem !important;
+        padding: 0.25rem !important;
     }
     
     .card-body .table-responsive {
         margin: -1rem;
         padding: 0rem !important;
         padding-bottom: 12px !important;
+    }
+
+    dl.row > dt,
+    dl.row > dd {
+        min-height: 1.7rem;
+    }
+
+    dl.row > dt.col-sm-5 {
+        flex: 0 0 52%;
+        max-width: 52%;
+    }
+
+    dl.row > dd.col-sm-7 {
+        flex: 0 0 48%;
+        max-width: 48%;
     }
 
     .apexcharts-yaxis-label,
