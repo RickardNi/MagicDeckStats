@@ -1,5 +1,5 @@
 window.DragDropHelper = {
-    initializeDragDrop: function (dropZoneElement, dotNetObjectReference) {
+    initializeDragDrop: function (dropZoneElement, fileInputElement, dotNetObjectReference) {
         if (!dropZoneElement) {
             console.error('Drop zone element not found');
             return;
@@ -26,34 +26,51 @@ window.DragDropHelper = {
 
         // Handle dropped files
         dropZoneElement.addEventListener('drop', (e) => {
-            const files = Array.from(e.dataTransfer.files);
-            
+            readAndSendFile(e.dataTransfer.files, dotNetObjectReference);
+        }, false);
+
+        // Click on drop zone opens file dialog
+        dropZoneElement.addEventListener('click', () => {
+            if (fileInputElement) {
+                fileInputElement.click();
+            }
+        }, false);
+
+        // Handle file input selection
+        if (fileInputElement) {
+            fileInputElement.addEventListener('change', (e) => {
+                readAndSendFile(e.target.files, dotNetObjectReference);
+                e.target.value = '';
+            }, false);
+        }
+
+        function readAndSendFile(fileList, dotNetRef) {
+            const files = Array.from(fileList);
+
             if (files.length > 0) {
                 const file = files[0];
-                
-                // Check if it's a JSON file
+
                 if (!file.name.toLowerCase().endsWith('.json')) {
-                    dotNetObjectReference.invokeMethodAsync('OnInvalidFileType');
+                    dotNetRef.invokeMethodAsync('OnInvalidFileType');
                     return;
                 }
 
-                // Read the file content
                 const reader = new FileReader();
-                reader.onload = function(event) {
-                    const fileContent = event.target.result;
-                    const fileInfo = {
-                        name: file.name,
-                        size: file.size,
-                        content: fileContent
-                    };
-                    dotNetObjectReference.invokeMethodAsync('OnFileDropped', fileInfo);
+                reader.onload = function (event) {
+                    // First send lightweight metadata so C# can show "Processing..." immediately
+                    dotNetRef.invokeMethodAsync('OnFileReadStart', file.name, file.size).then(() => {
+                        // Yield to browser to render the notification, then send the heavy payload
+                        setTimeout(() => {
+                            dotNetRef.invokeMethodAsync('OnFileContentReady', event.target.result);
+                        }, 50);
+                    });
                 };
-                reader.onerror = function() {
-                    dotNetObjectReference.invokeMethodAsync('OnFileReadError');
+                reader.onerror = function () {
+                    dotNetRef.invokeMethodAsync('OnFileReadError');
                 };
                 reader.readAsText(file);
             }
-        }, false);
+        }
 
         function preventDefaults(e) {
             e.preventDefault();

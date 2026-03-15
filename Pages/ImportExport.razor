@@ -31,17 +31,15 @@
                             <div class="drop-zone-content">
                                 <span class="bi bi-cloud-upload fs-1 text-muted"></span>
                                 <p class="mt-2 mb-0">Drag and drop your BGStats JSON file here</p>
-                                <p class="text-muted small">or use the file input below</p>
+                                <p class="text-muted small">or click to select a file</p>
                             </div>
                         </div>
-                        <div class="mt-3">
-                            <InputFile OnChange="HandleFileSelect" accept=".json" class="form-control" />
-                        </div>
+                        <input type="file" accept=".json" @ref="fileInputElement" style="display:none" />
                     </div>
 
                     @if (!string.IsNullOrEmpty(importStatus))
                     {
-                        <div class="alert @(importSuccess ? "alert-success" : "alert-danger") alert-dismissible fade show" role="alert">
+                        <div class="alert @(isProcessing ? "alert-warning" : importSuccess ? "alert-success" : "alert-danger") alert-dismissible fade show" role="alert">
                             @importStatus
                             <button type="button" class="btn-close" @onclick="() => importStatus = string.Empty"></button>
                         </div>
@@ -158,6 +156,7 @@
         text-align: center;
         transition: all 0.2s ease-in-out;
         background-color: #f8f9fa;
+        cursor: pointer;
     }
 
         .drop-zone:hover {
@@ -184,6 +183,7 @@
 
 @code {
     private bool isDragOver = false;
+    private bool isProcessing = false;
     private string importStatus = string.Empty;
     private bool importSuccess = false;
     private BGStatsExport? importedData;
@@ -191,9 +191,12 @@
     private string copyStatus = string.Empty;
     private bool copySuccess = false;
     private string nameModificationOption = "none";
-    private string excludePlayerIds = "2, 3, 6, 7, 10, 30, 44, 47, 71, 169";
+    private string excludePlayerIds = "2, 3, 6, 7, 10, 30, 44, 47, 71, 169, 206";
     private ElementReference dropZoneElement;
+    private ElementReference fileInputElement;
     private DotNetObjectReference<ImportExport>? dotNetObjectReference;
+    private string pendingFileName = string.Empty;
+    private long pendingFileSize = 0;
 
     protected override async Task OnInitializedAsync()
     {
@@ -205,7 +208,7 @@
         if (firstRender)
         {
             dotNetObjectReference = DotNetObjectReference.Create(this);
-            await JS.InvokeVoidAsync("DragDropHelper.initializeDragDrop", dropZoneElement, dotNetObjectReference);
+            await JS.InvokeVoidAsync("DragDropHelper.initializeDragDrop", dropZoneElement, fileInputElement, dotNetObjectReference);
         }
     }
 
@@ -233,19 +236,21 @@
     }
 
     [JSInvokable]
-    public async Task OnFileDropped(object fileInfo)
+    public async Task OnFileReadStart(string fileName, long fileSize)
     {
         isDragOver = false;
-        
-        if (fileInfo is JsonElement jsonElement)
-        {
-            var name = jsonElement.GetProperty("name").GetString() ?? "";
-            var size = jsonElement.GetProperty("size").GetInt64();
-            var content = jsonElement.GetProperty("content").GetString() ?? "";
+        pendingFileName = fileName;
+        pendingFileSize = fileSize;
+        isProcessing = true;
+        importStatus = "Processing file...";
+        importSuccess = false;
+        await InvokeAsync(StateHasChanged);
+    }
 
-            await ProcessDroppedFile(name, size, content);
-        }
-        
+    [JSInvokable]
+    public async Task OnFileContentReady(string content)
+    {
+        await ProcessImportedFile(pendingFileName, pendingFileSize, content);
         await InvokeAsync(StateHasChanged);
     }
 
@@ -267,18 +272,14 @@
         await InvokeAsync(StateHasChanged);
     }
 
-    private async Task ProcessDroppedFile(string fileName, long fileSize, string content)
+    private async Task ProcessImportedFile(string fileName, long fileSize, string content)
     {
         try
         {
-            importStatus = "Processing dropped file...";
-            importSuccess = false;
-
             // Check file size (10MB limit)
             if (fileSize > 10 * 1024 * 1024)
             {
                 importStatus = "File is too large. Maximum size is 10MB.";
-                importSuccess = false;
                 return;
             }
 
@@ -288,7 +289,6 @@
             if (!importResult)
             {
                 importStatus = "Failed to import data. Please ensure it's a valid BGStats export.";
-                importSuccess = false;
                 return;
             }
 
@@ -298,75 +298,6 @@
             if (importedData == null)
             {
                 importStatus = "Data imported but failed to retrieve for display.";
-                importSuccess = false;
-                return;
-            }
-
-            importStatus = $"Successfully imported {fileName} with {importedData.Games.Count} games, {importedData.Plays.Count} plays, and {importedData.Players.Count} players.";
-            importSuccess = true;
-
-            // Refresh export data to include the newly imported data
-            await RefreshExportData();
-        }
-        catch (Exception ex)
-        {
-            Logger.LogError(ex, "Error processing dropped file: {FileName}", fileName);
-            importStatus = $"Error processing file: {ex.Message}";
-            importSuccess = false;
-        }
-    }
-
-    private void HandleDragOver(DragEventArgs e)
-    {
-        // Prevent default to allow drop - the actual handling is done via JS interop
-        e.DataTransfer.DropEffect = "copy";
-    }
-    
-    private async Task HandleFileSelect(InputFileChangeEventArgs e)
-    {
-        if (e.FileCount > 0)
-        {
-            var file = e.File;
-            await ProcessFile(file);
-        }
-    }
-
-    private async Task ProcessFile(IBrowserFile file)
-    {
-        try
-        {
-            importStatus = "Processing file...";
-            importSuccess = false;
-            StateHasChanged();
-
-            if (!file.Name.EndsWith(".json", StringComparison.OrdinalIgnoreCase))
-            {
-                importStatus = "Please select a JSON file.";
-                importSuccess = false;
-                return;
-            }
-
-            using var stream = file.OpenReadStream(maxAllowedSize: 10 * 1024 * 1024); // 10MB limit
-            using var reader = new StreamReader(stream);
-            var jsonContent = await reader.ReadToEndAsync();
-
-            // Import the data using the service
-            var importResult = await BGStatsService.ImportDataAsync(jsonContent);
-
-            if (!importResult)
-            {
-                importStatus = "Failed to import data. Please ensure it's a valid BGStats export.";
-                importSuccess = false;
-                return;
-            }
-
-            // Get the imported data for display
-            importedData = await BGStatsService.GetCurrentDataAsync();
-
-            if (importedData == null)
-            {
-                importStatus = "Data imported but failed to retrieve for display.";
-                importSuccess = false;
                 return;
             }
 
@@ -378,11 +309,22 @@
         }
         catch (Exception ex)
         {
-            Logger.LogError(ex, "Error processing imported file");
+            Logger.LogError(ex, "Error processing file: {FileName}", fileName);
             importStatus = $"Error processing file: {ex.Message}";
-            importSuccess = false;
+        }
+        finally
+        {
+            isProcessing = false;
         }
     }
+
+    private void HandleDragOver(DragEventArgs e)
+    {
+        // Prevent default to allow drop - the actual handling is done via JS interop
+        e.DataTransfer.DropEffect = "copy";
+    }
+    
+
 
     private async Task RefreshExportData()
     {
